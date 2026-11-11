@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { dateFR, displayName } from "@/lib/format";
 import { storageEnabled } from "@/lib/storage";
 import type { Debrief } from "@/lib/ai";
-import { ManualAdd } from "../client/ManualAdd";
+import { MeetingAdd } from "../client/MeetingAdd";
 import { CsvImport } from "../client/CsvImport";
 
 /** Rendez-vous menés par le client (ou l'AE) : liste avec le débrief IA, et ajout à la main ou par CSV. */
@@ -26,17 +26,17 @@ export async function Meetings({ scope, base, shareToken }: { scope: Scope; base
                   <span className={`av ${d && d.score >= 7 ? "win" : ""}`}>{d ? d.score : "…"}</span>
                   <span className="who">{displayName(m)}<span> · {m.company || "—"}</span></span>
                   <span className="meta">{dateFR(m.startedAt)}</span>
-                  <span className="sum">{d ? d.verdict : m.aiStatus === "pending" || m.transcriptStatus === "pending" ? "Débrief en préparation…" : m.summary ? "Débrief en préparation…" : "Ajoutez la transcription ou vos notes pour obtenir le débrief."}</span>
+                  <span className="sum">{d ? d.verdict : m.aiStatus === "pending" || m.transcriptStatus === "pending" ? "Débrief en préparation…" : "Transcription en attente : le débrief arrivera ensuite."}</span>
                 </Link>
               );
             })}</div>
           ) : (
-            <div className="empty"><b>Aucun rendez-vous pour l&apos;instant</b>Ajoutez vos rendez-vous à droite : l&apos;IA fait le débrief de chacun (ce qui a marché, ce qui a manqué, conseils) et le relie à l&apos;appel de prospection qui l&apos;a obtenu.</div>
+            <div className="empty"><b>Aucun rendez-vous pour l&apos;instant</b>Déposez à droite la transcription ou l&apos;enregistrement de vos rendez-vous : l&apos;IA fait le débrief de chacun (ce qui a marché, ce qui a manqué, conseils) et le relie à l&apos;appel de prospection qui l&apos;a obtenu.</div>
           )}
         </div>
       </div>
       <div className="stack">
-        <ManualAdd clientId={clientId} uploads={!shareToken && storageEnabled()} only="meeting" shareToken={shareToken} />
+        <MeetingAdd clientId={clientId} uploads={!shareToken && storageEnabled()} shareToken={shareToken} />
         <CsvImport clientId={clientId} kind="meeting" shareToken={shareToken} />
       </div>
     </div>

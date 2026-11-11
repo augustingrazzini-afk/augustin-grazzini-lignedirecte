@@ -50,11 +50,11 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           {!readOnly && <div className="row" style={{ marginTop: 16 }}>
             <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
             <Link className="btn" href={`${base}/contacts/${encodeURIComponent(c.contactKey)}`}>Fiche prospect</Link>
-            <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={tr.length > 0 || (c.kind === "meeting" && !!c.summary)} back={`${base}/calls`} clientId={clientParam} meeting={c.kind === "meeting"} />
+            <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={tr.length > 0} back={`${base}/calls`} clientId={clientParam} meeting={c.kind === "meeting"} />
           </div>}
         </div>
         {debrief && <DebriefCard d={debrief} />}
-        {c.kind === "meeting" && !debrief && (tr.length > 0 || c.summary) && <div className="card"><div className="sec"><h4>Débrief IA</h4><p className="muted" style={{ margin: 0 }}>Le débrief de ce rendez-vous est en préparation : il apparaît ici dans quelques instants.</p></div></div>}
+        {c.kind === "meeting" && !debrief && tr.length > 0 && <div className="card"><div className="sec"><h4>Débrief IA</h4><p className="muted" style={{ margin: 0 }}>Le débrief de ce rendez-vous est en préparation : il apparaît ici dans quelques instants.</p></div></div>}
         {c.summary && <div className="card"><div className="sec"><h4>Résumé</h4><div className="sumbox">{c.summary.replace(/^-\s*/gm, "• ")}</div></div></div>}
         {det.length > 0 && (
           <div className="card"><div className="sec"><h4>Objections</h4><div className="stack" style={{ gap: 8 }}>{det.map((o, i) => (

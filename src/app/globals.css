@@ -495,3 +495,5 @@ mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 
 .debrief-box.ko { background: #FFF0F2; }
 .debrief-box ul, .debrief-advice { margin: 6px 0 0; padding-left: 18px; line-height: 1.5; }
 .debrief-box li, .debrief-advice li { margin: 3px 0; }
+.tp-name { display: inline-flex; flex-direction: column; gap: .16em; }
+.tp-by { font-family: var(--f-body); font-weight: 500; font-size: max(10px, .42em); letter-spacing: .01em; line-height: 1; }

@@ -6,7 +6,7 @@ import { parseTranscript } from "./CsvImport";
 const OBJ: Record<string, string> = { relevance: "Pertinence", incumbent: "Solution en place", timing: "Timing", too_busy: "Pas le temps", authority: "Pas décideur", budget: "Budget", other: "Autre" };
 const OUTCOMES = { call: [["connected", "Décroché"], ["meeting", "RDV pris"], ["noanswer", "Pas de réponse"]], meeting: [["done", "Rendez-vous effectué"], ["won", "Suite positive / closing"], ["noshow", "No-show"]] } as const;
 
-function parseVtt(txt: string) {
+export function parseVtt(txt: string) {
   txt = txt.replace(/\r/g, "").replace(/^﻿/, "");
   if (!/-->/.test(txt)) return txt.trim();
   const out: { ts: string; sp: string; t: string }[] = [];

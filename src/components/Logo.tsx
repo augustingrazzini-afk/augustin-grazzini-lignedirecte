@@ -16,12 +16,15 @@ export function LogoMark({ size = 36, onDark = false }: { size?: number; onDark?
   );
 }
 
-/** Symbole + mot « Trustpipe ». `onDark` pour la barre latérale. */
-export function Logo({ size = 22, onDark = false }: { size?: number; onDark?: boolean }) {
+/** Symbole + mot « Trustpipe », signé « by LigneDirecte ». `onDark` pour la barre latérale ; `by={false}` pour le masquer. */
+export function Logo({ size = 22, onDark = false, by = true }: { size?: number; onDark?: boolean; by?: boolean }) {
   return (
     <span className="tp-logo" style={{ fontSize: size }}>
       <LogoMark size={Math.round(size * 1.55)} onDark={onDark} />
-      <span className="tp-word"><span style={{ color: onDark ? "#fff" : TP_DARK }}>Trust</span><span style={{ color: TP_MINT }}>pipe</span></span>
+      <span className="tp-name">
+        <span className="tp-word"><span style={{ color: onDark ? "#fff" : TP_DARK }}>Trust</span><span style={{ color: TP_MINT }}>pipe</span></span>
+        {by && <span className="tp-by" style={{ color: onDark ? "rgba(255,255,255,.62)" : "#59628A" }}>by LigneDirecte</span>}
+      </span>
     </span>
   );
 }

@@ -127,7 +127,7 @@ export async function debriefMeeting(id: string) {
   const m = await db.call.findUnique({ where: { id } });
   if (!m || m.kind !== "meeting") return null;
   const tr = (m.transcript as unknown as TranscriptLine[]) || [];
-  if (!tr.length && !m.summary.trim()) return null;
+  if (!tr.length) return null; // le débrief part toujours de la transcription
   const before = m.contactKey
     ? await db.call.findMany({ where: { orgId: m.orgId, contactKey: m.contactKey, kind: "call", startedAt: { lte: m.startedAt }, connected: true }, orderBy: { startedAt: "desc" }, take: 3 })
     : [];
@@ -157,7 +157,7 @@ ${m.summary ? `Notes : ${m.summary.slice(0, 3000)}\n` : ""}${tr.length ? `Transc
 export async function debriefPending(opts: { orgId?: string; limit?: number } = {}) {
   if (!aiEnabled()) return 0;
   const todo = await db.call.findMany({
-    where: { ...(opts.orgId ? { orgId: opts.orgId } : {}), kind: "meeting", debrief: { equals: Prisma.DbNull }, aiStatus: { notIn: ["pending", "processing"] }, OR: [{ summary: { not: "" } }, { NOT: { transcript: { equals: [] } } }] },
+    where: { ...(opts.orgId ? { orgId: opts.orgId } : {}), kind: "meeting", debrief: { equals: Prisma.DbNull }, aiStatus: { notIn: ["pending", "processing"] }, NOT: { transcript: { equals: [] } } },
     orderBy: { startedAt: "desc" }, take: opts.limit ?? 10, select: { id: true },
   });
   let n = 0;

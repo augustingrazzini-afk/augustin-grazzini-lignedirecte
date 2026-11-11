@@ -170,6 +170,7 @@ export function CsvImport({ clientId, kind = "call", shareToken }: { clientId: s
     const out = [];
     for (const r of rows) {
       const startedAt = parseDate(g(r, "date")); if (!startedAt) continue;
+      if (isMeeting && !g(r, "transcript") && !/^https:\/\//i.test(g(r, "recording"))) continue; // un rendez-vous sans transcription ni enregistrement est ignoré
       let first = g(r, "first"), last = g(r, "last");
       if (!first && !last && g(r, "fullname")) { const p = g(r, "fullname").split(/\s+/); first = p.shift() || ""; last = p.join(" "); }
       const status = g(r, "status"), dur = parseDur(g(r, "duration"));
@@ -202,7 +203,7 @@ export function CsvImport({ clientId, kind = "call", shareToken }: { clientId: s
   const mapped = fields.filter(([k]) => st.map?.[k]);
   return (
     <div className="card">
-      <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#34D6A0,#1FB985)" }}>CSV</span><div><h2>{isMeeting ? "Importer vos rendez-vous (CSV)" : "Import CSV"}</h2><span className="muted small">{isMeeting ? "Export de votre agenda, de votre CRM ou de votre outil d'enregistrement (Modjo, tl;dv, Gong…) : date, prospect, notes et, si possible, la transcription. L'IA fait le débrief de chaque rendez-vous." : "Exports de n'importe quel outil : les colonnes sont reconnues automatiquement."} Réimporter le même fichier ne crée pas de doublons.</span></div></div>
+      <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#34D6A0,#1FB985)" }}>CSV</span><div><h2>{isMeeting ? "Importer vos rendez-vous (CSV)" : "Import CSV"}</h2><span className="muted small">{isMeeting ? "Export de votre outil d'enregistrement (Modjo, tl;dv, Gong, Fireflies…) avec une colonne transcription ou lien d'enregistrement : l'IA fait le débrief de chaque rendez-vous." : "Exports de n'importe quel outil : les colonnes sont reconnues automatiquement."} Réimporter le même fichier ne crée pas de doublons.</span></div></div>
       {mode === "activity" && (
         <details className="csv-help" style={{ marginTop: 12 }}>
           <summary>Où trouver mon fichier LinkedIn ou email ?</summary>

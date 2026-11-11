@@ -46,6 +46,7 @@ export async function POST(req: Request) {
   if (parsed.data.shareToken && !share) return jsonError("Lien de suivi invalide", 403);
   if (share) {
     if (rows.some((r) => r.kind !== "meeting" || r.recordingKey)) return jsonError("Depuis le lien de suivi, vous pouvez ajouter uniquement des rendez-vous.", 403);
+    if (rows.some((r) => !r.transcript.length && !r.recordingUrl)) return jsonError("Chaque rendez-vous doit avoir sa transcription ou son enregistrement.");
     if ((await bumpUsage(`import:${share.clientId}`)) > 40) return jsonError("Limite d'ajouts atteinte pour aujourd'hui. Réessayez demain.", 429);
   }
   const scope = share ?? (await apiScope(req, { clientId: parsed.data.clientId }));

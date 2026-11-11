@@ -2,7 +2,7 @@ import { shareScope } from "@/lib/access";
 import { PageTop } from "@/components/Shell";
 import { CallDetail } from "@/components/views/CallDetail";
 
-export const metadata = { title: "Fiche appel" };
+export const metadata = { title: "Fiche appel ou rendez-vous" };
 export default async function Page({ params }: { params: Promise<{ token: string; id: string }> }) {
   const { token, id } = await params;
   const { scope } = await shareScope(token);
