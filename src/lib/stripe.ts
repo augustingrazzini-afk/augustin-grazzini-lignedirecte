@@ -1,4 +1,5 @@
 import Stripe from "stripe";
+import { createHash } from "node:crypto";
 import { db } from "./db";
 import { open, seal } from "./crypto";
 import { PLANS } from "./billing";
@@ -60,18 +61,20 @@ export function planForPrice(price: Stripe.Price | undefined | null): Plan | nul
 
 /** Mode de la clé (test ou réel) : le secret du webhook est propre au compte et au mode. */
 const keyMode = () => ((process.env.STRIPE_SECRET_KEY || "").startsWith("sk_live") || (process.env.STRIPE_SECRET_KEY || "").startsWith("rk_live") ? "live" : "test");
-const webhookSecretKey = () => `stripe_webhook_${keyMode()}_${(process.env.STRIPE_SECRET_KEY || "").slice(8, 24)}`;
+const appUrl = () => (process.env.APP_URL || "").replace(/\/$/, "");
+/** Un secret par compte, par mode et par adresse du site : changer de domaine recrée le webhook automatiquement. */
+const webhookSecretKey = (app = appUrl()) => `stripe_webhook_${keyMode()}_${(process.env.STRIPE_SECRET_KEY || "").slice(8, 24)}_${createHash("sha256").update(app).digest("hex").slice(0, 12)}`;
 const EVENTS: Stripe.WebhookEndpointCreateParams.EnabledEvent[] = ["checkout.session.completed", "customer.subscription.created", "customer.subscription.updated", "customer.subscription.deleted"];
 
 /** Crée le webhook Trustpipe sur le compte Stripe s'il n'existe pas, et garde son secret (chiffré). */
 export async function ensureWebhook(app: string) {
-  const key = webhookSecretKey();
+  const key = webhookSecretKey(app.replace(/\/$/, ""));
   if (await db.appSecret.findUnique({ where: { key } })) return;
   const url = `${app}/api/stripe/webhook`;
   const st = stripe();
   const list = await st.webhookEndpoints.list({ limit: 100 });
-  // Un ancien webhook Trustpipe dont on n'a plus le secret est remplacé.
-  for (const w of list.data) if (w.url === url && w.metadata?.app === "trustpipe") await st.webhookEndpoints.del(w.id);
+  // Les anciens webhooks Trustpipe (autre adresse ou secret perdu) sont remplacés.
+  for (const w of list.data) if (w.metadata?.app === "trustpipe") await st.webhookEndpoints.del(w.id);
   const w = await st.webhookEndpoints.create({ url, enabled_events: EVENTS, description: "Trustpipe (abonnements)", metadata: { app: "trustpipe" } });
   if (w.secret) await db.appSecret.upsert({ where: { key }, create: { key, value: seal(w.secret) }, update: { value: seal(w.secret) } });
 }
@@ -80,8 +83,8 @@ export async function ensureWebhook(app: string) {
 export async function webhookSecrets(): Promise<string[]> {
   const out: string[] = [];
   if (process.env.STRIPE_WEBHOOK_SECRET) out.push(process.env.STRIPE_WEBHOOK_SECRET);
-  const row = await db.appSecret.findUnique({ where: { key: webhookSecretKey() } });
-  if (row) out.push(open<string>(row.value));
+  const rows = await db.appSecret.findMany({ where: { key: { startsWith: `stripe_webhook_${keyMode()}_${(process.env.STRIPE_SECRET_KEY || "").slice(8, 24)}` } }, orderBy: { updatedAt: "desc" }, take: 3 });
+  for (const r of rows) out.push(open<string>(r.value));
   return out;
 }
 
