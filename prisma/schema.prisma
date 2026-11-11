@@ -14,7 +14,11 @@ datasource db {
 model User {
   id           String         @id @default(cuid())
   email        String         @unique
-  name         String?
+  name            String?
+  passwordHash    String? // scrypt ; null = connexion par lien email uniquement
+  emailVerifiedAt DateTime? // adresse confirmée (lien cliqué)
+  failedLogins    Int       @default(0)
+  lockedUntil     DateTime? // blocage temporaire après trop d'essais ratés
   createdAt    DateTime       @default(now())
   memberships  Membership[]
   clientAccess ClientMember[]
@@ -25,6 +29,8 @@ model LoginToken {
   email     String
   tokenHash String    @unique
   redirect  String?
+  purpose   String    @default("login") // login | verify (inscription) | reset (mot de passe oublié)
+  payload   String? // inscription : mot de passe chiffré en attente de confirmation
   expiresAt DateTime
   usedAt    DateTime?
   createdAt DateTime  @default(now())

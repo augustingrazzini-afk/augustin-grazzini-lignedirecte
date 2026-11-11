@@ -1,26 +1,31 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/session";
-import { requestLogin } from "@/app/actions";
+import { loginPassword, requestLogin } from "@/app/actions";
 import { ActionForm } from "@/components/client/ActionForm";
-import { Logo } from "@/components/Logo";
-import Link from "next/link";
+import { AuthCard } from "@/components/AuthCard";
 
 export const metadata = { title: "Connexion" };
 export default async function Page({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const sp = await searchParams;
-  if (await currentUser()) redirect(sp.next?.startsWith("/") && !sp.next.startsWith("//") ? sp.next : "/app");
+  const next = sp.next?.startsWith("/") && !sp.next.startsWith("//") ? sp.next : undefined;
+  if (await currentUser()) redirect(next || "/app");
+  const q = next ? `?next=${encodeURIComponent(next)}` : "";
   return (
-    <div className="auth">
-      <div className="card">
-        <div style={{ marginBottom: 20 }}><Logo size={24} /></div>
-        <h1 style={{ fontFamily: "var(--f-display)", fontSize: 28, margin: "0 0 6px", letterSpacing: "-.02em" }}>Connexion</h1>
-        <p className="muted" style={{ margin: "0 0 20px" }}>Entrez votre email : on vous envoie un lien de connexion. Pas de mot de passe.</p>
-        {sp.error === "expired" && <div className="banner err">Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.</div>}
-        <ActionForm action={requestLogin} submit="Recevoir mon lien" hidden={sp.next ? { next: sp.next } : undefined}>
-          <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus /></label>
+    <AuthCard title="Connexion" subtitle="Heureux de vous revoir."
+      footer={<>Pas encore de compte ? <Link href={`/inscription${q}`}><b>Créer un compte</b></Link> · 14 jours d&apos;essai gratuit</>}>
+      {sp.error === "expired" && <div className="banner err">Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.</div>}
+      <ActionForm action={loginPassword} submit="Se connecter" hidden={next ? { next } : undefined}>
+        <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus /></label>
+        <label className="full">Mot de passe<input className="input" type="password" name="password" required autoComplete="current-password" /></label>
+        <p className="full small" style={{ margin: "-4px 0 0", textAlign: "right" }}><Link href="/mot-de-passe-oublie">Mot de passe oublié ?</Link></p>
+      </ActionForm>
+      <details className="auth-alt">
+        <summary>Ou recevoir un lien de connexion par email</summary>
+        <ActionForm action={requestLogin} submit="Recevoir mon lien" hidden={next ? { next } : undefined}>
+          <label className="full">Email<input className="input" type="email" name="email" required autoComplete="email" /></label>
         </ActionForm>
-        <p className="muted small" style={{ margin: "16px 0 0" }}>En continuant, vous acceptez les <Link href="/cgv">conditions générales</Link> et la <Link href="/confidentialite">politique de confidentialité</Link>. Service réservé aux professionnels.</p>
-      </div>
-    </div>
+      </details>
+    </AuthCard>
   );
 }

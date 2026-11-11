@@ -4,8 +4,9 @@ import { redirect } from "next/navigation";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { isEmail, normEmail, sendMagicLink } from "@/lib/auth";
-import { destroySession } from "@/lib/session";
+import { isEmail, loginWithPassword, normEmail, resetPasswordWithToken, sendMagicLink } from "@/lib/auth";
+import { hashPassword, passwordProblem, verifyPassword } from "@/lib/password";
+import { createSession, destroySession } from "@/lib/session";
 import { requireOrgScope, requireUser } from "@/lib/access";
 import { TRIAL_DAYS, isActive, maxClients } from "@/lib/billing";
 import { randomToken, seal } from "@/lib/crypto";
@@ -27,6 +28,65 @@ export async function requestLogin(_: FormState, f: FormData): Promise<FormState
     return { error: e instanceof Error ? e.message : "Envoi impossible." };
   }
   return { ok: "Lien envoyé. Ouvrez votre boîte mail et cliquez sur le lien (valable 30 minutes)." };
+}
+
+const nextPath = (v: string) => (v.startsWith("/") && !v.startsWith("//") ? v : "/app");
+
+/** Inscription : le mot de passe n'est enregistré qu'au clic sur le lien de confirmation envoyé par email. */
+export async function signup(_: FormState, f: FormData): Promise<FormState> {
+  const email = normEmail(s(f, "email", 254));
+  const pw = String(f.get("password") ?? "");
+  if (!isEmail(email)) return { error: "Adresse email invalide." };
+  if (f.get("accept") !== "on") return { error: "Acceptez les conditions générales pour continuer." };
+  const problem = passwordProblem(pw, email);
+  if (problem) return { error: problem };
+  try {
+    const existing = await db.user.findUnique({ where: { email }, select: { passwordHash: true } });
+    if (existing?.passwordHash) {
+      // Pas d'information sur l'existence du compte dans la réponse : on prévient par email.
+      await sendMagicLink(email, { intro: "Vous avez déjà un compte Trustpipe avec cette adresse. Utilisez ce lien pour vous connecter, ou « Mot de passe oublié » si besoin." });
+    } else {
+      await sendMagicLink(email, { purpose: "verify", payload: await hashPassword(pw), redirect: "/onboarding" });
+    }
+  } catch (e) { return fail(e); }
+  return { ok: `Presque fini : nous avons envoyé un email de confirmation à ${email}. Cliquez sur le lien pour activer votre compte (pensez aux spams).` };
+}
+
+export async function loginPassword(_: FormState, f: FormData): Promise<FormState> {
+  const r = await loginWithPassword(s(f, "email", 254), String(f.get("password") ?? ""));
+  if ("error" in r) return { error: r.error };
+  await createSession(r.userId);
+  redirect(nextPath(s(f, "next")));
+}
+
+export async function forgotPassword(_: FormState, f: FormData): Promise<FormState> {
+  const email = normEmail(s(f, "email", 254));
+  if (!isEmail(email)) return { error: "Adresse email invalide." };
+  try {
+    if (await db.user.findUnique({ where: { email }, select: { id: true } })) await sendMagicLink(email, { purpose: "reset" });
+  } catch (e) { return fail(e); }
+  return { ok: "Si un compte existe avec cette adresse, vous allez recevoir un email pour choisir un nouveau mot de passe." };
+}
+
+export async function resetPassword(_: FormState, f: FormData): Promise<FormState> {
+  const pw = String(f.get("password") ?? "");
+  if (pw !== String(f.get("confirm") ?? "")) return { error: "Les deux mots de passe ne correspondent pas." };
+  const r = await resetPasswordWithToken(s(f, "token", 200), pw);
+  if ("error" in r) return { error: r.error };
+  await createSession(r.userId);
+  redirect("/app");
+}
+
+/** Réglages : définir ou changer son mot de passe (l'actuel est demandé s'il existe). */
+export async function changePassword(_: FormState, f: FormData): Promise<FormState> {
+  const u = await requireUser();
+  const pw = String(f.get("password") ?? "");
+  const me = await db.user.findUniqueOrThrow({ where: { id: u.id }, select: { email: true, passwordHash: true } });
+  if (me.passwordHash && !(await verifyPassword(String(f.get("current") ?? ""), me.passwordHash))) return { error: "Mot de passe actuel incorrect." };
+  const problem = passwordProblem(pw, me.email);
+  if (problem) return { error: problem };
+  await db.user.update({ where: { id: u.id }, data: { passwordHash: await hashPassword(pw), failedLogins: 0, lockedUntil: null } });
+  return { ok: me.passwordHash ? "Mot de passe modifié." : "Mot de passe enregistré : vous pouvez maintenant vous connecter avec." };
 }
 
 export async function logout() {

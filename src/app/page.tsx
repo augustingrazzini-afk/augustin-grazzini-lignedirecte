@@ -74,7 +74,7 @@ export default async function Home() {
         <div className="row" style={{ gap: 8 }}>
           <a className="btn lp-hide-sm" href="#tarifs">Tarifs</a>
           <Link className="btn lp-hide-sm" href={u ? "/app" : "/login"}>{u ? "Ouvrir mon espace" : "Connexion"}</Link>
-          {!u && <Link className="btn primary" href="/login">Essai gratuit</Link>}
+          {!u && <Link className="btn primary" href="/inscription">Essai gratuit</Link>}
         </div>
       </header>
 
@@ -83,7 +83,7 @@ export default async function Home() {
         <h1>Votre reporting et vos stats, en un seul endroit, par client.</h1>
         <p className="lead">Vos appels (Minari, Aircall, Ringover…), vos campagnes email (lemlist, Instantly, Smartlead…) et votre prospection LinkedIn réunis, et vos clients qui suivent en direct vos performances avec un simple lien. Chaque appel est résumé par l&apos;IA, les objections sont classées, les relances se créent toutes seules.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
-          <Link className="btn primary lp-cta" href="/login">Essayer {TRIAL_DAYS} jours gratuitement</Link>
+          <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#produit">Voir le produit</a>
         </div>
         <p className="lp-note">Sans carte bancaire · Connectez vos outils en une minute</p>
@@ -105,7 +105,7 @@ export default async function Home() {
             <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
           </video>
         </figure>
-        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/login">Commencer l&apos;essai gratuit</Link><span className="lp-note">{TRIAL_DAYS} jours, sans carte bancaire</span></div>
+        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Commencer l&apos;essai gratuit</Link><span className="lp-note">{TRIAL_DAYS} jours, sans carte bancaire</span></div>
       </section>
 
       <div id="produit">
@@ -116,7 +116,7 @@ export default async function Home() {
               <h2>{s.title}</h2>
               <p>{s.text}</p>
               <ul>{s.points.map((p) => <li key={p}>{p}</li>)}</ul>
-              <Link className="btn primary lp-cta-inline" href="/login">Commencer l&apos;essai gratuit</Link>
+              <Link className="btn primary lp-cta-inline" href="/inscription">Commencer l&apos;essai gratuit</Link>
             </div>
             <figure className={`lp-shot${s.narrow ? " narrow" : ""}`}>
               <img src={s.img} alt={s.title} loading="lazy" />
@@ -145,7 +145,7 @@ export default async function Home() {
           <li><b>2</b>Connectez votre compte</li>
           <li><b>3</b>Vos stats arrivent, en direct</li>
         </ol>
-        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/login">Connecter mon premier outil</Link></div>
+        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Connecter mon premier outil</Link></div>
       </section>
 
       <section id="tarifs" className="lp-pricing">
@@ -163,7 +163,7 @@ export default async function Home() {
                 <li>Relances, brief pré-meeting et assistant IA</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
               </ul>
-              <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/login" style={{ marginTop: 8 }}>Commencer l&apos;essai</Link>
+              <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/inscription" style={{ marginTop: 8 }}>Commencer l&apos;essai</Link>
             </div>
           ))}
         </div>
@@ -171,7 +171,7 @@ export default async function Home() {
 
       <section className="lp-final">
         <h2 className="lp-h2">Votre reporting par client, et vos clients en live.</h2>
-        <Link className="btn primary lp-cta" href="/login">Essayer {TRIAL_DAYS} jours gratuitement</Link>
+        <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>
       <LegalFooter />

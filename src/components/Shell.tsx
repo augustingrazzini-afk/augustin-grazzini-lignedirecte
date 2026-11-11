@@ -39,19 +39,19 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
   return (
     <>
       <header className="mtop">
-        <Logo size={17} onDark />
+        <Logo size={20} onDark />
       </header>
       <div className="app">
         <aside className="side">
           <Link className="brand" href={base}>
             <div>
-              <Logo size={21} onDark />
+              <Logo size={28} onDark />
               <span className="client-tag">{clientName ? <>Espace <b>{clientName}</b></> : <b>{orgName}</b>}</span>
             </div>
           </Link>
           <nav className="nav"><NavLinks items={items} variant="side" /></nav>
           <div className="side-foot">
-            {share ? <span>Lien de suivi en lecture seule</span> : <span>{email}</span>}
+            {share && <span>Lien de suivi en lecture seule</span>}
             {clientName && <span>Suivi par <b>{orgName}</b></span>}
             {!share && <form action={logout}><button type="submit">Se déconnecter</button></form>}
           </div>

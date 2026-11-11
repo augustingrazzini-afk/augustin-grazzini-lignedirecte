@@ -49,7 +49,7 @@ npm test               # tests d'isolation et de calcul (base locale requise)
 ## Mettre à jour la base
 
 Les scripts de `prisma/sql/` s'exécutent dans l'ordre, une seule fois chacun, dans Supabase > SQL Editor :
-`002_multicanal.sql` ajoute les emails, LinkedIn, les relances avec échéance et les alertes ; `003_lien_de_suivi.sql` ajoute le lien de suivi en direct partageable avec un client.
+`002_multicanal.sql` ajoute les emails, LinkedIn, les relances avec échéance et les alertes ; `003_lien_de_suivi.sql` ajoute le lien de suivi en direct partageable avec un client ; `004_mot_de_passe.sql` ajoute la connexion par mot de passe et la confirmation de l'email.
 
 ## Sécurité et cloisonnement
 

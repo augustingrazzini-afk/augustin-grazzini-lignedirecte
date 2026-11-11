@@ -10,7 +10,7 @@ export function V({ v }: { v: string }) {
 export function LegalPage({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div className="landing legal">
-      <header className="lp-nav"><Link href="/" style={{ textDecoration: "none" }}><Logo size={22} /></Link><Link className="btn primary" href="/login">Essai gratuit</Link></header>
+      <header className="lp-nav"><Link href="/" style={{ textDecoration: "none" }}><Logo size={22} /></Link><Link className="btn primary" href="/inscription">Essai gratuit</Link></header>
       <article>
         <h1>{title}</h1>
         <p className="muted">Dernière mise à jour : {LEGAL.updatedAt}</p>

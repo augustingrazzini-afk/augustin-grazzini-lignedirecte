@@ -24,7 +24,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .wm span { font-weight: 300; } .wm b { font-weight: 700; }
 .tp-logo { display: inline-flex; align-items: center; gap: .45em; font-family: var(--f-display); font-weight: 600; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
 .tp-word { display: inline-flex; }
-.client-tag { display: block; margin-top: 6px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #8790BC; }
+.client-tag { display: block; margin-top: 10px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #8790BC; }
 .client-tag b { color: #fff; font-weight: 600; }
 .nav { display: flex; flex-direction: column; gap: 3px; }
 .nav a { position: relative; display: flex; align-items: center; gap: 11px; padding: 10px 12px; border-radius: 11px; color: #9AA3CC; text-decoration: none; font-weight: 500; white-space: nowrap; transition: color .2s, background .2s; }
@@ -276,6 +276,15 @@ tr:last-child td { border-bottom: 0; }
 .as-input textarea { flex: 1; resize: none; min-height: 44px; max-height: 160px; border: 1px solid var(--stroke-2); border-radius: 12px; padding: 11px 13px; font: inherit; field-sizing: content; }
 .as-input textarea:focus { outline: 2px solid rgba(46,91,255,.35); border-color: transparent; }
 .as-reset { align-self: center; margin: 0 0 12px; border: 0; background: none; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
+.auth-back { position: absolute; top: max(20px, env(safe-area-inset-top, 0px)); left: max(20px, env(safe-area-inset-left, 0px)); font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; padding: 8px 12px; border-radius: 10px; }
+.auth-back:hover { background: var(--panel); color: var(--ink); }
+.auth-foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--stroke); font-size: 13.5px; color: var(--muted); text-align: center; }
+.auth-alt { margin-top: 18px; }
+.auth-alt summary { cursor: pointer; font-size: 13px; color: var(--muted); text-align: center; list-style: none; }
+.auth-alt summary::-webkit-details-marker { display: none; }
+.auth-alt[open] summary { margin-bottom: 12px; }
+.auth-check { flex-direction: row !important; align-items: flex-start; gap: 10px !important; font-weight: 400 !important; font-size: 13px; color: var(--muted); }
+.auth-check input { margin-top: 2px; width: 16px; height: 16px; flex: none; }
 mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 4px; font-weight: 600; }
 /* Connecteurs (catalogue façon Claude) */
 .cx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
