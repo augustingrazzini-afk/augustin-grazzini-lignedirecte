@@ -115,6 +115,7 @@ export default async function Home() {
           <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
         </div>
         <p className="lp-note">Prêt en 2 minutes : connectez votre outil d&apos;appel, envoyez le lien. Rien à installer, rien à préparer.</p>
+        <p className="lp-note">🔒 Données hébergées en France, chiffrées et cloisonnées client par client. Conforme RGPD.</p>
         <figure className="lp-shot lp-shot-hero">
           <img src="/screens/suivi-chatbot.jpg" alt="Espace de suivi d'un client : ses appels et rendez-vous en direct, avec son assistant IA" width={2880} height={1800} />
         </figure>
