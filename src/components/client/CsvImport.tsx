@@ -2,6 +2,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Papa from "papaparse";
+import { convertLinkedin, detectLinkedin, stripLinkedinPreamble, type LinkedinKind } from "@/lib/linkedin-export";
 
 const FIELDS: [string, string, RegExp][] = [
   ["date", "Date de l'appel *", /^(date|jour|created|timestamp|date.?(de l')?appel|call.?date|start)/i],
@@ -85,20 +86,47 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
   const [mode, setMode] = useState<"call" | "activity">("call");
   const fields = mode === "call" ? FIELDS : AFIELDS;
   const input = useRef<HTMLInputElement>(null);
-  const [st, setSt] = useState<{ rows?: Record<string, string>[]; headers?: string[]; map?: Record<string, string>; file?: string; err?: string; done?: number; total?: number; status: "idle" | "map" | "run" | "ok" }>({ status: "idle" });
+  const [st, setSt] = useState<{ rows?: Record<string, string>[]; headers?: string[]; map?: Record<string, string>; file?: string; err?: string; done?: number; total?: number; li?: LinkedinKind; status: "idle" | "map" | "li" | "run" | "ok" }>({ status: "idle" });
   const [over, setOver] = useState(false);
 
   function load(f?: File) {
     if (!f) return;
     if (f.size > 25e6) return setSt({ status: "idle", err: "Fichier trop lourd (25 Mo maximum)." });
-    Papa.parse<Record<string, string>>(f, { header: true, skipEmptyLines: true, complete: (res) => {
+    Papa.parse<Record<string, string>>(f, { header: true, skipEmptyLines: true, beforeFirstChunk: stripLinkedinPreamble, complete: (res) => {
       const headers = (res.meta.fields || []).filter(Boolean);
       const rows = res.data.filter((r) => Object.values(r).some((v) => String(v ?? "").trim()));
       if (!rows.length) return setSt({ status: "idle", err: "Ce fichier ne contient pas de lignes lisibles." });
+      const li = detectLinkedin(headers);
+      if (li) { setMode("activity"); return setSt({ status: "li", li, rows: rows.slice(0, 20000), headers, file: f.name, err: rows.length > 20000 ? "Seules les 20 000 premières lignes seront importées." : undefined }); }
       const map: Record<string, string> = {}, used = new Set<string>();
       for (const [k, , re] of fields) { const h = headers.find((h) => !used.has(h) && re.test(h.trim())); if (h) { map[k] = h; used.add(h); } }
       setSt({ status: "map", rows: rows.slice(0, 5000), headers, map, file: f.name, err: rows.length > 5000 ? "Seules les 5 000 premières lignes seront importées." : undefined });
     }, error: () => setSt({ status: "idle", err: "Impossible de lire ce fichier CSV." }) });
+  }
+
+  async function runLinkedin() {
+    const { rows = [], li, file = "" } = st;
+    if (!li) return;
+    const { out: conv, skipped } = convertLinkedin(li, rows);
+    const out = [];
+    for (const a of conv) out.push({ externalId: "li_" + (await hash(a.key)), channel: "linkedin", type: a.type, occurredAt: a.occurredAt,
+      firstName: a.firstName.slice(0, 120), lastName: a.lastName.slice(0, 120), company: a.company.slice(0, 200), jobTitle: a.jobTitle.slice(0, 200),
+      email: a.email?.slice(0, 254), linkedinUrl: a.linkedinUrl?.slice(0, 500), repName: "", campaign: li === "connections" ? "Relations LinkedIn" : "Messagerie LinkedIn", subject: a.subject.slice(0, 300), body: a.body.slice(0, 8000) });
+    return send(out, file, skipped);
+  }
+
+  async function send(out: Record<string, unknown>[], file: string, skipped: number) {
+    if (!out.length) return setSt({ ...st, err: "Aucune ligne reconnue dans ce fichier." });
+    setSt({ ...st, status: "run", done: 0, total: out.length, err: undefined });
+    let done = 0;
+    for (let i = 0; i < out.length; i += 300) {
+      const r = await fetch("/api/activities/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "csv", clientId, rows: out.slice(i, i + 300) }) });
+      if (!r.ok) { const j = await r.json().catch(() => ({})); return setSt({ ...st, status: "idle", err: (j.error || "Import interrompu") + ` (${done} lignes importées avant l'erreur).` }); }
+      done += Math.min(300, out.length - i);
+      setSt((s) => ({ ...s, done }));
+    }
+    setSt({ status: "ok", done, file, err: skipped ? `${skipped} ligne(s) ignorée(s) : date ou contact manquant.` : undefined });
+    router.refresh();
   }
 
   async function runActivities() {
@@ -173,6 +201,17 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
         <button type="button" aria-pressed={mode === "call"} onClick={() => { setMode("call"); setSt({ status: "idle" }); }}>Appels</button>
         <button type="button" aria-pressed={mode === "activity"} onClick={() => { setMode("activity"); setSt({ status: "idle" }); }}>Emails / LinkedIn</button>
       </div>
+      {mode === "activity" && (
+        <details className="csv-help" style={{ marginTop: 12 }}>
+          <summary>Où trouver mon fichier LinkedIn ou email ?</summary>
+          <div className="small">
+            <p><b>Depuis LinkedIn</b> (gratuit) : photo de profil › <b>Préférences et confidentialité</b> › <b>Confidentialité des données</b> › <b>Obtenir une copie de vos données</b> › cochez <b>Relations</b> et/ou <b>Messages</b> › <b>Demander l&apos;archive</b>. LinkedIn vous envoie un email (10 min à 24 h) ; dans le ZIP, déposez ici <code>Connections.csv</code> (vos relations, comptées comme invitations acceptées) ou <code>messages.csv</code> (vos messages envoyés et les réponses de vos prospects, que l&apos;IA classe). Ces deux fichiers sont reconnus automatiquement.</p>
+            <p><b>Depuis votre outil LinkedIn</b> : Waalaxy › Prospects › liste › <b>Exporter en CSV</b> ; La Growth Machine › Leads › <b>Export CSV</b>.</p>
+            <p><b>Campagnes email</b> : lemlist › campagne › Leads › <b>Exporter</b> ; Instantly › campagne › <b>Download CSV</b> ; Smartlead › campagne › <b>Export</b>. Le plus simple reste de connecter l&apos;outil dans « Connecteurs » : tout remonte seul.</p>
+            <p>Votre fichier doit indiquer, ligne par ligne, une <b>date</b>, un <b>événement</b> (envoyé, ouvert, réponse, invitation envoyée / acceptée, RDV) et le <b>prospect</b>.</p>
+          </div>
+        </details>
+      )}
       <div style={{ marginTop: 14 }} className="stack">
         {st.status === "ok" && <div className="banner ok" style={{ margin: 0 }}><b>{st.done} {mode === "call" ? "appels" : "lignes"} importé(e)s</b>&nbsp;depuis {st.file}.</div>}
         {st.err && <div className="banner err" style={{ margin: 0 }}>{st.err}</div>}
@@ -183,6 +222,13 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
           </div>
         )}
         <input ref={input} type="file" accept=".csv,text/csv" hidden onChange={(e) => { load(e.target.files?.[0]); e.target.value = ""; }} />
+        {st.status === "li" && st.rows && (
+          <>
+            <div className="banner ok" style={{ margin: 0 }}><b>Export LinkedIn reconnu</b>&nbsp;: {st.li === "connections" ? `${st.rows.length} relations (comptées comme invitations acceptées, à leur date de connexion)` : `${st.rows.length} messages (vos envois et les réponses de vos prospects ; l'IA classera les réponses)`}.</div>
+            {st.li === "messages" && <p className="muted small" style={{ margin: 0 }}>Toutes les conversations du fichier sont importées, y compris les échanges qui ne relèvent pas de la prospection.</p>}
+            <div className="row"><button className="btn primary" onClick={runLinkedin}>Importer {st.rows.length} lignes</button><button className="btn" onClick={() => setSt({ status: "idle" })}>Annuler</button></div>
+          </>
+        )}
         {st.status === "map" && st.rows && (
           <>
             <p className="muted small" style={{ margin: 0 }}><b style={{ color: "var(--ink)" }}>{st.file}</b> · {st.rows.length} lignes. Vérifiez la correspondance des colonnes :</p>

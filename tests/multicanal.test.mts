@@ -110,3 +110,21 @@ test("les taux de réponse email et LinkedIn ne dépassent jamais 100 %", () => 
   assert.ok(em.replyRate <= 100, `email ${em.replyRate}`);
   assert.equal(em.replyRate, 50);
 });
+
+test("exports natifs LinkedIn : relations et messages", async () => {
+  const { detectLinkedin, convertLinkedin, stripLinkedinPreamble } = await import("../src/lib/linkedin-export");
+  assert.equal(stripLinkedinPreamble("Notes:\n\"blabla\"\n\nFirst Name,Last Name,URL\nA,B,u").split("\n")[0], "First Name,Last Name,URL");
+  assert.equal(detectLinkedin(["First Name", "Last Name", "URL", "Email Address", "Company", "Position", "Connected On"]), "connections");
+  assert.equal(detectLinkedin(["CONVERSATION ID", "CONVERSATION TITLE", "FROM", "SENDER PROFILE URL", "TO", "RECIPIENT PROFILE URLS", "DATE", "SUBJECT", "CONTENT", "FOLDER"]), "messages");
+  assert.equal(detectLinkedin(["date", "event"]), null);
+  const c = convertLinkedin("connections", [{ "First Name": "Jean", "Last Name": "Dupont", URL: "https://www.linkedin.com/in/jd", "Email Address": "", Company: "Acme", Position: "CEO", "Connected On": "12 Nov 2026" }]);
+  assert.equal(c.out[0].type, "invite_accepted");
+  assert.equal(c.out[0].company, "Acme");
+  const msg = (from: string, to: string, content: string, date: string) => ({ "CONVERSATION ID": "c1", FROM: from, "SENDER PROFILE URL": from === "Moi Même" ? "https://www.linkedin.com/in/moi" : "https://www.linkedin.com/in/jd", TO: to, "RECIPIENT PROFILE URLS": to === "Moi Même" ? "https://www.linkedin.com/in/moi" : "https://www.linkedin.com/in/jd", DATE: date, SUBJECT: "", CONTENT: content, FOLDER: "INBOX" });
+  const m = convertLinkedin("messages", [msg("Moi Même", "Jean Dupont", "Bonjour", "2026-11-01 10:00:00 UTC"), msg("Moi Même", "Jean Dupont", "Relance", "2026-11-03 10:00:00 UTC"), msg("Jean Dupont", "Moi Même", "Oui, parlons-en jeudi", "2026-11-04 09:00:00 UTC")]);
+  assert.equal(m.owner, "Moi Même");
+  assert.deepEqual(m.out.map((x) => x.type), ["message_sent", "message_sent", "replied"]);
+  assert.equal(m.out[2].firstName, "Jean");
+  assert.equal(m.out[2].body, "Oui, parlons-en jeudi");
+  assert.equal(m.out[0].linkedinUrl, "https://www.linkedin.com/in/jd", "le message envoyé est rattaché au prospect, pas au titulaire");
+});

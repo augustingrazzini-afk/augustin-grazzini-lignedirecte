@@ -246,6 +246,9 @@ tr:last-child td { border-bottom: 0; }
 .legal article table { width: 100%; border-collapse: collapse; font-size: 14px; margin: 8px 0; }
 .legal article th, .legal article td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--stroke); vertical-align: top; }
 .legal article code { font-family: var(--f-mono); font-size: 13px; background: var(--panel); padding: 1px 5px; border-radius: 5px; }
+.csv-help summary { cursor: pointer; font-weight: 600; font-size: 13px; color: var(--blue); }
+.csv-help p { margin: 8px 0 0; color: var(--muted); line-height: 1.55; }
+.csv-help code { font-family: var(--f-mono); font-size: 12px; background: var(--panel); padding: 0 4px; border-radius: 4px; }
 mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 4px; font-weight: 600; }
 /* Connecteurs (catalogue façon Claude) */
 .cx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
