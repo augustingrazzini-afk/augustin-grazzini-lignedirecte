@@ -4,7 +4,8 @@ import { ago } from "@/lib/format";
 import { getProvider, providerList } from "@/lib/providers";
 import { storageEnabled } from "@/lib/storage";
 import { deleteIntegration, syncNow } from "@/app/actions";
-import { IntegrationForm, providerColor, type ProviderInfo } from "../client/IntegrationForm";
+import { providerColor, type ProviderInfo } from "../client/IntegrationForm";
+import { Connectors } from "../client/Connectors";
 import { CsvImport } from "../client/CsvImport";
 import { ManualAdd } from "../client/ManualAdd";
 import { CopyButton } from "../client/CallActions";
@@ -17,7 +18,7 @@ export async function Sources({ scope }: { scope: Scope }) {
     orderBy: { createdAt: "asc" },
   });
   const CH: Record<string, string> = { call: "appels", email: "email", linkedin: "LinkedIn" };
-  const providers: ProviderInfo[] = providerList.map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, fields: p.credentialFields }));
+  const providers: ProviderInfo[] = providerList.map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
   const app = process.env.APP_URL || "http://localhost:3000";
   return (
     <div className="stack">
@@ -56,10 +57,8 @@ export async function Sources({ scope }: { scope: Scope }) {
           })}</div>
         </div>
       )}
-      <div className="grid g-2e">
-        <IntegrationForm providers={providers} clientId={clientId} />
-        <CsvImport clientId={clientId} />
-      </div>
+      <Connectors providers={providers} clientId={clientId} connected={[...new Set(integrations.map((i) => i.provider))]} />
+      <CsvImport clientId={clientId} />
       <ManualAdd clientId={clientId} uploads={storageEnabled()} />
       <div className="card"><h2>Où vont vos données</h2><p className="sub" style={{ marginBottom: 0 }}>
         {scope.kind === "client" ? "Les appels que vous ajoutez restent dans votre espace : seuls votre équipe et votre prestataire les voient. " : "Chaque appel est rangé chez un client grâce aux règles de l'onglet Clients : un client ne voit jamais les appels d'un autre. "}
