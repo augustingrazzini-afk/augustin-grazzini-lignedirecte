@@ -26,7 +26,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   const debrief = c.kind === "meeting" ? (c.debrief as unknown as Debrief | null) : null;
   const trMsg = c.transcriptStatus === "pending" ? "Transcription en cours : elle apparaît ici dans quelques minutes."
     : c.transcriptStatus === "failed" ? "La transcription automatique n'a pas pu être faite pour cet enregistrement."
-    : (c.recordingUrl || c.recordingKey) && c.durationSec >= 30 && transcribeEnabled() ? "Transcription prévue à la prochaine synchronisation."
+    : (c.recordingUrl || c.recordingKey) && c.durationSec >= 8 && transcribeEnabled() ? "Transcription prévue à la prochaine synchronisation."
     : c.kind === "meeting" ? "Pas de transcription pour ce rendez-vous." : "Pas de transcription pour cet appel.";
 
   return (

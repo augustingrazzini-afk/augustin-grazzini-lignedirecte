@@ -9,6 +9,7 @@ import { processTranscriptions } from "./transcribe";
 import { bumpUsage } from "./usage";
 
 const DETAIL_BUDGET = 40;
+const MIN_TRANSCRIBE_SEC = 8; // même seuil que la transcription Trustpipe (transcribe.ts)
 
 /** Synchronise une intégration. Première synchro : 90 jours. Ensuite : depuis la dernière, avec 2 h de recouvrement. */
 export async function syncIntegration(integrationId: string, opts: { full?: boolean } = {}) {
@@ -53,7 +54,8 @@ async function saveCreds(id: string, creds: Record<string, string>) {
 async function fillDetails(integrationId: string, orgId: string, provider: string, clientId: string | null, creds: Record<string, string>) {
   const p = getProvider(provider);
   const todo = await db.call.findMany({
-    where: { integrationId, connected: true, durationSec: { gte: 30 }, transcript: { equals: [] } },
+    // Toute conversation décrochée, même courte (un « pas intéressé » de 15 s compte aussi pour le client).
+    where: { integrationId, connected: true, durationSec: { gt: 0 }, transcriptStatus: "none", transcript: { equals: [] } },
     orderBy: { startedAt: "desc" },
     take: DETAIL_BUDGET,
     select: { externalId: true },
@@ -70,6 +72,11 @@ async function fillDetails(integrationId: string, orgId: string, provider: strin
         company: base.company, jobTitle: base.jobTitle, repName: base.repName, listName: base.listName, campaign: base.campaign, tags: base.tags,
         ...d, externalId: t.externalId,
       }]);
+      // L'outil n'a pas de transcription : si un enregistrement exploitable existe, Trustpipe le transcrira ;
+      // sinon on ne redemande plus (évite de reprendre les mêmes appels à chaque synchro).
+      const after = await db.call.findUnique({ where: { orgId_provider_externalId: { orgId, provider, externalId: t.externalId } }, select: { id: true, transcript: true, recordingUrl: true, recordingKey: true, durationSec: true } });
+      if (after && !(after.transcript as unknown[] | null)?.length && !((after.recordingUrl || after.recordingKey) && after.durationSec >= MIN_TRANSCRIBE_SEC))
+        await db.call.update({ where: { id: after.id }, data: { transcriptStatus: "unavailable" } });
     } catch (e) {
       if (e instanceof ProviderError && e.status === 429) break;
     }

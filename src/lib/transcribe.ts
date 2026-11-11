@@ -12,7 +12,7 @@ const API = "https://api.gladia.io/v2/pre-recorded";
 export const transcribeEnabled = () => !!process.env.GLADIA_API_KEY;
 const headers = () => ({ "x-gladia-key": process.env.GLADIA_API_KEY!, "Content-Type": "application/json", Accept: "application/json" });
 
-const MIN_SEC = 30; // en dessous, ce n'est pas une conversation
+const MIN_SEC = 8; // en dessous, il n'y a rien à transcrire
 const MAX_SUBMIT = 25; // nouvelles transcriptions lancées par passage
 const STALE_MS = 6 * 3600e3; // une transcription jamais revenue est relancée
 
