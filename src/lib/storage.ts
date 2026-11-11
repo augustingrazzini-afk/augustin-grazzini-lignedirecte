@@ -25,7 +25,7 @@ export async function presignUpload(orgId: string, contentType: string, size: nu
 }
 
 /** Lien de lecture temporaire (1 h), généré seulement pour quelqu'un qui a accès à l'appel. */
-export async function presignRead(key: string) {
+export async function presignRead(key: string, expiresIn = 3600) {
   if (!storageEnabled()) return null;
-  return getSignedUrl(client(), new GetObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key }), { expiresIn: 3600 });
+  return getSignedUrl(client(), new GetObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key }), { expiresIn });
 }

@@ -1,10 +1,12 @@
 import { NextResponse, after } from "next/server";
 import { z } from "zod";
-import { processPendingAi } from "@/lib/ai";
+import { debriefPending, processPendingAi } from "@/lib/ai";
 import { apiScope, scopeClientId } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { upsertCalls } from "@/lib/ingest";
+import { processTranscriptions } from "@/lib/transcribe";
+import { bumpUsage, shareApiScope } from "@/lib/usage";
 import { OBJECTION_KEYS, trimTranscript } from "@/lib/providers/types";
 
 // La synchro / l'analyse IA continuent après la réponse (after) : on laisse le temps de finir.
@@ -31,7 +33,7 @@ const Row = z.object({
   recordingUrl: z.string().url().max(2000).startsWith("https://").nullable().optional(),
   recordingKey: z.string().max(300).nullable().optional(),
 });
-const Body = z.object({ source: z.enum(["csv", "manual"]), clientId: z.string().nullable().optional(), rows: z.array(Row).min(1).max(1000) });
+const Body = z.object({ source: z.enum(["csv", "manual"]), clientId: z.string().nullable().optional(), shareToken: z.string().min(20).max(100).optional(), rows: z.array(Row).min(1).max(1000) });
 
 /** Import CSV et ajout manuel. Un utilisateur de portail client ne peut écrire que chez son client. */
 export async function POST(req: Request) {
@@ -39,7 +41,14 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return jsonError("Données invalides : " + parsed.error.issues[0]?.message);
   const { source, rows } = parsed.data;
-  const scope = await apiScope(req, { clientId: parsed.data.clientId });
+  // Lien de suivi (client sans compte) : uniquement ses propres rendez-vous, avec un quota journalier.
+  const share = await shareApiScope(parsed.data.shareToken);
+  if (parsed.data.shareToken && !share) return jsonError("Lien de suivi invalide", 403);
+  if (share) {
+    if (rows.some((r) => r.kind !== "meeting" || r.recordingKey)) return jsonError("Depuis le lien de suivi, vous pouvez ajouter uniquement des rendez-vous.", 403);
+    if ((await bumpUsage(`import:${share.clientId}`)) > 40) return jsonError("Limite d'ajouts atteinte pour aujourd'hui. Réessayez demain.", 429);
+  }
+  const scope = share ?? (await apiScope(req, { clientId: parsed.data.clientId }));
   if (!scope) return jsonError("Accès refusé", 403);
   const blocked = await assertActive(scope);
   if (blocked) return blocked;
@@ -63,6 +72,11 @@ export async function POST(req: Request) {
   }
   // Analyse IA des appels importés juste après la réponse.
   const orgId = scope.orgId;
-  after(() => processPendingAi({ orgId, limit: 100 }).catch((e) => console.error("analyse IA import", e)));
+  // Enregistrement sans transcription : transcrit d'abord (jusqu'à ~2 min), puis analyse et débrief IA.
+  after(async () => {
+    await processTranscriptions({ orgId, waitMs: 120_000 });
+    await processPendingAi({ orgId, limit: 100 }).catch((e) => console.error("analyse IA import", e));
+    await debriefPending({ orgId });
+  });
   return NextResponse.json(res);
 }

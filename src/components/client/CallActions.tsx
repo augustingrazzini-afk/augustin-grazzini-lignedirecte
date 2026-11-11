@@ -2,7 +2,7 @@
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-export function CallActions({ id, canDelete, canAnalyze, back, clientId }: { id: string; canDelete: boolean; canAnalyze: boolean; back: string; clientId: string | null }) {
+export function CallActions({ id, canDelete, canAnalyze, back, clientId, meeting = false }: { id: string; canDelete: boolean; canAnalyze: boolean; back: string; clientId: string | null; meeting?: boolean }) {
   const router = useRouter();
   const [busy, setBusy] = useState("");
   const [confirm, setConfirm] = useState(false);
@@ -18,7 +18,7 @@ export function CallActions({ id, canDelete, canAnalyze, back, clientId }: { id:
   }
   return (
     <>
-      {canAnalyze && <button className="btn" disabled={!!busy} onClick={() => run("POST")}>{busy === "POST" ? "Analyse…" : "Analyser avec l'IA"}</button>}
+      {canAnalyze && <button className="btn" disabled={!!busy} onClick={() => run("POST")}>{busy === "POST" ? (meeting ? "Débrief en cours…" : "Analyse…") : meeting ? "Refaire le débrief IA" : "Analyser avec l'IA"}</button>}
       {canDelete && (confirm
         ? <button className="btn danger" disabled={!!busy} onClick={() => run("DELETE")}>Confirmer la suppression</button>
         : <button className="btn" onClick={() => setConfirm(true)}>Supprimer</button>)}

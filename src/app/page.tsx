@@ -77,7 +77,7 @@ const FAQ: [string, string][] = [
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Faut-il une carte bancaire pour l'essai ?", "Oui, elle est enregistrée sur Stripe, qui gère le paiement : nous ne voyons jamais votre numéro de carte. Rien n'est débité pendant les 14 jours d'essai, et vous résiliez en un clic depuis la page Abonnement."],
-  ["Et si je n'utilise pas Minari ?", "Aircall, Ringover et HubSpot se connectent directement. Les autres outils d'appel passent par Zapier, Make ou n8n, et vous pouvez toujours importer un simple CSV."],
+  ["Et si je n'utilise pas Minari ?", "Aircall, Ringover et HubSpot se connectent directement. Pour tout autre outil, collez simplement l'adresse de son API et votre clé : Trustpipe reconnaît vos appels automatiquement. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
 export default async function Home() {
@@ -178,7 +178,7 @@ export default async function Home() {
         <div className="lp-tools-grid lp-tools-2">
           {[
             ["Outils d'appel", ["Minari", "Aircall", "Ringover", "HubSpot"]],
-            ["Et le reste", ["Zapier", "Make", "n8n", "Import CSV"]],
+            ["Et le reste", ["Votre outil (clé API)", "Zapier", "Make", "n8n", "Import CSV"]],
           ].map(([ch, tools]) => (
             <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => { const l = BRAND_LOGOS[t.toLowerCase()]; return <span key={t}>{l && <svg viewBox="0 0 24 24" width="14" height="14" fill={l.hex} aria-hidden="true"><path d={l.path} /></svg>}{t}</span>; })}</div></div>
           ))}

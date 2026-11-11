@@ -15,6 +15,7 @@ const META: Record<string, { mono: string; color: string; tagline: string; cats:
   lemlist: { mono: "le", color: "#E8457A", tagline: "Emails, LinkedIn et appels de vos campagnes", cats: ["email", "linkedin", "call"], where: "Paramètres › Intégrations › API", url: "https://app.lemlist.com" },
   instantly: { mono: "In", color: "#2563EB", tagline: "Emails envoyés et réponses, par campagne", cats: ["email"], where: "Settings › Integrations › API keys", url: "https://app.instantly.ai" },
   smartlead: { mono: "Sl", color: "#7C3AED", tagline: "Envois, ouvertures et réponses par campagne", cats: ["email"], where: "Settings › API Key", url: "https://app.smartlead.ai" },
+  custom: { mono: "API", color: "#334155", tagline: "Votre outil d'appel, avec sa clé API : les champs sont reconnus automatiquement", cats: ["call", "other"], where: "la documentation API de votre outil (rubrique « API » ou « Développeurs »)" },
   webhook: { mono: "⚡", color: "#0C3D2F", tagline: "Tous les autres outils d'appel via Zapier, Make ou n8n", cats: ["other", "call"] },
 };
 const CATS: [Cat | "all", string][] = [["all", "Tous"], ["call", "Téléphone"], ["other", "Autres outils"]];
@@ -94,6 +95,12 @@ function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: st
               <li>Dans Zapier, Make ou n8n, choisissez votre outil comme déclencheur (réponse reçue, invitation acceptée, appel…).</li>
               <li>Ajoutez l&apos;action « Webhook POST » vers votre URL : les événements arrivent en direct.</li>
             </ol>
+          ) : p.id === "custom" ? (
+            <ol className="cx-steps">
+              <li>Dans votre outil d&apos;appel, ouvrez la rubrique <b>API</b> (ou « Développeurs ») et créez une clé en lecture.</li>
+              <li>Repérez dans sa documentation l&apos;adresse qui <b>liste les appels</b> (souvent en <code>/calls</code>).</li>
+              <li>Collez les deux ici : on vérifie la connexion et on reconnaît vos appels automatiquement.</li>
+            </ol>
           ) : (
             <ol className="cx-steps">
               <li>Ouvrez {m?.url ? <a href={m.url} target="_blank" rel="noopener noreferrer">{p.label} ↗</a> : p.label}{m?.where && <> puis <b>{m.where}</b></>}.</li>
@@ -104,6 +111,7 @@ function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: st
           {main.map((f) => (
             <label key={f.key}>{f.label}
               <input className="input" name={`cred_${f.key}`} type={f.type === "password" ? "password" : "text"} autoComplete="off" required autoFocus={f === main[0]} placeholder="Collez ici" />
+              {f.help && <span className="small" style={{ color: "var(--dim)" }}>{f.help}</span>}
             </label>
           ))}
           {(extra.length > 0 || p.id !== "webhook") && (

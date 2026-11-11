@@ -84,7 +84,8 @@ export function parseTranscript(txt: string) {
 /** Import emails / LinkedIn : désactivé (Trustpipe se concentre sur les appels). */
 const SOCIAL_IMPORT: boolean = false;
 
-export function CsvImport({ clientId }: { clientId: string | null }) {
+export function CsvImport({ clientId, kind = "call", shareToken }: { clientId: string | null; kind?: "call" | "meeting"; shareToken?: string }) {
+  const isMeeting = kind === "meeting";
   const router = useRouter();
   const [mode, setMode] = useState<"call" | "activity">("call");
   const fields = mode === "call" ? FIELDS : AFIELDS;
@@ -177,8 +178,10 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
       const rec = g(r, "recording");
       out.push({
         externalId: "csv_" + (await hash([startedAt, first, last, g(r, "company"), dur].join("|"))),
-        startedAt, durationSec: dur, status: (meeting ? "meeting-booked" : connected ? "connected" : status || "no-answer").slice(0, 60), connected, meetingBooked: meeting, kind: "call",
-        firstName: first.slice(0, 120), lastName: last.slice(0, 120), company: g(r, "company").slice(0, 200), jobTitle: g(r, "job").slice(0, 200), repName: g(r, "rep").slice(0, 120), listName: file.slice(0, 200),
+        startedAt, durationSec: dur, ...(isMeeting
+          ? { status: (status || "done").slice(0, 60), connected: true, meetingBooked: false, kind: "meeting" as const }
+          : { status: (meeting ? "meeting-booked" : connected ? "connected" : status || "no-answer").slice(0, 60), connected, meetingBooked: meeting, kind: "call" as const }),
+        firstName: first.slice(0, 120), lastName: last.slice(0, 120), company: g(r, "company").slice(0, 200), jobTitle: g(r, "job").slice(0, 200), repName: g(r, "rep").slice(0, 120), listName: (isMeeting ? "Rendez-vous" : file).slice(0, 200),
         summary: g(r, "summary").slice(0, 8000), objections: [], transcript: g(r, "transcript") ? parseTranscript(g(r, "transcript")) : [],
         recordingUrl: /^https:\/\//i.test(rec) ? rec : null,
       });
@@ -187,7 +190,7 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
     setSt({ ...st, status: "run", done: 0, total: out.length, err: undefined });
     let done = 0;
     for (let i = 0; i < out.length; i += 200) {
-      const r = await fetch("/api/calls/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "csv", clientId, rows: out.slice(i, i + 200) }) });
+      const r = await fetch("/api/calls/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "csv", clientId, rows: out.slice(i, i + 200), ...(shareToken ? { shareToken } : {}) }) });
       if (!r.ok) { const j = await r.json().catch(() => ({})); return setSt({ ...st, status: "map", err: (j.error || "Import interrompu") + ` (${done} appels importés avant l'erreur).` }); }
       done += Math.min(200, out.length - i);
       setSt((s) => ({ ...s, done }));
@@ -199,7 +202,7 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
   const mapped = fields.filter(([k]) => st.map?.[k]);
   return (
     <div className="card">
-      <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#34D6A0,#1FB985)" }}>CSV</span><div><h2>Import CSV</h2><span className="muted small">Exports de n&apos;importe quel outil : les colonnes sont reconnues automatiquement. Réimporter le même fichier ne crée pas de doublons.</span></div></div>
+      <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#34D6A0,#1FB985)" }}>CSV</span><div><h2>{isMeeting ? "Importer vos rendez-vous (CSV)" : "Import CSV"}</h2><span className="muted small">{isMeeting ? "Export de votre agenda, de votre CRM ou de votre outil d'enregistrement (Modjo, tl;dv, Gong…) : date, prospect, notes et, si possible, la transcription. L'IA fait le débrief de chaque rendez-vous." : "Exports de n'importe quel outil : les colonnes sont reconnues automatiquement."} Réimporter le même fichier ne crée pas de doublons.</span></div></div>
       {mode === "activity" && (
         <details className="csv-help" style={{ marginTop: 12 }}>
           <summary>Où trouver mon fichier LinkedIn ou email ?</summary>
@@ -212,7 +215,7 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
         </details>
       )}
       <div style={{ marginTop: 14 }} className="stack">
-        {st.status === "ok" && <div className="banner ok" style={{ margin: 0 }}><b>{st.done} {mode === "call" ? "appels" : "lignes"} importé(e)s</b>&nbsp;depuis {st.file}.</div>}
+        {st.status === "ok" && <div className="banner ok" style={{ margin: 0 }}><b>{st.done} {isMeeting ? "rendez-vous" : mode === "call" ? "appels" : "lignes"} importé(e)s</b>&nbsp;depuis {st.file}.</div>}
         {st.err && <div className="banner err" style={{ margin: 0 }}>{st.err}</div>}
         {(st.status === "idle" || st.status === "ok") && (
           <div className={`drop ${over ? "over" : ""}`} role="button" tabIndex={0} onClick={() => input.current?.click()} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); input.current?.click(); } }}
@@ -237,7 +240,7 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
             ))}</div>
             <div className="scroll-x"><table><thead><tr>{mapped.map(([, l]) => <th key={l} style={{ textAlign: "left" }}>{l.replace(" *", "")}</th>)}</tr></thead>
               <tbody>{st.rows.slice(0, 3).map((r, i) => <tr key={i}>{mapped.map(([k]) => <td key={k} style={{ textAlign: "left", fontFamily: "var(--f-body)", maxWidth: 200, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{String(r[st.map![k]] ?? "").slice(0, 60)}</td>)}</tr>)}</tbody></table></div>
-            <div className="row"><button className="btn primary" onClick={run}>Importer {st.rows.length} {mode === "call" ? "appels" : "lignes"}</button><button className="btn" onClick={() => setSt({ status: "idle" })}>Annuler</button></div>
+            <div className="row"><button className="btn primary" onClick={run}>Importer {st.rows.length} {isMeeting ? "rendez-vous" : mode === "call" ? "appels" : "lignes"}</button><button className="btn" onClick={() => setSt({ status: "idle" })}>Annuler</button></div>
           </>
         )}
         {st.status === "run" && <><div className="prog"><i style={{ width: `${((st.done || 0) / (st.total || 1)) * 100}%` }} /></div><p className="muted small" style={{ margin: 0 }}>{st.done} / {st.total}</p></>}

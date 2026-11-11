@@ -8,7 +8,7 @@ import { getProvider } from "@/lib/providers";
 import { ProviderError } from "@/lib/providers/types";
 import { syncAndAnalyze } from "@/lib/sync";
 
-export const maxDuration = 60;
+export const maxDuration = 300;
 
 type Pending = { state: string; verifier: string; provider: string; userId: string; orgId: string; clientId: string | null; redirectUri: string; resource: string; tokenEndpoint: string; oauthClientId: string; oauthClientSecret: string; at: number };
 

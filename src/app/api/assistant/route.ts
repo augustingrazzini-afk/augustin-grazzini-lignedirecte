@@ -5,18 +5,12 @@ import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, aiEnabled } from "@/lib/ai";
 import { askAssistant } from "@/lib/assistant";
+import { bumpUsage } from "@/lib/usage";
 
 export const maxDuration = 120;
 
 const SHARE_DAILY_LIMIT = 30;
 
-/** Incrémente le compteur du jour (atomique) et renvoie la nouvelle valeur. */
-async function bumpUsage(key: string) {
-  const day = new Date().toISOString().slice(0, 10);
-  const r = await db.$queryRaw<{ count: number }[]>`INSERT INTO "AiUsage" ("key", "day", "count") VALUES (${key}, ${day}, 1)
-    ON CONFLICT ("key", "day") DO UPDATE SET "count" = "AiUsage"."count" + 1 RETURNING "count"`;
-  return Number(r[0]?.count ?? 0);
-}
 
 const Body = z.object({
   clientId: z.string().max(40).nullable().optional(),

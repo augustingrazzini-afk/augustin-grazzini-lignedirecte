@@ -4,6 +4,7 @@ import { NavLinks, type NavItem } from "./NavLinks";
 import { PERIODS } from "@/lib/period";
 import { Logo } from "./Logo";
 import { FeedbackLink, HelpWidget } from "./client/HelpWidget";
+import { LiveRefresh } from "./client/LiveRefresh";
 
 export type ShellProps = {
   base: string; // "/app" ou "/portal/<id>"
@@ -24,6 +25,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
+    { href: `${base}/rendez-vous`, label: share || clientName ? "Mes rendez-vous" : "Rendez-vous", icon: "meetings" },
     { href: `${base}/brief`, label: "Brief pré-meeting", icon: "brief" },
     { href: `${base}/relances`, label: "Relances", icon: "relances", badge: followUps },
     { href: `${base}/coach`, label: "Assistant IA", icon: "coach" },
@@ -36,7 +38,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
-  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/coach`].includes(it.href)) : all;
+  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/rendez-vous`, `${base}/coach`].includes(it.href)) : all;
   return (
     <>
       <header className="mtop">
@@ -64,6 +66,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         </main>
       </div>
       <nav className="tabbar"><NavLinks items={items} variant="tab" /></nav>
+      <LiveRefresh />
       {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} shareToken={widget.shareToken} />}
     </>
   );

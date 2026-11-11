@@ -5,6 +5,8 @@ import { getProvider } from "./providers";
 import { ProviderError } from "./providers/types";
 import { processPendingAi } from "./ai";
 import { runPool } from "./pool";
+import { processTranscriptions } from "./transcribe";
+import { bumpUsage } from "./usage";
 
 const DETAIL_BUDGET = 40;
 
@@ -77,7 +79,12 @@ async function fillDetails(integrationId: string, orgId: string, provider: strin
 /** Synchronise une intégration puis analyse aussitôt ses nouveaux appels (webhook, première connexion). */
 export async function syncAndAnalyze(integrationId: string, opts: { full?: boolean } = {}) {
   const r = await syncIntegration(integrationId, opts);
-  if (!r.skipped) await analyzeOrg(integrationId);
+  if (!r.skipped) {
+    const integ = await db.integration.findUnique({ where: { id: integrationId }, select: { orgId: true } });
+    // Enregistrements sans transcription : on les transcrit (et on récupère ce qui est prêt) avant l'analyse IA.
+    if (integ) await processTranscriptions({ orgId: integ.orgId, waitMs: 45_000 });
+    await analyzeOrg(integrationId);
+  }
   return r;
 }
 
@@ -112,4 +119,22 @@ export async function syncAll(opts: { limit?: number; concurrency?: number; dead
     }
   }, deadline);
   return { total: list.length, ok, failed, remaining: list.length - ok - failed };
+}
+
+/**
+ * Synchro « en direct » : quand quelqu'un ouvre son espace ou un lien de suivi, les outils de l'organisation
+ * sont resynchronisés s'ils ne l'ont pas été depuis 10 minutes (une seule fois par tranche de 10 minutes).
+ */
+export async function syncIfStale(orgId: string) {
+  try {
+    const cutoff = new Date(Date.now() - 10 * 60e3);
+    const stale = await db.integration.findMany({ where: { orgId, status: { not: "paused" }, provider: { not: "webhook" }, OR: [{ lastSyncAt: null }, { lastSyncAt: { lt: cutoff } }] }, select: { id: true } });
+    const slot = Math.floor(Date.now() / 600e3);
+    for (const i of stale) {
+      if ((await bumpUsage(`autosync:${i.id}:${slot}`)) !== 1) continue; // déjà lancée par un autre visiteur
+      await syncAndAnalyze(i.id).catch(() => {});
+    }
+  } catch (e) {
+    console.error("synchro à la visite", e);
+  }
 }

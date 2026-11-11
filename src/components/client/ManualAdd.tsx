@@ -26,11 +26,11 @@ function parseVtt(txt: string) {
 
 const localNow = () => new Date(Date.now() - new Date().getTimezoneOffset() * 6e4).toISOString().slice(0, 16);
 
-export function ManualAdd({ clientId, uploads }: { clientId: string | null; uploads: boolean }) {
+export function ManualAdd({ clientId, uploads, only, shareToken }: { clientId: string | null; uploads: boolean; only?: "meeting"; shareToken?: string }) {
   const router = useRouter();
   const trFile = useRef<HTMLInputElement>(null), recFile = useRef<HTMLInputElement>(null);
-  const [kind, setKind] = useState<"call" | "meeting">("call");
-  const [outcome, setOutcome] = useState("connected");
+  const [kind, setKind] = useState<"call" | "meeting">(only || "call");
+  const [outcome, setOutcome] = useState(only ? "done" : "connected");
   const [objs, setObjs] = useState<string[]>([]);
   const [tr, setTr] = useState("");
   const [file, setFile] = useState<File | null>(null);
@@ -67,14 +67,14 @@ export function ManualAdd({ clientId, uploads }: { clientId: string | null; uplo
         status: isCall ? (outcome === "meeting" ? "meeting-booked" : outcome === "noanswer" ? "no-answer" : "connected") : outcome,
         connected: isCall ? outcome !== "noanswer" : true, meetingBooked: isCall && outcome === "meeting", kind,
         firstName: v("first"), lastName: v("last"), company: v("company"), jobTitle: v("job"), repName: v("rep"),
-        listName: isCall ? "Ajout manuel" : "Rendez-vous AE", summary: v("summary"), objections: objs,
+        listName: isCall ? "Ajout manuel" : "Rendez-vous", summary: v("summary"), objections: objs,
         transcript: tr.trim() ? parseTranscript(tr) : [], recordingUrl: link || null, recordingKey,
       };
-      const r = await fetch("/api/calls/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "manual", clientId, rows: [row] }) });
+      const r = await fetch("/api/calls/import", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: "manual", clientId, rows: [row], ...(shareToken ? { shareToken } : {}) }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || "Enregistrement impossible");
       (e.target as HTMLFormElement).reset(); setTr(""); setFile(null); setObjs([]);
-      setMsg({ ok: isCall ? "Appel ajouté. L'IA l'analysera si vous avez fourni une transcription." : "Rendez-vous ajouté." });
+      setMsg({ ok: isCall ? "Appel ajouté. L'IA l'analysera si vous avez fourni une transcription." : "Rendez-vous ajouté. Le débrief IA arrive dans une minute environ." });
       router.refresh();
     } catch (err) {
       setMsg({ err: err instanceof Error ? err.message : "Erreur" });
@@ -83,11 +83,11 @@ export function ManualAdd({ clientId, uploads }: { clientId: string | null; uplo
 
   return (
     <div className="card" id="ajout">
-      <div className="head"><div><h2>Ajouter un appel ou un rendez-vous AE</h2><p className="sub">Avec l&apos;enregistrement, la transcription et vos notes.</p></div>
-        <div className="seg"><button type="button" aria-pressed={kind === "call"} onClick={() => { setKind("call"); setOutcome("connected"); }}>Appel</button><button type="button" aria-pressed={kind === "meeting"} onClick={() => { setKind("meeting"); setOutcome("done"); }}>Rendez-vous AE</button></div></div>
+      <div className="head"><div><h2>{only ? "Ajouter un rendez-vous" : "Ajouter un appel ou un rendez-vous AE"}</h2><p className="sub">{only ? "Collez la transcription (Google Meet, Teams, Zoom…) ou vos notes : l'IA en fait le débrief et le relie à l'appel de prospection." : "Avec l'enregistrement, la transcription et vos notes."}</p></div>
+        {!only && <div className="seg"><button type="button" aria-pressed={kind === "call"} onClick={() => { setKind("call"); setOutcome("connected"); }}>Appel</button><button type="button" aria-pressed={kind === "meeting"} onClick={() => { setKind("meeting"); setOutcome("done"); }}>Rendez-vous AE</button></div>}</div>
       <form className="form" onSubmit={submit}>
         <label>Date et heure<input className="input" type="datetime-local" name="date" defaultValue={localNow()} required /></label>
-        <label>{kind === "meeting" ? "AE" : "Commercial"}<input className="input" name="rep" placeholder="Prénom Nom" /></label>
+        <label>{kind === "meeting" ? (only ? "Mené par" : "AE") : "Commercial"}<input className="input" name="rep" placeholder="Prénom Nom" /></label>
         <label>Prénom du prospect<input className="input" name="first" /></label>
         <label>Nom du prospect<input className="input" name="last" /></label>
         <label>Entreprise<input className="input" name="company" /></label>

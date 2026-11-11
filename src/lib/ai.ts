@@ -1,5 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { Activity, Call, Prisma } from "@prisma/client";
+import { Prisma, type Activity, type Call } from "@prisma/client";
 import { db } from "./db";
 import { OBJECTION_KEYS, type TranscriptLine } from "./providers/types";
 import { OBJ_LABEL, fmtDuration, isConversation, displayName } from "./format";
@@ -105,6 +105,66 @@ ${transcriptText(tr)}`,
   if (d) await upsertTask(call, "call", call.id, d, "ai");
 }
 
+/* ---------- 1 ter. Débrief d'un rendez-vous (avec l'appel de prospection qui l'a obtenu) ---------- */
+export type Debrief = {
+  verdict: string; score: number; worked: string[]; missed: string[];
+  objections: { objection: string; handled: boolean; comment: string }[];
+  coherence: string; advice: string[]; next_step: string;
+};
+const DEBRIEF_SCHEMA = obj({
+  verdict: { type: "string", description: "Une phrase : comment s'est passé le rendez-vous" },
+  score: { type: "integer", description: "Note du rendez-vous de 1 à 10" },
+  worked: { ...strArr, description: "Ce qui a bien marché (2 à 4 points concrets)" },
+  missed: { ...strArr, description: "Ce qui n'a pas marché ou a manqué (2 à 4 points concrets)" },
+  objections: { type: "array", items: obj({ objection: { type: "string" }, handled: { type: "boolean" }, comment: { type: "string" } }) },
+  coherence: { type: "string", description: "Cohérence avec l'appel de prospection : besoins et promesses repris ou oubliés. Chaîne vide si aucun appel." },
+  advice: { ...strArr, description: "3 à 5 conseils concrets et actionnables pour le prochain rendez-vous ou la relance" },
+  next_step: { type: "string", description: "La prochaine étape recommandée, en une phrase" },
+});
+
+/** Débrief IA d'un rendez-vous : ce qui a marché, ce qui a manqué, cohérence avec l'appel de prospection, conseils. */
+export async function debriefMeeting(id: string) {
+  const m = await db.call.findUnique({ where: { id } });
+  if (!m || m.kind !== "meeting") return null;
+  const tr = (m.transcript as unknown as TranscriptLine[]) || [];
+  if (!tr.length && !m.summary.trim()) return null;
+  const before = m.contactKey
+    ? await db.call.findMany({ where: { orgId: m.orgId, contactKey: m.contactKey, kind: "call", startedAt: { lte: m.startedAt }, connected: true }, orderBy: { startedAt: "desc" }, take: 3 })
+    : [];
+  const prior = before.map((c, i) => {
+    const t = (c.transcript as unknown as TranscriptLine[]) || [];
+    return `### Appel de prospection ${i + 1} (${c.startedAt.toISOString().slice(0, 10)}${c.meetingBooked ? ", RDV pris" : ""})
+Résumé : ${c.summary || "—"}
+Objections : ${c.objections.join(", ") || "—"}${i === 0 && t.length ? `\nExtrait de la transcription :\n${transcriptText(t, 8000)}` : ""}`;
+  }).join("\n\n");
+  const r = await json<Debrief>(
+    `Tu es un coach commercial B2B. Fais le débrief de ce rendez-vous commercial, en français, sans rien inventer.
+Sois concret et utile pour le commercial qui a mené le rendez-vous : ce qui a marché, ce qui a manqué, les objections et leur traitement, puis des conseils actionnables.
+${prior ? "Compare avec ce qui avait été dit lors de l'appel de prospection : besoins exprimés, promesses faites, objections annoncées. Signale ce qui a été repris et ce qui a été oublié." : "Aucun appel de prospection n'est rattaché à ce prospect : laisse coherence vide."}
+Prospect : ${[m.firstName, m.lastName].filter(Boolean).join(" ") || "—"}${m.company ? `, ${m.company}` : ""}${m.jobTitle ? ` (${m.jobTitle})` : ""}
+
+${prior ? prior + "\n\n" : ""}### Le rendez-vous (${m.startedAt.toISOString().slice(0, 10)})
+${m.summary ? `Notes : ${m.summary.slice(0, 3000)}\n` : ""}${tr.length ? `Transcription :\n${transcriptText(tr, 40000)}` : ""}`,
+    DEBRIEF_SCHEMA,
+    "medium",
+  );
+  r.score = Math.max(1, Math.min(10, Math.round(r.score || 5)));
+  await db.call.update({ where: { id }, data: { debrief: r as any } });
+  return r;
+}
+
+/** Débriefs manquants (rendez-vous ajoutés avec seulement des notes, ou analysés avant cette fonctionnalité). */
+export async function debriefPending(opts: { orgId?: string; limit?: number } = {}) {
+  if (!aiEnabled()) return 0;
+  const todo = await db.call.findMany({
+    where: { ...(opts.orgId ? { orgId: opts.orgId } : {}), kind: "meeting", debrief: { equals: Prisma.DbNull }, aiStatus: { notIn: ["pending", "processing"] }, OR: [{ summary: { not: "" } }, { NOT: { transcript: { equals: [] } } }] },
+    orderBy: { startedAt: "desc" }, take: opts.limit ?? 10, select: { id: true },
+  });
+  let n = 0;
+  for (const t of todo) { try { if (await debriefMeeting(t.id)) n++; } catch (e) { console.error("débrief", t.id, e); if (e instanceof AiError && /sollicitée/.test(e.message)) break; } }
+  return n;
+}
+
 /* ---------- 1 bis. Classement d'une réponse email / LinkedIn ---------- */
 const REPLY_SCHEMA = obj({
   sentiment: { type: "string", enum: ["positive", "neutral", "negative", "ooo", "objection"] },
@@ -184,6 +244,7 @@ export async function processPendingAi(opts: { orgId?: string; limit?: number; c
     try {
       await analyzeCall(c);
       analyzed++;
+      if (c.kind === "meeting") await debriefMeeting(c.id).catch((e) => console.error("débrief", c.id, e));
     } catch (e) {
       const busy = e instanceof AiError && /sollicitée/.test(e.message);
       // Limite de débit : on remet l'appel en file au lieu de le marquer en échec, et on s'arrête là.

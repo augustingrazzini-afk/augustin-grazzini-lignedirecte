@@ -90,8 +90,8 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
       const c = await db.call.findFirst({ where: { id: String(input.id || ""), ...callScope(scope) } });
       if (!c) return { erreur: "Appel introuvable dans votre espace." };
       const tr = ((c.transcript as unknown as TranscriptLine[]) || []).map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n");
-      return { id: c.id, date: day(c.startedAt), prospect: displayName(c), entreprise: c.company, poste: c.jobTitle, duree: fmtDuration(c.durationSec), rdv: c.meetingBooked,
-        commercial: c.repName, liste: c.listName, resume: c.summary, objections: c.objDetails ?? c.objections, transcription: tr.slice(0, 30000) || "pas de transcription" };
+      return { id: c.id, type: c.kind === "meeting" ? "rendez-vous" : "appel de prospection", date: day(c.startedAt), prospect: displayName(c), entreprise: c.company, poste: c.jobTitle, duree: fmtDuration(c.durationSec), rdv: c.meetingBooked,
+        commercial: c.repName, liste: c.listName, resume: c.summary, objections: c.objDetails ?? c.objections, ...(c.debrief ? { debrief_rendez_vous: c.debrief } : {}), transcription: tr.slice(0, 30000) || "pas de transcription" };
     }
     case "search_messages": {
       const days = pickDays(input.days), q = typeof input.query === "string" ? input.query.trim().slice(0, 80) : "";
@@ -136,7 +136,7 @@ export type ChatTurn = { role: "user" | "assistant"; content: string };
 /** Fait tourner la conversation : Claude appelle les outils autant que nécessaire (8 étapes max), puis répond. */
 export async function askAssistant(scope: Scope, history: ChatTurn[], ctx: { who: string; offer: string; isClient: boolean }): Promise<{ text: string; steps: string[] }> {
   const system = `Tu es l'assistant de prospection de Trustpipe, pour ${ctx.who}.${ctx.offer ? ` Ce qu'il vend : ${ctx.offer.slice(0, 1500)}` : ""}
-${ctx.isClient ? "Tu parles au client d'un SDR : ses données sont les appels que son prestataire a menés pour lui. Aide-le surtout à préparer ses rendez-vous et à comprendre les résultats." : "Tu parles à un SDR (ou à son équipe) qui prospecte pour ses clients."}
+${ctx.isClient ? "Tu parles au client d'un SDR : ses données sont les appels que son prestataire a menés pour lui, et les rendez-vous qu'il a lui-même ajoutés (avec leur débrief). Aide-le surtout à préparer ses rendez-vous, à comprendre ce qui marche ou non dans ses rendez-vous en recoupant avec les appels de prospection, et donne-lui des conseils concrets." : "Tu parles à un SDR (ou à son équipe) qui prospecte pour ses clients."}
 Nous sommes le ${day(new Date())} (heure de Paris).
 
 Règles :

@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import { apiScope, callScope } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
-import { AiError, analyzeCall } from "@/lib/ai";
+import { AiError, analyzeCall, debriefMeeting } from "@/lib/ai";
+
+export const maxDuration = 120;
 
 async function load(req: Request, id: string) {
   const scope = await apiScope(req);
@@ -22,7 +24,7 @@ export async function DELETE(req: Request, { params }: { params: Promise<{ id: s
   return NextResponse.json({ ok: true });
 }
 
-/** Relance l'analyse IA d'un appel. */
+/** Relance l'analyse IA d'un appel (et le débrief, pour un rendez-vous). */
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
   if (!sameOrigin(req)) return jsonError("Origine refusée", 403);
   const r = await load(req, (await params).id);
@@ -31,6 +33,7 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if (blocked) return blocked;
   try {
     await analyzeCall(r.call);
+    if (r.call.kind === "meeting") await debriefMeeting(r.call.id);
     return NextResponse.json({ ok: true });
   } catch (e) {
     return jsonError(e instanceof AiError ? e.message : "Analyse impossible", 502);
