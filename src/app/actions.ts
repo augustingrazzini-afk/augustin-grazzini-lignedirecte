@@ -49,7 +49,7 @@ export async function signup(_: FormState, f: FormData): Promise<FormState> {
       await sendMagicLink(email, { purpose: "verify", payload: await hashPassword(pw), redirect: "/onboarding" });
     }
   } catch (e) { return fail(e); }
-  return { ok: `Presque fini : nous avons envoyé un email de confirmation à ${email}. Cliquez sur le lien pour activer votre compte (pensez aux spams).` };
+  return { ok: email }; // l'écran de confirmation affiche l'adresse
 }
 
 export async function loginPassword(_: FormState, f: FormData): Promise<FormState> {

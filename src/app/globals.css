@@ -450,3 +450,14 @@ mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 
 .lp-faq details[open] summary::after { content: "–"; }
 .lp-faq details p { margin: 10px 0 0; color: var(--muted); line-height: 1.6; }
 @media (max-width: 860px) { .lp-sec-grid { grid-template-columns: 1fr; } }
+
+/* Écran « Vérifiez votre boîte mail » après l'inscription */
+.check-mail { text-align: center; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 4px 0 2px; }
+.check-mail h2 { font-family: var(--f-display); font-size: 24px; letter-spacing: -.02em; margin: 4px 0 0; }
+.check-mail > p { margin: 0; line-height: 1.55; }
+.check-mail b { word-break: break-all; }
+.check-mail ol { text-align: left; margin: 6px 0; padding: 14px 16px 14px 34px; background: var(--panel); border: 1px solid var(--stroke); border-radius: 14px; display: flex; flex-direction: column; gap: 6px; width: 100%; }
+.check-mail .btn.primary { width: 100%; justify-content: center; }
+.check-mail-actions { display: flex; gap: 8px; align-items: center; color: var(--dim); }
+.check-mail-actions .as-reset { margin: 0; }
+.auth .card:has(.check-mail) > h1, .auth .card:has(.check-mail) > p.muted, .auth .card:has(.check-mail) .auth-foot { display: none; }
