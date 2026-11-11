@@ -12,6 +12,15 @@ type Plan = "solo" | "agency";
 const LOOKUP: Record<Plan, string> = { solo: "trustpipe_solo_mensuel_eur", agency: "trustpipe_equipe_mensuel_eur" };
 const ENV: Record<Plan, () => string | undefined> = { solo: () => process.env.STRIPE_PRICE_SOLO, agency: () => process.env.STRIPE_PRICE_AGENCY };
 const cache = new Map<Plan, string>();
+/** Code fiscal Stripe : logiciel SaaS à usage professionnel (exigé par Stripe Tax / Managed Payments). */
+const TAX_CODE = "txcd_10103001";
+
+/** Ajoute le code fiscal au produit du prix s'il manque (produits créés avant cette règle). */
+async function ensureTaxCode(st: Stripe, price: Stripe.Price) {
+  const productId = typeof price.product === "string" ? price.product : price.product.id;
+  const product = typeof price.product === "string" ? await st.products.retrieve(productId) : (price.product as Stripe.Product);
+  if (!product.tax_code) await st.products.update(productId, { tax_code: TAX_CODE });
+}
 
 /** Identifiant du prix Stripe d'une formule. Crée le produit et le prix s'ils n'existent pas encore sur ce compte. */
 export async function priceFor(plan: Plan): Promise<string> {
@@ -22,15 +31,16 @@ export async function priceFor(plan: Plan): Promise<string> {
   if (envId) {
     try {
       const p = await st.prices.retrieve(envId);
-      if (p.active) { cache.set(plan, p.id); return p.id; }
+      if (p.active) { await ensureTaxCode(st, p); cache.set(plan, p.id); return p.id; }
     } catch { /* prix d'un autre compte ou d'un autre mode : on passe à la recherche */ }
   }
   const found = await st.prices.list({ lookup_keys: [LOOKUP[plan]], active: true, limit: 1 });
-  if (found.data[0]) { cache.set(plan, found.data[0].id); return found.data[0].id; }
+  if (found.data[0]) { await ensureTaxCode(st, found.data[0]); cache.set(plan, found.data[0].id); return found.data[0].id; }
   const info = PLANS[plan];
   const product = await st.products.create({
     name: `Trustpipe ${info.name}`,
     description: plan === "solo" ? "Reporting de prospection par client, 3 clients suivis" : "Reporting de prospection par client, clients illimités, toute l'équipe",
+    tax_code: TAX_CODE,
     metadata: { app: "trustpipe", plan },
   });
   const price = await st.prices.create({
