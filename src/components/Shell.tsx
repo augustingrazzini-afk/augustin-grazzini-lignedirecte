@@ -3,6 +3,7 @@ import { logout } from "@/app/actions";
 import { NavLinks, type NavItem } from "./NavLinks";
 import { PERIODS } from "@/lib/period";
 import { Logo } from "./Logo";
+import { FeedbackLink, HelpWidget } from "./client/HelpWidget";
 
 export type ShellProps = {
   base: string; // "/app" ou "/portal/<id>"
@@ -14,10 +15,12 @@ export type ShellProps = {
   banner?: React.ReactNode;
   /** Lien de suivi partagé : lecture seule, pilotage et appels uniquement, pas de compte. */
   share?: boolean;
+  /** Widget flottant en bas à droite (assistant IA + avis). */
+  widget?: { clientId: string | null; aiReady: boolean };
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, children }: ShellProps) {
+export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, widget, children }: ShellProps) {
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
@@ -53,6 +56,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
           <div className="side-foot">
             {share && <span>Lien de suivi en lecture seule</span>}
             {clientName && <span>Suivi par <b>{orgName}</b></span>}
+            {widget && <FeedbackLink />}
             {!share && <form action={logout}><button type="submit">Se déconnecter</button></form>}
           </div>
         </aside>
@@ -62,6 +66,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         </main>
       </div>
       <nav className="tabbar"><NavLinks items={items} variant="tab" /></nav>
+      {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} />}
     </>
   );
 }

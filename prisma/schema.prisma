@@ -272,3 +272,19 @@ model Task {
   @@index([orgId, status, dueAt])
   @@index([clientId, status, dueAt])
 }
+
+/// Avis laissés depuis l'app (case « Votre avis » du widget).
+model Feedback {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String?
+  orgId     String?
+  clientId  String?
+  rating    Int? // 1 à 5
+  message   String
+  page      String?
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([userId, createdAt])
+}

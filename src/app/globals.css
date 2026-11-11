@@ -348,3 +348,56 @@ mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 
   .obj { grid-template-columns: 96px minmax(0,1fr) 30px; }
 }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Widget flottant : Pip (assistant IA) + case « Votre avis » */
+.hw { position: fixed; right: 20px; bottom: 20px; z-index: 60; display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+.hw-fab { width: 66px; height: 66px; border-radius: 50%; border: 0; cursor: pointer; background: #fff; box-shadow: 0 10px 30px rgba(12,61,47,.25), 0 0 0 1px rgba(12,61,47,.08); display: grid; place-items: center; padding: 0; transition: transform .2s; }
+.hw-fab:hover { transform: scale(1.07); }
+.hw-fab:focus-visible { outline: 3px solid #31D287; outline-offset: 3px; }
+.hw-hint { max-width: 230px; border: 0; cursor: pointer; text-align: left; background: #0C3D2F; color: #fff; font: inherit; font-size: 13.5px; padding: 10px 14px; border-radius: 14px 14px 4px 14px; box-shadow: 0 8px 24px rgba(12,61,47,.25); animation: hw-pop .35s ease-out; }
+.hw-panel { width: min(400px, calc(100vw - 32px)); height: min(600px, calc(100vh - 120px)); background: #fff; border-radius: 20px; box-shadow: 0 24px 60px rgba(11,18,47,.22), 0 0 0 1px rgba(11,18,47,.06); display: flex; flex-direction: column; overflow: hidden; animation: hw-pop .25s ease-out; transform-origin: bottom right; }
+.hw-head { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #0C3D2F; color: #fff; }
+.hw-tabs { flex: 1; display: flex; gap: 4px; background: rgba(255,255,255,.1); border-radius: 10px; padding: 3px; }
+.hw-tabs button { flex: 1; border: 0; background: none; color: rgba(255,255,255,.75); font: inherit; font-size: 13px; font-weight: 600; padding: 7px 6px; border-radius: 8px; cursor: pointer; }
+.hw-tabs button[aria-selected="true"] { background: #fff; color: #0C3D2F; }
+.hw-x { border: 0; background: none; color: #fff; font-size: 26px; line-height: 1; cursor: pointer; padding: 0 4px; opacity: .8; }
+.hw-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+.hw-note { padding: 20px; }
+.as-compact { flex: 1; min-height: 0 !important; display: flex; flex-direction: column; }
+.as-compact .as-log { max-height: none; padding: 16px 14px 8px; }
+.as-compact .as-hello { padding: 8px 0; }
+.as-compact .as-hello h2 { font-size: 18px; }
+.as-compact .as-bubble { font-size: 13.5px; max-width: 92%; }
+.as-compact .as-avatar { width: 26px; height: 26px; font-size: 12px; }
+.as-compact .as-steps { margin-left: 36px; }
+.as-compact .as-input { padding: 10px; }
+.as-compact .as-input .btn { padding-inline: 12px; }
+.as-compact.as-off { padding: 24px; }
+.hw-avis { padding: 18px; display: flex; flex-direction: column; gap: 12px; overflow-y: auto; }
+.hw-avis h3, .hw-thanks h3 { font-family: var(--f-display); margin: 0; font-size: 18px; }
+.hw-avis p { margin: -6px 0 0; }
+.hw-faces { display: flex; gap: 6px; }
+.hw-faces button { flex: 1; font-size: 24px; border: 1px solid var(--stroke-2); background: #fff; border-radius: 12px; padding: 6px 0; cursor: pointer; filter: grayscale(.7); opacity: .7; transition: all .15s; }
+.hw-faces button:hover, .hw-faces button[aria-checked="true"] { filter: none; opacity: 1; border-color: #31D287; background: #E9FBF2; transform: translateY(-2px); }
+.hw-avis textarea { resize: vertical; font: inherit; }
+.hw-thanks { margin: auto; text-align: center; padding: 24px; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.side-avis { border: 0; background: rgba(255,255,255,.08); color: inherit; font: inherit; font-size: 13px; padding: 8px 10px; border-radius: 9px; cursor: pointer; text-align: left; margin-bottom: 6px; }
+.side-avis:hover { background: rgba(255,255,255,.15); }
+@keyframes hw-pop { from { opacity: 0; transform: scale(.9) translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* Pip : flotte, cligne des yeux, fait coucou */
+.pip { overflow: visible; }
+.pip-body { animation: pip-float 3.2s ease-in-out infinite; transform-origin: 32px 40px; }
+.pip-shadow { animation: pip-shadow 3.2s ease-in-out infinite; transform-origin: 32px 61px; }
+.pip-eyes { animation: pip-blink 4.5s infinite; transform-origin: 32px 30px; }
+.pip-arm-r { animation: pip-wave 4.5s ease-in-out infinite; transform-origin: 51px 26.5px; }
+.pip-bulb { animation: pip-glow 2s ease-in-out infinite; }
+.pip.talking .pip-mouth { animation: pip-talk .5s ease-in-out infinite; transform-origin: 32px 37px; }
+@keyframes pip-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-3.5px); } }
+@keyframes pip-shadow { 0%, 100% { transform: scaleX(1); opacity: .14; } 50% { transform: scaleX(.8); opacity: .08; } }
+@keyframes pip-blink { 0%, 44%, 48%, 100% { transform: scaleY(1); } 46% { transform: scaleY(.1); } }
+@keyframes pip-wave { 0%, 60%, 100% { transform: rotate(0); } 66% { transform: rotate(-35deg); } 72% { transform: rotate(10deg); } 78% { transform: rotate(-35deg); } 84% { transform: rotate(0); } }
+@keyframes pip-glow { 0%, 100% { fill: #31D287; } 50% { fill: #8CF0C0; } }
+@keyframes pip-talk { 0%, 100% { transform: scaleY(1); } 50% { transform: scaleY(1.6); } }
+@media (max-width: 860px) { .hw { right: 12px; bottom: 76px; } .hw-fab { width: 56px; height: 56px; } .hw-panel { height: min(560px, calc(100vh - 160px)); } }
+@media (prefers-reduced-motion: reduce) { .pip *, .hw-panel, .hw-hint { animation: none !important; } }

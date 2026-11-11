@@ -27,7 +27,7 @@ function Rich({ text }: { text: string }) {
   return <>{blocks}</>;
 }
 
-export function Assistant({ clientId, isClient, aiReady }: { clientId: string | null; isClient: boolean; aiReady: boolean }) {
+export function Assistant({ clientId, isClient, aiReady, compact = false }: { clientId: string | null; isClient: boolean; aiReady: boolean; compact?: boolean }) {
   const storeKey = `trustpipe-assistant-${clientId || "org"}`;
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
@@ -40,9 +40,10 @@ export function Assistant({ clientId, isClient, aiReady }: { clientId: string | 
   useEffect(() => { try { const s = sessionStorage.getItem(storeKey); if (s) setTurns(JSON.parse(s)); } catch { /* stockage indisponible */ } }, [storeKey]);
   useEffect(() => { try { sessionStorage.setItem(storeKey, JSON.stringify(turns.slice(-40))); } catch { /* stockage indisponible */ } end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [turns, busy, storeKey]);
 
-  const suggestions = isClient
+  const all = isClient
     ? ["Prépare mon rendez-vous avec …", "Quels prospects sont les plus chauds ce mois-ci ?", "Quelles objections reviennent le plus ?", "Résume la semaine de prospection"]
     : ["Prépare mon rendez-vous avec …", "Fais-moi un diagnostic de la semaine", "Quelles objections reviennent le plus ce mois-ci et comment y répondre ?", "Quel est mon meilleur créneau d'appel ?", "Quelles relances dois-je faire aujourd'hui ?"];
+  const suggestions = compact ? all.slice(0, 3) : all;
 
   async function send(text: string) {
     const q = text.trim();
@@ -62,15 +63,15 @@ export function Assistant({ clientId, isClient, aiReady }: { clientId: string | 
     } finally { setBusy(false); }
   }
 
-  if (!aiReady) return <div className="card"><div className="empty"><b>L&apos;assistant IA n&apos;est pas encore activé</b>Il sera disponible dès que la clé de l&apos;API Claude sera configurée sur le serveur.</div></div>;
+  if (!aiReady) return <div className={compact ? "as-compact as-off" : "card"}><div className="empty"><b>L&apos;assistant IA n&apos;est pas encore activé</b>Il sera disponible dès que la clé de l&apos;API Claude sera configurée sur le serveur.</div></div>;
 
   return (
-    <div className="card as-wrap">
+    <div className={compact ? "as-wrap as-compact" : "card as-wrap"}>
       <div className="as-log">
         {!turns.length && (
           <div className="as-hello">
-            <div className="as-avatar">✦</div>
-            <h2>Posez votre question</h2>
+            {!compact && <div className="as-avatar">✦</div>}
+            <h2>{compact ? "Bonjour, je suis Pip 👋" : "Posez votre question"}</h2>
             <p className="muted">{isClient ? "L'assistant lit les appels, emails et messages LinkedIn menés pour vous, et vous aide à préparer vos rendez-vous." : "L'assistant lit vos appels, transcriptions, emails, messages LinkedIn et relances pour vous répondre."}</p>
             <div className="as-sugg">{suggestions.map((s) => <button key={s} type="button" className="chip" onClick={() => send(s)}>{s}</button>)}</div>
           </div>
