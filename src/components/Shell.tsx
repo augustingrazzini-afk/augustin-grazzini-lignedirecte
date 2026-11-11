@@ -35,7 +35,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
-  const items = share ? all.filter((it) => it.href === base || it.href === `${base}/calls`) : all;
+  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/emails`, `${base}/linkedin`].includes(it.href)) : all;
   return (
     <>
       <header className="mtop">

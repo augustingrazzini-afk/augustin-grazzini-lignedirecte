@@ -44,15 +44,15 @@ const SECTIONS = [
   {
     img: "/screens/suivi-client.jpg",
     tag: "Suivi en direct par le client",
-    title: "Un lien, et votre client suit vos appels en live",
-    text: "Partagez un lien à votre client : il voit vos performances et ses appels en direct, par jour, semaine, mois ou année. Sans compte, sans mot de passe. Fini les reportings du vendredi.",
-    points: ["Un lien secret par client, désactivable", "Stats par jour, semaine, mois, année", "Appels, résumés et transcriptions en lecture seule"],
+    title: "Un lien, et votre client suit votre prospection en live",
+    text: "Partagez un lien à votre client : il voit vos performances en direct, appels, emails et LinkedIn, par jour, semaine, mois ou année. Sans compte, sans mot de passe. Fini les reportings du vendredi.",
+    points: ["Un lien secret par client, désactivable", "Appels, emails et LinkedIn, par jour, semaine, mois, année", "Résumés, transcriptions et réponses en lecture seule"],
   },
   {
     img: "/screens/relances.jpg",
     tag: "Relances",
     title: "Plus aucun « rappelez-moi en mars » oublié",
-    text: "Les relances sont créées automatiquement à partir de ce qui s'est dit au téléphone, avec une date. Chaque matin, la liste de ce qui est à faire.",
+    text: "Les relances sont créées automatiquement à partir des appels, des réponses email et LinkedIn, avec une date. Chaque matin, la liste de ce qui est à faire.",
     points: ["Relances datées automatiquement", "Récap chaque matin par email", "Fait, reporté ou ignoré en un clic"],
   },
   {

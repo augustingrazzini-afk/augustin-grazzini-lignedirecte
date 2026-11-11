@@ -4,6 +4,7 @@ import type { Scope } from "@/lib/access";
 import { channelOverview, emailStats, linkedinStats, windowActivities } from "@/lib/channels";
 import { OBJ_LABEL, dateFR, displayName, fmt, initials, pct } from "@/lib/format";
 import { SOURCE_LABEL } from "@/lib/providers";
+import { periodText } from "@/lib/period";
 
 const SENT: Record<string, [string, string]> = { positive: ["Positive", "win"], neutral: ["Neutre", "mute"], negative: ["Refus", "bad"], ooo: ["Absent", "warn"], objection: ["Objection", "warn"] };
 const TYPE_LABEL: Record<string, string> = { sent: "Email envoyé", opened: "Email ouvert", clicked: "Lien cliqué", replied: "Réponse", bounced: "Bounce", unsubscribed: "Désinscription", invite_sent: "Invitation envoyée", invite_accepted: "Invitation acceptée", message_sent: "Message envoyé", profile_visit: "Visite de profil", meeting_booked: "RDV pris" };
@@ -34,7 +35,7 @@ export async function ChannelOverview({ scope, days, base }: { scope: Scope; day
         {o.hasEmail && card(`${base}/emails`, "Emails", "linear-gradient(135deg,#4A72FF,#2E5BFF)", [["prospects", fmt(o.email.contacts)], ["réponses", pct(o.email.replyRate)], ["positives", fmt(o.email.positive)]], o.email.meetings)}
         {o.hasLinkedin && card(`${base}/linkedin`, "LinkedIn", "linear-gradient(135deg,#0A66C2,#004182)", [["invitations", fmt(o.linkedin.invites)], ["acceptées", pct(o.linkedin.acceptRate)], ["réponses", pct(o.linkedin.replyRate)]], o.linkedin.meetings)}
       </div>
-      <div className="card"><h2>D&apos;où viennent les rendez-vous</h2><p className="sub">Sur les {days} derniers jours, tous canaux confondus</p>
+      <div className="card"><h2>D&apos;où viennent les rendez-vous</h2><p className="sub">{periodText(days)}, tous canaux confondus</p>
         <div style={{ display: "flex", height: 14, borderRadius: 99, overflow: "hidden", background: "rgba(11,18,47,.06)" }}>
           {[[o.call.meetings, "#0F9F6E"], [o.email.meetings, "#2E5BFF"], [o.linkedin.meetings, "#0A66C2"]].map(([n, c], i) => (n as number) > 0 && <i key={i} style={{ width: `${((n as number) / total) * 100}%`, background: c as string }} />)}
         </div>
@@ -44,24 +45,27 @@ export async function ChannelOverview({ scope, days, base }: { scope: Scope; day
   );
 }
 
-function ActivityItem({ a, base }: { a: Activity; base: string }) {
+function ActivityItem({ a, base, readOnly = false }: { a: Activity; base: string; readOnly?: boolean }) {
+  const Wrap = ({ children }: { children: React.ReactNode }) =>
+    readOnly ? <div className="item">{children}</div> : <Link className="item" href={`${base}/contacts/${encodeURIComponent(a.contactKey)}`}>{children}</Link>;
   return (
-    <Link className="item" href={`${base}/contacts/${encodeURIComponent(a.contactKey)}`}>
+    <Wrap>
       <span className="av">{initials(a)}</span>
       <span className="who">{displayName(a)}{a.company && displayName(a) !== a.company && <span> · {a.company}</span>}</span>
       <span className="meta">{dateFR(a.occurredAt)}</span>
       <span className="sum">{a.body ? a.body.slice(0, 220) : a.subject || typeLabel(a)}</span>
       <span className="tags"><span className="pill mute">{typeLabel(a)}</span><SentimentPill s={a.sentiment} />{a.objections.map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}{a.campaign && <span className="pill src">{a.campaign}</span>}<span className="pill src">{SOURCE_LABEL[a.provider] || a.provider}</span></span>
-    </Link>
+    </Wrap>
   );
 }
 
 /** Onglet Emails ou LinkedIn. */
-export async function ChannelView({ scope, base, days, channel, filter }: { scope: Scope; base: string; days: number; channel: "email" | "linkedin"; filter: string }) {
+/** `readOnly` : lien de suivi partagé (pas de fiche prospect, pas de lien vers Sources). */
+export async function ChannelView({ scope, base, days, channel, filter, readOnly = false }: { scope: Scope; base: string; days: number; channel: "email" | "linkedin"; filter: string; readOnly?: boolean }) {
   const acts = await windowActivities(scope, days, channel);
   if (!acts.length) {
     return <div className="card"><div className="empty"><b>Pas encore d&apos;activité {channel === "email" ? "email" : "LinkedIn"} sur cette période</b>
-      Connectez lemlist, Instantly, Smartlead, HubSpot ou n&apos;importe quel outil via Zapier/Make, ou importez un CSV, depuis <Link href={`${base}/sources`}>Sources</Link>.</div></div>;
+      {readOnly ? "Les envois et les réponses apparaîtront ici dès qu'ils auront lieu." : <>Connectez lemlist, Instantly, Smartlead, HubSpot ou n&apos;importe quel outil via Zapier/Make, ou importez un CSV, depuis <Link href={`${base}/sources`}>Sources</Link>.</>}</div></div>;
   }
   const isEmail = channel === "email";
   const e = emailStats(acts), l = linkedinStats(acts);
@@ -89,7 +93,7 @@ export async function ChannelView({ scope, base, days, channel, filter }: { scop
       </div>
       <div className="card mt">
         <div className="filters">{[["replies", "Réponses"], ["positive", "Positives"], ["meetings", "RDV"], ["all", "Toute l'activité"]].map(([k, lab]) => <Link key={k} className="chip" href={`${base}/${isEmail ? "emails" : "linkedin"}?days=${days}&f=${k}`} aria-current={k === f ? "true" : undefined}>{lab}</Link>)}</div>
-        {list.length ? <div className="list">{list.map((a) => <ActivityItem key={a.id} a={a} base={base} />)}</div> : <div className="empty">Rien sur ce filtre.</div>}
+        {list.length ? <div className="list">{list.map((a) => <ActivityItem key={a.id} a={a} base={base} readOnly={readOnly} />)}</div> : <div className="empty">Rien sur ce filtre.</div>}
       </div>
     </>
   );

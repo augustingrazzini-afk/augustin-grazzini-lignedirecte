@@ -30,3 +30,8 @@ export function startOfDayParis(now = new Date()): Date {
 export function periodStart(days: number, now = new Date()): Date {
   return days === 1 ? startOfDayParis(now) : new Date(now.getTime() - days * 864e5);
 }
+
+/** « Aujourd'hui » ou « sur les N derniers jours », pour les sous-titres. */
+export function periodText(days: number): string {
+  return days === 1 ? "Aujourd'hui" : `Sur les ${days} derniers jours`;
+}

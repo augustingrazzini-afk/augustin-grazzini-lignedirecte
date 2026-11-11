@@ -14,10 +14,10 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   const last = await db.call.findFirst({ where: { clientId: scope.clientId }, orderBy: { updatedAt: "desc" }, select: { updatedAt: true } });
   return (
     <>
-      <PageTop title={`Appels ${client.name}`} subtitle={`Vos appels et vos rendez-vous, suivis en direct par ${client.org.name}`} live={last ? `En direct · mis à jour ${ago(last.updatedAt)}` : null}>
+      <PageTop title={`Prospection ${client.name}`} subtitle={`Appels, emails, LinkedIn et rendez-vous, suivis en direct par ${client.org.name}`} live={last ? `En direct · mis à jour ${ago(last.updatedAt)}` : null}>
         <Period days={days} href={(d) => `${base}?days=${d}`} />
       </PageTop>
-      <Dashboard scope={scope} base={base} days={days} channels={false} emptyHint={<>Les appels apparaîtront ici dès qu&apos;ils seront passés.</>} />
+      <Dashboard scope={scope} base={base} days={days} emptyHint={<>Les appels apparaîtront ici dès qu&apos;ils seront passés.</>} />
     </>
   );
 }

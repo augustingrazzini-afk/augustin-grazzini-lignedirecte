@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 
 const { db } = await import("../src/lib/db");
 const { callScope, shareScope } = await import("../src/lib/access");
+const { activityScope } = await import("../src/lib/channels");
 const { periodStart, startOfDayParis, pickDays } = await import("../src/lib/period");
 
 const tag = "suivi_" + Date.now().toString(36);
@@ -15,6 +16,8 @@ before(async () => {
   b = (await db.client.create({ data: { orgId, name: `${tag} B` } })).id;
   const call = (id: string, clientId: string) => ({ orgId, clientId, provider: "csv", externalId: id, startedAt: new Date(), updatedAt: new Date() });
   await db.call.createMany({ data: [call("a1", a), call("a2", a), call("b1", b)] });
+  const act = (id: string, clientId: string, channel: string) => ({ orgId, clientId, provider: "csv", externalId: id, channel, type: "replied", occurredAt: new Date() });
+  await db.activity.createMany({ data: [act("ea", a, "email"), act("la", a, "linkedin"), act("eb", b, "email")] });
 });
 after(async () => {
   await db.organization.deleteMany({ where: { name: tag } });
@@ -26,6 +29,8 @@ test("le lien de suivi ne donne accès qu'aux appels de SON client", async () =>
   assert.equal(client.id, a);
   const seen = await db.call.findMany({ where: callScope(scope) });
   assert.deepEqual(seen.map((c) => c.externalId).sort(), ["a1", "a2"]);
+  const acts = await db.activity.findMany({ where: activityScope(scope) });
+  assert.deepEqual(acts.map((x) => x.externalId).sort(), ["ea", "la"], "emails et LinkedIn : seulement ceux du client");
 });
 
 test("un lien inconnu, trop court ou désactivé est refusé", async () => {
