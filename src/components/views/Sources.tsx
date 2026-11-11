@@ -19,7 +19,7 @@ export async function Sources({ scope }: { scope: Scope }) {
     orderBy: { createdAt: "asc" },
   });
   const CH: Record<string, string> = { call: "appels", email: "email", linkedin: "LinkedIn" };
-  const providers: ProviderInfo[] = providerList.filter((p) => ["minari", "skipcall", "aircall", "ringover", "hubspot", "custom", "webhook"].includes(p.id)).map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
+  const providers: ProviderInfo[] = providerList.filter((p) => ["minari", "skipcall", "lemlist", "aircall", "ringover", "hubspot", "custom", "webhook"].includes(p.id)).map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
   const app = process.env.APP_URL || "http://localhost:3000";
   return (
     <div className="stack">

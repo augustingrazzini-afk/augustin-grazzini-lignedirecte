@@ -177,7 +177,7 @@ export default async function Home() {
         <p className="lead" style={{ margin: "0 auto 32px", textAlign: "center" }}>Choisissez votre outil d&apos;appel, connectez votre compte, c&apos;est tout. Vos appels remontent automatiquement, client par client.</p>
         <div className="lp-tools-grid lp-tools-2">
           {[
-            ["Outils d'appel", ["Minari", "Skipcall", "Aircall", "Ringover", "HubSpot"]],
+            ["Outils d'appel", ["Minari", "lemlist", "Skipcall", "Aircall", "Ringover", "HubSpot"]],
             ["Et le reste", ["Votre outil (clé API)", "Zapier", "Make", "n8n", "Import CSV"]],
           ].map(([ch, tools]) => (
             <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => { const l = BRAND_LOGOS[t.toLowerCase()]; return <span key={t}>{l && <svg viewBox="0 0 24 24" width="14" height="14" fill={l.hex} aria-hidden="true"><path d={l.path} /></svg>}{t}</span>; })}</div></div>

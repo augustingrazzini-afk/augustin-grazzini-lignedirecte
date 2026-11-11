@@ -7,6 +7,7 @@ import { AiError, aiEnabled } from "@/lib/ai";
 import { askAssistant } from "@/lib/assistant";
 import { askLocal } from "@/lib/assistant-local";
 import { bumpUsage } from "@/lib/usage";
+import { saveConversation } from "@/lib/conversations";
 
 export const maxDuration = 120;
 
@@ -16,6 +17,7 @@ const SHARE_DAILY_LIMIT = 30;
 const Body = z.object({
   clientId: z.string().max(40).nullable().optional(),
   shareToken: z.string().min(20).max(100).optional(),
+  conversationId: z.string().max(40).nullable().optional(),
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(8000) })).min(1).max(40),
 });
 
@@ -41,17 +43,23 @@ export async function POST(req: Request) {
     db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }),
     clientId ? db.client.findUnique({ where: { id: clientId } }) : Promise.resolve(null),
   ]);
+  const s = scope;
+  /** Réponse + enregistrement dans l'historique. */
+  const reply = async (r: { text: string; steps: string[] }, mode: "ia" | "local") => {
+    const conversationId = await saveConversation(s, b.data.conversationId, [...msgs, { role: "assistant", content: r.text, ...(mode === "local" ? { local: true } : {}) }]);
+    return NextResponse.json({ ...r, mode, conversationId });
+  };
   // Sans IA complète (clé absente ou refusée) : assistant « essentiel » qui répond à partir des données.
-  if (!aiEnabled()) return NextResponse.json({ ...(await askLocal(scope, msgs)), mode: "local" });
+  if (!aiEnabled()) return reply(await askLocal(scope, msgs), "local");
   try {
     const r = await askAssistant(scope, msgs, {
       who: client ? `${client.name} (suivi par ${org.name})` : org.name,
       offer: client?.offer || org.offer,
       isClient: scope.kind === "client",
     });
-    return NextResponse.json({ ...r, mode: "ia" });
+    return reply(r, "ia");
   } catch (e) {
-    if (e instanceof AiError && /invalide|configurée/.test(e.message)) return NextResponse.json({ ...(await askLocal(scope, msgs)), mode: "local" });
+    if (e instanceof AiError && /invalide|configurée/.test(e.message)) return reply(await askLocal(scope, msgs), "local");
     if (!(e instanceof AiError)) console.error("assistant", e);
     return jsonError(e instanceof AiError ? e.message : "L'assistant n'a pas pu répondre.", 502);
   }

@@ -21,6 +21,18 @@ export async function POST(req: Request) {
     const p = await portalSession(org.stripeCustomerId, `${app}/app/billing`);
     return NextResponse.redirect(p.url, 303);
   }
+  // Résiliation (à la fin de la période payée ou de l'essai, sans autre prélèvement) et annulation de la résiliation.
+  const action = form.get("action");
+  if (action === "cancel" || action === "resume") {
+    if (!org.stripeSubscriptionId?.startsWith("sub_")) return NextResponse.redirect(new URL("/app/billing", app), 303);
+    try {
+      await stripe().subscriptions.update(org.stripeSubscriptionId, { cancel_at_period_end: action === "cancel" });
+    } catch (e) {
+      console.error("stripe résiliation", e);
+      return NextResponse.redirect(new URL("/app/billing?err=1", app), 303);
+    }
+    return NextResponse.redirect(new URL(`/app/billing?${action === "cancel" ? "cancelled" : "resumed"}=1`, app), 303);
+  }
   const plan = form.get("plan") === "agency" ? "agency" : "solo";
   let price: string;
   try {

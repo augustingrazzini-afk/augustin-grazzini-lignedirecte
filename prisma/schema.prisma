@@ -320,3 +320,17 @@ model AppSecret {
   value     String // chiffré (AES-256-GCM)
   updatedAt DateTime @updatedAt
 }
+
+/// Conversations de l'assistant (historique), propres à chaque personne (ou à chaque lien de suivi) et à chaque espace.
+model Conversation {
+  id        String   @id @default(cuid())
+  orgId     String
+  owner     String // utilisateur, ou « share:<clientId> » pour un lien de suivi
+  clientId  String?
+  title     String
+  messages  Json     @default("[]")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([owner, orgId, clientId, updatedAt])
+}

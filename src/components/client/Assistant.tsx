@@ -34,11 +34,35 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [steps, setSteps] = useState<string[]>([]);
+  const [convId, setConvId] = useState<string | null>(null);
+  const [history, setHistory] = useState<{ id: string; title: string; updatedAt: string }[] | null>(null);
   const end = useRef<HTMLDivElement>(null);
   const box = useRef<HTMLTextAreaElement>(null);
 
-  useEffect(() => { try { const s = sessionStorage.getItem(storeKey); if (s) setTurns(JSON.parse(s)); } catch { /* stockage indisponible */ } }, [storeKey]);
-  useEffect(() => { try { sessionStorage.setItem(storeKey, JSON.stringify(turns.slice(-40))); } catch { /* stockage indisponible */ } end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [turns, busy, storeKey]);
+  useEffect(() => { try { const s = sessionStorage.getItem(storeKey); if (s) { const v = JSON.parse(s); if (Array.isArray(v)) setTurns(v); else { setTurns(v.turns || []); setConvId(v.id || null); } } } catch { /* stockage indisponible */ } }, [storeKey]);
+  useEffect(() => { try { sessionStorage.setItem(storeKey, JSON.stringify({ id: convId, turns: turns.slice(-40) })); } catch { /* stockage indisponible */ } end.current?.scrollIntoView({ behavior: "smooth", block: "end" }); }, [turns, busy, storeKey, convId]);
+
+  const qs = () => { const p = new URLSearchParams(); if (clientId) p.set("clientId", clientId); if (shareToken) p.set("shareToken", shareToken); return p; };
+  async function openHistory() {
+    if (history) { setHistory(null); return; }
+    const r = await fetch(`/api/assistant/conversations?${qs()}`).catch(() => null);
+    const j = r?.ok ? await r.json().catch(() => ({})) : {};
+    setHistory(j.conversations || []);
+  }
+  async function load(id: string) {
+    const p = qs(); p.set("id", id);
+    const r = await fetch(`/api/assistant/conversations?${p}`).catch(() => null);
+    const j = r?.ok ? await r.json().catch(() => null) : null;
+    if (!j) { setErr("Conversation introuvable."); return; }
+    setTurns(Array.isArray(j.messages) ? j.messages : []); setConvId(j.id); setHistory(null); setSteps([]); setErr(null);
+  }
+  async function remove(id: string) {
+    const p = qs(); p.set("id", id);
+    await fetch(`/api/assistant/conversations?${p}`, { method: "DELETE" }).catch(() => null);
+    setHistory((h) => (h || []).filter((x) => x.id !== id));
+    if (id === convId) { setConvId(null); setTurns([]); }
+  }
+  const fmt = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   const all = isClient
     ? ["Prépare mon rendez-vous avec …", "Quels prospects sont les plus chauds ce mois-ci ?", "Quelles objections reviennent le plus ?", "Résume la semaine de prospection"]
@@ -52,10 +76,11 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
     const next = [...turns, { role: "user" as const, content: q }].slice(-40);
     setTurns(next); setInput(""); setBusy(true); setErr(null); setSteps([]);
     try {
-      const r = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, messages: next.map(({ role, content }) => ({ role, content })), ...(shareToken ? { shareToken } : {}) }) });
+      const r = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, conversationId: convId, messages: next.map(({ role, content }) => ({ role, content })), ...(shareToken ? { shareToken } : {}) }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || "L'assistant n'a pas pu répondre.");
       setSteps(j.steps || []);
+      if (j.conversationId) setConvId(j.conversationId);
       setTurns([...next, { role: "assistant", content: j.text, local: j.mode === "local" }]);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "L'assistant n'a pas pu répondre.");
@@ -67,7 +92,21 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
 
   return (
     <div className={compact ? "as-wrap as-compact" : "card as-wrap"}>
-      <div className="as-log">
+      <div className="as-bar">
+        <button type="button" className="as-link" onClick={openHistory} aria-expanded={!!history}>{history ? "Fermer l'historique" : "Historique"}</button>
+        {turns.length > 0 && <button type="button" className="as-link" onClick={() => { setTurns([]); setSteps([]); setErr(null); setConvId(null); setHistory(null); }}>+ Nouvelle conversation</button>}
+      </div>
+      {history && (
+        <div className="as-history">
+          {!history.length ? <p className="muted small">Aucune conversation enregistrée pour l&apos;instant.</p> : history.map((h) => (
+            <div key={h.id} className={`as-hrow${h.id === convId ? " on" : ""}`}>
+              <button type="button" onClick={() => load(h.id)}><b>{h.title}</b><span className="muted small">{fmt(h.updatedAt)}</span></button>
+              <button type="button" className="as-del" aria-label="Supprimer cette conversation" onClick={() => remove(h.id)}>×</button>
+            </div>
+          ))}
+        </div>
+      )}
+      <div className="as-log" hidden={!!history}>
         {!turns.length && (
           <div className="as-hello">
             {!compact && <div className="as-avatar">✦</div>}
@@ -92,7 +131,6 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }} />
         <button className="btn primary" disabled={busy || !input.trim()}>Envoyer</button>
       </form>
-      {turns.length > 0 && <button type="button" className="as-reset" onClick={() => { setTurns([]); setSteps([]); setErr(null); }}>Nouvelle conversation</button>}
     </div>
   );
 }

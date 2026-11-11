@@ -50,3 +50,23 @@ test("skipcall : appels de séquence reconnus (doc officielle)", async () => {
   assert.equal(b.connected, false);
   assert.equal(b.listName, "Appels directs");
 });
+
+test("lemlist : appel du dialer (aircallEnded) et transcription par canal", async () => {
+  const { mapLemlist, lemlistTranscript } = await import("../src/lib/providers/lemlist");
+  const a = mapLemlist({ _id: "act_W1", type: "aircallEnded", createdAt: "2026-11-10T14:31:30.359Z", startedAt: "2026-11-10T14:31:30.359Z", duration: 212, direction: "outbound",
+    callAnswer: "answered", callStatus: null, sendUserName: "Grazzini Augustin", contactId: "ctc_1", leadPhone: "+33633269719", callS3Ready: true, campaignName: "LINKEDIN",
+    leadFirstName: "Simon", leadLastName: "Mahé", leadCompanyName: "Faks", callTranscriptSummary: "<strong>Points clés</strong>\n<ul><li>Budget validé</li></ul>" })!;
+  assert.equal(a.externalId, "act_W1");
+  assert.equal(a.connected, true);
+  assert.equal(a.durationSec, 212);
+  assert.equal(a.listName, "LINKEDIN");
+  assert.equal(a.company, "Faks");
+  assert.match(a.summary || "", /Budget validé/);
+  assert.match(a.recordingUrl || "", /^https:\/\/api\.lemlist\.com\/api\/activities\?.*#act_W1$/);
+  const missed = mapLemlist({ _id: "act_K", createdAt: "2026-11-10T12:15:46Z", duration: 0, callAnswer: "missed", callStatus: "no-answer" })!;
+  assert.equal(missed.connected, false);
+  assert.equal(missed.status, "no-answer");
+  assert.equal(missed.listName, "Appels directs");
+  const t = lemlistTranscript({ utterances: [{ start: 2625, text: "Bonjour Nisrine", channel: 0 }, { start: 5187, text: "Oui, salut.", channel: 1 }, { start: 6200, text: "Ça va ?", channel: 1 }] }, "Augustin");
+  assert.deepEqual(t, [{ s: "Augustin", t: "Bonjour Nisrine", ts: "00:03" }, { s: "Prospect", t: "Oui, salut. Ça va ?", ts: "00:05" }]);
+});

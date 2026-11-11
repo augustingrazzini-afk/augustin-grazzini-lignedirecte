@@ -9,11 +9,11 @@ type Cat = "call" | "email" | "linkedin" | "other";
 /** Présentation de chaque outil dans le catalogue : couleur, monogramme, accroche, où trouver la clé. */
 const META: Record<string, { mono: string; color: string; tagline: string; cats: Cat[]; where?: string; url?: string }> = {
   minari: { mono: "Mi", color: "#5B4BFF", tagline: "Appels, résumés, objections et transcriptions", cats: ["call"], where: "Settings › API & webhook" },
-  skipcall: { mono: "Sk", color: "#FF5A1F", tagline: "Appels de vos séquences, transcriptions, résumés et enregistrements", cats: ["call"], where: "Paramètres › Clés API", url: "https://web.withallo.com/settings/api" },
+  skipcall: { mono: "Sk", color: "#FF5A1F", tagline: "Appels de vos séquences, transcriptions, résumés et enregistrements", cats: ["call"], where: "Paramètres › Clés API (formule Starter ou supérieure)" },
   aircall: { mono: "Ai", color: "#00A87A", tagline: "Appels, tags, enregistrements et transcriptions", cats: ["call"], where: "Intégrations & API › Clés API", url: "https://dashboard.aircall.io" },
   ringover: { mono: "Ri", color: "#2C6BED", tagline: "Appels, notes, tags et enregistrements", cats: ["call"], where: "Développeur › Créer une clé API (lecture des appels)", url: "https://dashboard.ringover.com" },
   hubspot: { mono: "Hs", color: "#FF5C35", tagline: "Appels journalisés dans le CRM", cats: ["call"], where: "Paramètres › Intégrations › Applications privées", url: "https://app.hubspot.com" },
-  lemlist: { mono: "le", color: "#E8457A", tagline: "Emails, LinkedIn et appels de vos campagnes", cats: ["email", "linkedin", "call"], where: "Paramètres › Intégrations › API", url: "https://app.lemlist.com" },
+  lemlist: { mono: "le", color: "#E8457A", tagline: "Appels du dialer lemlist, transcriptions, résumés et enregistrements", cats: ["call"], where: "Paramètres › Intégrations › API", url: "https://app.lemlist.com/settings/integrations" },
   instantly: { mono: "In", color: "#2563EB", tagline: "Emails envoyés et réponses, par campagne", cats: ["email"], where: "Settings › Integrations › API keys", url: "https://app.instantly.ai" },
   smartlead: { mono: "Sl", color: "#7C3AED", tagline: "Envois, ouvertures et réponses par campagne", cats: ["email"], where: "Settings › API Key", url: "https://app.smartlead.ai" },
   custom: { mono: "API", color: "#334155", tagline: "Votre outil d'appel, avec sa clé API : les champs sont reconnus automatiquement", cats: ["call", "other"], where: "la documentation API de votre outil (rubrique « API » ou « Développeurs »)" },
