@@ -205,6 +205,7 @@ tr:last-child td { border-bottom: 0; }
 .lp-hero { text-align: center; }
 .lp-hero h1 { margin: 48px auto 16px; max-width: 18ch; }
 .lp-hero .lead { margin: 0 auto; }
+.lp-sub { font-family: var(--f-display); font-weight: 600; font-size: clamp(19px, 2.3vw, 26px); letter-spacing: -.015em; color: #0F9F6E; margin: 0 auto 14px; text-wrap: balance; }
 .lp-hero .row { justify-content: center; }
 .lp-tag { display: inline-block; font-size: 13px; font-weight: 600; color: var(--blue); background: rgba(46,91,255,.08); border: 1px solid rgba(46,91,255,.18); border-radius: 999px; padding: 5px 12px; }
 .lp-hero > .lp-tag { margin-top: 40px; }
