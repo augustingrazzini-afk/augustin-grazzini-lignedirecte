@@ -1,0 +1,174 @@
+import Anthropic from "@anthropic-ai/sdk";
+import type { Call, Prisma } from "@prisma/client";
+import { db } from "./db";
+import { OBJECTION_KEYS, type TranscriptLine } from "./providers/types";
+import { OBJ_LABEL, fmtDuration, isConversation, displayName } from "./format";
+
+const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
+let client: Anthropic | null = null;
+const anthropic = () => (client ??= new Anthropic());
+export const aiEnabled = () => !!process.env.ANTHROPIC_API_KEY;
+
+export class AiError extends Error {}
+
+/** Un appel à Claude qui renvoie un JSON conforme au schéma (sorties structurées). */
+async function json<T>(prompt: string, schema: Record<string, unknown>, effort: "low" | "medium" | "high" = "medium"): Promise<T> {
+  if (!aiEnabled()) throw new AiError("L'IA n'est pas configurée sur ce serveur (ANTHROPIC_API_KEY).");
+  let res: Anthropic.Beta.BetaMessage;
+  try {
+    res = await anthropic().beta.messages.create({
+      model: MODEL,
+      max_tokens: 16000,
+      betas: ["server-side-fallback-2026-07-01"],
+      fallbacks: "default",
+      output_config: { effort, format: { type: "json_schema", schema } },
+      messages: [{ role: "user", content: prompt }],
+    });
+  } catch (e) {
+    if (e instanceof Anthropic.RateLimitError) throw new AiError("L'IA est très sollicitée. Réessayez dans une minute.");
+    if (e instanceof Anthropic.AuthenticationError) throw new AiError("Clé API Claude invalide sur ce serveur.");
+    if (e instanceof Anthropic.APIError) throw new AiError(`L'IA a renvoyé une erreur (${e.status}).`);
+    throw new AiError("L'IA ne répond pas. Réessayez.");
+  }
+  if (res.stop_reason === "refusal") throw new AiError("L'IA a refusé de traiter ce contenu.");
+  if (res.stop_reason === "max_tokens") throw new AiError("La réponse de l'IA a été coupée. Réessayez avec moins d'appels.");
+  const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    throw new AiError("Réponse de l'IA illisible. Réessayez.");
+  }
+}
+
+const strArr = { type: "array", items: { type: "string" } };
+const obj = (props: Record<string, unknown>) => ({ type: "object", additionalProperties: false, required: Object.keys(props), properties: props });
+
+/* ---------- 1. Analyse d'un appel (résumé + objections) ---------- */
+const ANALYSIS_SCHEMA = obj({
+  summary: { type: "string", description: "3 à 5 puces commençant par '- '" },
+  objections: { type: "array", items: { type: "string", enum: [...OBJECTION_KEYS] } },
+  meeting_booked: { type: "boolean" },
+});
+
+function transcriptText(t: TranscriptLine[], max = 40000) {
+  return t.map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n").slice(0, max);
+}
+
+export async function analyzeCall(call: Pick<Call, "id" | "kind" | "transcript" | "summary">) {
+  const tr = (call.transcript as unknown as TranscriptLine[]) || [];
+  if (!tr.length) return;
+  const r = await json<{ summary: string; objections: string[]; meeting_booked: boolean }>(
+    `Analyse cette transcription ${call.kind === "meeting" ? "de rendez-vous commercial mené par un AE" : "d'appel de prospection téléphonique B2B"}.
+Rédige en français un résumé de 3 à 5 puces (contexte, besoin, objections, issue, prochaine étape) sans rien inventer.
+Classe les objections du prospect parmi : relevance (pas pertinent / pas de besoin), incumbent (solution déjà en place), timing (pas le moment), too_busy (pas le temps), authority (pas décideur), budget, other.
+meeting_booked = true seulement si un rendez-vous est explicitement fixé.
+${call.summary ? `\nNotes existantes :\n${call.summary.slice(0, 2000)}\n` : ""}
+TRANSCRIPTION :
+${transcriptText(tr)}`,
+    ANALYSIS_SCHEMA,
+    "low",
+  );
+  await db.call.update({
+    where: { id: call.id },
+    data: {
+      summary: call.summary?.trim() ? call.summary : r.summary,
+      objections: r.objections.filter((k) => (OBJECTION_KEYS as readonly string[]).includes(k)),
+      ...(r.meeting_booked ? { meetingBooked: true } : {}),
+      aiStatus: "done",
+    },
+  });
+}
+
+/** Traite les appels en attente d'analyse (tâche planifiée). */
+export async function processPendingAi(limit = 15) {
+  if (!aiEnabled()) return 0;
+  const todo = await db.call.findMany({ where: { aiStatus: "pending" }, orderBy: { startedAt: "desc" }, take: limit, select: { id: true, kind: true, transcript: true, summary: true } });
+  let n = 0;
+  for (const c of todo) {
+    try {
+      await analyzeCall(c);
+      n++;
+    } catch (e) {
+      await db.call.update({ where: { id: c.id }, data: { aiStatus: "failed" } });
+      if (e instanceof AiError && /sollicitée/.test(e.message)) break;
+    }
+  }
+  return n;
+}
+
+/* ---------- 2. Brief pré-meeting ---------- */
+export type Brief = {
+  prospect: string; entreprise: string; poste: string; chaleur: number; resume: string;
+  contexte: string[]; besoins: string[]; objections: { objection: string; reponse: string }[];
+  angle: string; questions: string[]; eviter: string[]; prochaine_etape: string;
+};
+const BRIEF_SCHEMA = obj({
+  prospect: { type: "string" }, entreprise: { type: "string" }, poste: { type: "string" },
+  chaleur: { type: "integer", description: "Intérêt réel estimé, de 0 à 100" },
+  resume: { type: "string" }, contexte: strArr, besoins: strArr,
+  objections: { type: "array", items: obj({ objection: { type: "string" }, reponse: { type: "string" } }) },
+  angle: { type: "string" }, questions: strArr, eviter: strArr, prochaine_etape: { type: "string" },
+});
+
+export async function generateBrief(calls: Call[], query: string, offer: string, sellerName: string): Promise<Brief> {
+  let budget = 18000;
+  const dossier = calls.slice(0, 12).map((c, i) => {
+    let t = `### Appel ${i + 1} — ${c.startedAt.toISOString().slice(0, 16).replace("T", " ")} — ${fmtDuration(c.durationSec)}${c.meetingBooked ? ", RDV PRIS" : ""}${c.kind === "meeting" ? " (rendez-vous AE)" : ""}
+Prospect : ${displayName(c)}, ${c.jobTitle || "?"} chez ${c.company || "?"}
+Résumé :\n${c.summary || "(aucun)"}
+Objections : ${c.objections.map((o) => OBJ_LABEL[o] || o).join(", ") || "aucune"}`;
+    const tr = (c.transcript as unknown as TranscriptLine[]) || [];
+    if (tr.length && budget > 0) {
+      const s = transcriptText(tr, Math.min(6000, budget));
+      budget -= s.length;
+      t += `\nTranscription (extrait) :\n${s}`;
+    }
+    return t;
+  }).join("\n\n");
+  const b = await json<Brief>(
+    `Tu es un directeur commercial B2B senior. Un commercial de ${sellerName} a bientôt un rendez-vous avec ce prospect. À partir de l'historique ci-dessous, rédige un brief pré-meeting en français, concret et actionnable. N'invente aucun fait : si une information manque, laisse le champ vide.
+
+CE QUE VEND ${sellerName.toUpperCase()} :
+${offer || "(non renseigné : déduis-le des appels si possible)"}
+
+RECHERCHE : « ${query} »
+
+HISTORIQUE (du plus récent au plus ancien) :
+${dossier}
+
+Consignes : resume en 2-3 phrases ; contexte et besoins en puces courtes ; 2 à 4 objections probables formulées comme le prospect les dirait, avec une réponse recommandée ; angle = comment ouvrir le rendez-vous ; 3 à 5 questions de découverte ; 2 à 4 erreurs à éviter ; prochaine_etape = l'objectif concret à obtenir en fin de rendez-vous.`,
+    BRIEF_SCHEMA,
+    "medium",
+  );
+  b.chaleur = Math.max(0, Math.min(100, Math.round(b.chaleur || 0)));
+  return b;
+}
+
+/* ---------- 3. Coach ---------- */
+export type CoachResult = { diagnostic: string; priorites: { titre: string; detail: string; impact: string }[]; accroche: string; objections: { objection: string; reponse: string }[]; ciblage: string };
+const COACH_SCHEMA = obj({
+  diagnostic: { type: "string" },
+  priorites: { type: "array", items: obj({ titre: { type: "string" }, detail: { type: "string" }, impact: { type: "string" } }) },
+  accroche: { type: "string" },
+  objections: { type: "array", items: obj({ objection: { type: "string" }, reponse: { type: "string" } }) },
+  ciblage: { type: "string" },
+});
+
+export async function generateCoach(stats: { total: number; connected: number; conversations: number; meetings: number }, objections: { key: string; count: number }[], calls: Call[], offer: string, sellerName: string, days: number): Promise<CoachResult> {
+  const sums = calls.filter(isConversation).slice(0, 40).map((c) => `- [${c.meetingBooked ? "RDV" : "conv"}] ${c.jobTitle} @ ${c.company} (${fmtDuration(c.durationSec)}) : ${c.summary.replace(/\n/g, " ").slice(0, 380)}`).join("\n");
+  return json<CoachResult>(
+    `Tu es un coach de prospection téléphonique B2B. Voici les données d'appels de ${sellerName} sur ${days} jours. Donne un plan d'action concret en français, appuyé uniquement sur ces données.
+
+OFFRE : ${offer || "(non renseignée)"}
+STATISTIQUES : ${stats.total} appels, ${stats.connected} décrochés, ${stats.conversations} conversations, ${stats.meetings} rendez-vous.
+OBJECTIONS : ${objections.map((o) => `${OBJ_LABEL[o.key] || o.key} ${o.count}`).join(", ") || "aucune"}
+CONVERSATIONS :
+${sums || "(aucune)"}
+
+Donne : un diagnostic franc de 3-4 phrases ; exactement 3 priorités (action courte, comment faire, effet attendu) ; une accroche d'appel de 2-3 phrases prête à dire ; 3 à 5 objections fréquentes avec la réponse recommandée ; 2-3 phrases sur les profils à privilégier ou éviter.`,
+    COACH_SCHEMA,
+    "medium",
+  );
+}
+
+export const asJson = (v: unknown) => v as Prisma.InputJsonValue;

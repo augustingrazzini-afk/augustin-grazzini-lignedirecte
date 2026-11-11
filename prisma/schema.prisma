@@ -1,0 +1,208 @@
+// Cockpit — reporting d'appels multi-outils pour SDR et agences de prospection.
+// Isolation : chaque donnée appartient à une Organization (le SDR / l'agence).
+// Un Client (le client du SDR) ne voit que les appels où Call.clientId = son id.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String         @id @default(cuid())
+  email        String         @unique
+  name         String?
+  createdAt    DateTime       @default(now())
+  memberships  Membership[]
+  clientAccess ClientMember[]
+}
+
+model LoginToken {
+  id        String    @id @default(cuid())
+  email     String
+  tokenHash String    @unique
+  redirect  String?
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([email])
+}
+
+model Organization {
+  id                   String        @id @default(cuid())
+  name                 String
+  plan                 String        @default("trial") // trial | solo | agency
+  subscriptionStatus   String        @default("trialing") // trialing | active | past_due | canceled
+  trialEndsAt          DateTime
+  stripeCustomerId     String?       @unique
+  stripeSubscriptionId String?       @unique
+  offer                String        @default("")
+  createdAt            DateTime      @default(now())
+  members              Membership[]
+  clients              Client[]
+  integrations         Integration[]
+  calls                Call[]
+  rules                ClientRule[]
+  briefs               Brief[]
+  followUps            FollowUp[]
+  coaches              Coach[]
+}
+
+model Membership {
+  id        String       @id @default(cuid())
+  orgId     String
+  userId    String
+  role      String       @default("owner") // owner | member
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, userId])
+}
+
+model Client {
+  id           String         @id @default(cuid())
+  orgId        String
+  name         String
+  offer        String         @default("")
+  createdAt    DateTime       @default(now())
+  org          Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  members      ClientMember[]
+  rules        ClientRule[]
+  calls        Call[]
+  integrations Integration[]
+
+  @@index([orgId])
+}
+
+model ClientMember {
+  id        String   @id @default(cuid())
+  clientId  String
+  userId    String
+  createdAt DateTime @default(now())
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([clientId, userId])
+}
+
+model Integration {
+  id           String       @id @default(cuid())
+  orgId        String
+  clientId     String? // intégration connectée par un client : ses appels lui reviennent d'office
+  provider     String // minari | aircall | ringover | lemlist | hubspot
+  label        String
+  credentials  String // chiffré (AES-256-GCM)
+  settings     Json         @default("{}")
+  webhookToken String       @unique
+  status       String       @default("active") // active | error | paused
+  lastSyncAt   DateTime?
+  lastError    String?
+  createdAt    DateTime     @default(now())
+  org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client       Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  calls        Call[]
+
+  @@index([orgId])
+}
+
+// Range automatiquement un appel chez un client : ex. liste Minari "Smoteo" -> client Smoteo.
+model ClientRule {
+  id        String       @id @default(cuid())
+  orgId     String
+  clientId  String
+  provider  String? // null = toutes les sources
+  field     String // list | campaign | tag | number | company
+  value     String
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client    Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@index([orgId])
+}
+
+model Call {
+  id            String       @id @default(cuid())
+  orgId         String
+  clientId      String?
+  integrationId String?
+  provider      String // minari | aircall | ringover | lemlist | hubspot | csv | manual
+  externalId    String
+  kind          String       @default("call") // call | meeting (RDV mené par un AE)
+  startedAt     DateTime
+  durationSec   Int          @default(0)
+  direction     String? // inbound | outbound
+  status        String       @default("connected")
+  connected     Boolean      @default(false)
+  meetingBooked Boolean      @default(false)
+  firstName     String       @default("")
+  lastName      String       @default("")
+  company       String       @default("")
+  jobTitle      String       @default("")
+  contactKey    String       @default("")
+  repName       String       @default("")
+  listName      String       @default("")
+  campaign      String       @default("")
+  tags          String[]     @default([])
+  phoneLast4    String       @default("")
+  summary       String       @default("")
+  objections    String[]     @default([])
+  objDetails    Json         @default("[]")
+  transcript    Json         @default("[]")
+  recordingUrl  String?
+  recordingKey  String? // fichier stocké chez nous (S3/R2)
+  aiStatus      String       @default("none") // none | pending | done | failed
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client        Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  integration   Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+
+  @@unique([orgId, provider, externalId])
+  @@index([orgId, startedAt])
+  @@index([clientId, startedAt])
+  @@index([orgId, aiStatus])
+}
+
+model Brief {
+  id          String       @id @default(cuid())
+  orgId       String
+  clientId    String?
+  query       String
+  prospect    String
+  company     String       @default("")
+  content     Json
+  createdById String
+  createdAt   DateTime     @default(now())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, clientId, createdAt])
+}
+
+model FollowUp {
+  id         String       @id @default(cuid())
+  orgId      String
+  contactKey String
+  done       Boolean      @default(true)
+  doneById   String
+  doneAt     DateTime     @default(now())
+  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@unique([orgId, contactKey])
+}
+
+model Coach {
+  id        String       @id @default(cuid())
+  orgId     String
+  clientId  String?
+  days      Int
+  content   Json
+  createdAt DateTime     @default(now())
+  org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+
+  @@index([orgId, clientId, createdAt])
+}
