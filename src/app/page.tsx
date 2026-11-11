@@ -54,11 +54,22 @@ const INTEL = [
   { icon: "🤝", title: "Ce qui fait signer", text: "Les appels qui finissent en rendez-vous, résumés : ce qui a été dit, l'angle qui a marché, la prochaine étape." },
 ];
 
-/** Ce que voit le client du freelance : la promesse principale du produit. */
+/** Ce que le client du commercial peut faire, en direct : la promesse principale du produit. */
 const CLIENT_PERKS = [
-  { icon: "📈", title: "Ses stats en direct", text: "Appels, décrochés, conversations et rendez-vous, par jour, semaine, mois ou année. Toujours à jour, sans que vous ayez rien à envoyer." },
-  { icon: "🎧", title: "Ses appels, écoutés et résumés", text: "Chaque appel mené pour lui : résumé par l'IA, transcription, enregistrement et objections." },
-  { icon: "✨", title: "L'intelligence terrain, pour lui aussi", text: "Son assistant IA lui fait le point sur son marché et prépare ses rendez-vous : « Prépare mon RDV de jeudi avec Talentis RH »." },
+  { icon: "🔴", title: "Il suit ses appels en live", text: "Chaque appel passé pour lui apparaît dans la minute. Il voit qui a été appelé, ce qui s'est dit et ce qui a été obtenu, sans rien vous demander." },
+  { icon: "🎧", title: "Il écoute et il lit", text: "L'enregistrement, la transcription et le résumé de chaque appel, avec les objections du prospect." },
+  { icon: "📅", title: "Il prépare ses rendez-vous", text: "« Prépare mon RDV de jeudi avec Talentis RH » : son assistant IA lui dit ce que le prospect a dit, ce qui bloque et l'angle à prendre." },
+  { icon: "🤝", title: "Il fait débriefer ses rendez-vous", text: "Il dépose la transcription de son rendez-vous : l'IA lui dit ce qui a marché, ce qui a manqué et la prochaine étape, en reprenant ce qui s'est dit au téléphone." },
+  { icon: "📈", title: "Il voit ses résultats", text: "Appels, décrochés, conversations et rendez-vous, par jour, semaine ou mois. Toujours à jour." },
+  { icon: "✨", title: "Il comprend son marché", text: "Ce qui bloque, ce que disent les prospects, quand ils décrochent : il pose la question, son assistant relit les appels pour lui." },
+];
+
+/** Pourquoi le commercial y gagne : ce qui le démarque. */
+const STANDOUT = [
+  { icon: "🏆", title: "Vous vous démarquez", text: "Peu de commerciaux donnent un accès en direct à leurs appels. Vous, vous montrez tout, appel par appel." },
+  { icon: "🤝", title: "Vos clients vous font confiance", text: "Plus besoin de prouver votre travail : il est sous leurs yeux. Des clients rassurés restent plus longtemps." },
+  { icon: "💬", title: "Un argument pour signer", text: "En rendez-vous, dites-le : « vous suivrez chaque appel en direct, et votre IA préparera vos rendez-vous ». Ça fait la différence." },
+  { icon: "⏱️", title: "Zéro reporting à faire", text: "Plus de tableau à remplir le vendredi soir. Le suivi se fait tout seul, en direct." },
 ];
 
 /** Arguments de confiance : uniquement ce qui est réellement en place. */
@@ -73,6 +84,7 @@ const SECURITY = [
 
 const FAQ: [string, string][] = [
   ["Qui peut voir mes données ?", "Vous et les membres que vous invitez dans votre espace. Vos clients ne voient que ce qui les concerne, via leur lien de suivi ou leur accès client, en lecture seule."],
+  ["Est-ce compliqué à mettre en place ?", "Non. Vous connectez votre outil d'appel (une clé à coller, ou un clic pour Minari), vous créez votre client, vous lui envoyez son lien. Comptez 2 minutes. Votre client, lui, n'a rien à faire : il ouvre le lien."],
   ["Mon client voit-il tout ce que je fais ?", "Non. Il ne voit que les appels rangés chez lui, c'est-à-dire ceux de ses listes d'appels. Vos autres clients et vos réglages restent invisibles."],
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
@@ -94,55 +106,70 @@ export default async function Home() {
       </header>
 
       <section className="lp-hero">
-        <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
+        <span className="lp-tag lp-live"><i aria-hidden="true" />Accès en direct pour vos clients</span>
         <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
         <p className="lp-sub">Fini les reportings clients faits à la main.</p>
-        <p className="lead">L&apos;IA analyse chacun de vos appels : ce qui bloque, ce que dit le marché, ce qui fait signer. Vos clients suivent en direct vos appels, vos stats et vos rendez-vous, et accèdent eux aussi à cette intelligence terrain. Vous, vous pilotez tous vos clients au même endroit.</p>
+        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, écoute les enregistrements, voit ses résultats et <b>prépare ses rendez-vous avec son assistant IA</b>. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
-          <a className="btn lp-cta" href="#clients">Voir ce que voit votre client</a>
+          <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
         </div>
-        <p className="lp-note">{TRIAL_DAYS} jours gratuits, aucun débit pendant l&apos;essai · Connectez vos outils en une minute</p>
+        <p className="lp-note">Prêt en 2 minutes : connectez votre outil d&apos;appel, envoyez le lien. Rien à installer, rien à préparer.</p>
         <figure className="lp-shot lp-shot-hero">
           <img src="/screens/suivi-chatbot.jpg" alt="Espace de suivi d'un client : ses appels et rendez-vous en direct, avec son assistant IA" width={2880} height={1800} />
         </figure>
       </section>
 
+      <section id="clients" className="lp-client lp-client-top">
+        <div className="lp-client-head">
+          <div className="lp-client-badge"><Mascot size={44} /><span>Ce que votre client peut faire</span></div>
+          <h2>Votre client suit tout en direct.<br />Et son IA prépare ses rendez-vous.</h2>
+          <p>Un lien, et c&apos;est tout : pas de compte, pas de mot de passe, rien à installer. Il ouvre la page et voit ses appels, ses résultats et ses rendez-vous, mis à jour en continu.</p>
+        </div>
+        <div className="lp-client-perks">
+          {CLIENT_PERKS.map((c) => <div key={c.title}><span className="lp-client-ico" aria-hidden="true">{c.icon}</span><b>{c.title}</b><p>{c.text}</p></div>)}
+        </div>
+        <div className="lp-client-shots">
+          <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels et rendez-vous en direct" loading="lazy" /><figcaption>Ses appels et ses résultats, en direct</figcaption></figure>
+          <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>Son assistant IA prépare ses rendez-vous</figcaption></figure>
+        </div>
+        <ol className="lp-easy">
+          <li><b>1</b><span>Vous connectez votre outil d&apos;appel</span></li>
+          <li><b>2</b><span>Vous envoyez le lien à votre client</span></li>
+          <li><b>3</b><span>Il suit tout en direct. C&apos;est tout.</span></li>
+        </ol>
+        <ul className="lp-client-list">
+          <li>Un lien secret par client, désactivable à tout moment</li>
+          <li>Il ne voit que ses propres appels</li>
+          <li>Rien à installer, aucun compte à créer</li>
+        </ul>
+        <div className="lp-cta-row"><Link className="btn lp-cta lp-cta-light" href="/inscription">Offrir l&apos;accès en direct à mes clients</Link></div>
+      </section>
+
+      <section id="demarquez-vous" className="lp-intel">
+        <span className="lp-tag">Pour vous, commercial</span>
+        <h2 className="lp-h2">Donner un accès en direct, ça vous démarque</h2>
+        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Vos clients ne reçoivent plus un rapport en fin de mois : ils voient votre travail au moment où il se fait.</p>
+        <div className="lp-intel-grid">
+          {STANDOUT.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
+        </div>
+      </section>
+
       <section className="lp-strip">
-        {[["Reporting d'appels", "par client, en direct"], ["Intelligence terrain", "l'IA analyse chaque appel"], ["Accès client", "ses stats et son assistant IA"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
+        {[["Accès client en direct", "appels, écoutes, résultats"], ["Assistant IA du client", "il prépare ses rendez-vous"], ["Reporting automatique", "rien à remplir"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
       </section>
 
       <section id="intelligence" className="lp-intel">
         <span className="lp-tag">Intelligence terrain</span>
-        <h2 className="lp-h2">Vos appels deviennent de l&apos;intelligence terrain</h2>
-        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>L&apos;IA écoute chaque appel et en tire ce qu&apos;un manager mettrait des heures à repérer. Pour vous, et pour votre client.</p>
+        <h2 className="lp-h2">Et l&apos;IA analyse chaque appel</h2>
+        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Ce qu&apos;un manager mettrait des heures à repérer, tiré automatiquement de vos appels. Pour vous, et pour votre client.</p>
         <div className="lp-intel-grid">
           {INTEL.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
         </div>
       </section>
 
-      <section id="clients" className="lp-client">
-        <div className="lp-client-head">
-          <div className="lp-client-badge"><Mascot size={44} /><span>Pour vos clients</span></div>
-          <h2>Facilitez la vie de vos clients.<br />Renforcez votre relation.</h2>
-          <p>Partagez un lien à chaque client : il suit en direct les appels menés pour lui, ses stats et ses rendez-vous, et profite lui aussi de l&apos;intelligence terrain. Sans compte, sans mot de passe. Il garde la main, vous gagnez sa confiance.</p>
-        </div>
-        <div className="lp-client-perks">
-          {CLIENT_PERKS.map((c) => <div key={c.title}><span className="lp-client-ico" aria-hidden="true">{c.icon}</span><b>{c.title}</b><p>{c.text}</p></div>)}
-        </div>
-        <div className="lp-client-shots">
-          <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels et rendez-vous en direct" loading="lazy" /><figcaption>Ses stats et ses appels, en direct</figcaption></figure>
-          <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>Son assistant IA prépare ses rendez-vous</figcaption></figure>
-        </div>
-        <ul className="lp-client-list">
-          <li>Un lien secret par client, désactivable à tout moment</li>
-          <li>Il ne voit que ses propres données, en lecture seule</li>
-          <li>Enregistrements, transcriptions et résumés de ses appels</li>
-        </ul>
-        <div className="lp-cta-row"><Link className="btn lp-cta lp-cta-light" href="/inscription">Offrir le suivi en direct à mes clients</Link></div>
-      </section>
 
       <section id="video" className="lp-video">
         <h2 className="lp-h2">Trustpipe en 1 minute</h2>
@@ -231,6 +258,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-final">
+        <p className="lp-sub">Vos clients suivent vos appels en direct. Vous vous démarquez.</p>
         <h2 className="lp-h2">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h2>
         <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
