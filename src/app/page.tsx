@@ -66,7 +66,7 @@ const CLIENT_PERKS = [
 
 /** Pourquoi le commercial y gagne : ce qui le démarque. */
 const STANDOUT = [
-  { icon: "🏆", title: "Vous vous démarquez", text: "Peu de commerciaux donnent un accès en direct à leurs appels. Vous, vous montrez tout, appel par appel." },
+  { icon: "🏆", title: "Vous montrez tout", text: "Peu de commerciaux donnent un accès en direct à leurs appels. Vous, vous ouvrez tout, appel par appel." },
   { icon: "🤝", title: "Vos clients vous font confiance", text: "Plus besoin de prouver votre travail : il est sous leurs yeux. Des clients rassurés restent plus longtemps." },
   { icon: "💬", title: "Un argument pour signer", text: "En rendez-vous, dites-le : « vous suivrez chaque appel en direct, et votre IA préparera vos rendez-vous ». Ça fait la différence." },
   { icon: "⏱️", title: "Zéro reporting à faire", text: "Plus de tableau à remplir le vendredi soir. Le suivi se fait tout seul, en direct." },
@@ -109,7 +109,7 @@ export default async function Home() {
         <span className="lp-tag lp-live"><i aria-hidden="true" />Accès en direct pour vos clients</span>
         <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
         <p className="lp-sub">Fini les reportings clients faits à la main.</p>
-        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, lit les transcriptions et les résumés, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
+        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, lit les transcriptions et les résumés, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
@@ -259,7 +259,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-final">
-        <p className="lp-sub">Vos clients suivent vos appels en direct. Vous vous démarquez.</p>
+        <p className="lp-sub">Vos clients suivent vos appels en direct. Vous gagnez leur confiance.</p>
         <h2 className="lp-h2">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h2>
         <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
