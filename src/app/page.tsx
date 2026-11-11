@@ -72,7 +72,8 @@ export default async function Home() {
         <Logo size={24} />
         <div className="row" style={{ gap: 8 }}>
           <a className="btn lp-hide-sm" href="#tarifs">Tarifs</a>
-          <Link className="btn" href={u ? "/app" : "/login"}>{u ? "Ouvrir mon espace" : "Connexion"}</Link>
+          <Link className="btn lp-hide-sm" href={u ? "/app" : "/login"}>{u ? "Ouvrir mon espace" : "Connexion"}</Link>
+          {!u && <Link className="btn primary" href="/login">Essai gratuit</Link>}
         </div>
       </header>
 
@@ -103,6 +104,7 @@ export default async function Home() {
             <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
           </video>
         </figure>
+        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/login">Commencer l&apos;essai gratuit</Link><span className="lp-note">{TRIAL_DAYS} jours, sans carte bancaire</span></div>
       </section>
 
       <div id="produit">
@@ -113,6 +115,7 @@ export default async function Home() {
               <h2>{s.title}</h2>
               <p>{s.text}</p>
               <ul>{s.points.map((p) => <li key={p}>{p}</li>)}</ul>
+              <Link className="btn primary lp-cta-inline" href="/login">Commencer l&apos;essai gratuit</Link>
             </div>
             <figure className={`lp-shot${s.narrow ? " narrow" : ""}`}>
               <img src={s.img} alt={s.title} loading="lazy" />
@@ -141,6 +144,7 @@ export default async function Home() {
           <li><b>2</b>Connectez votre compte</li>
           <li><b>3</b>Vos stats arrivent, en direct</li>
         </ol>
+        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/login">Connecter mon premier outil</Link></div>
       </section>
 
       <section id="tarifs" className="lp-pricing">

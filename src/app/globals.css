@@ -111,6 +111,12 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .heat { display: grid; grid-template-columns: 34px repeat(12, minmax(0,1fr)); gap: 4px; align-items: center; }
 .heat .cell { aspect-ratio: 1.5; border-radius: 5px; background: rgba(11,18,47,.05); position: relative; }
 .heat label { font-family: var(--f-mono); font-size: 10.5px; color: var(--dim); }
+.heat .cell.few { background: repeating-linear-gradient(135deg, rgba(11,18,47,.07) 0 3px, rgba(11,18,47,.02) 3px 6px); }
+.heat-legend { display: flex; flex-wrap: wrap; gap: 8px 14px; margin-top: 14px; font-size: 12px; color: var(--muted); }
+.heat-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.heat-legend b { color: var(--ink); font-weight: 600; }
+.heat-legend i { width: 14px; height: 10px; border-radius: 3px; background: rgba(11,18,47,.05); flex: none; }
+.heat-legend i.few { background: repeating-linear-gradient(135deg, rgba(11,18,47,.12) 0 3px, rgba(11,18,47,.03) 3px 6px); }
 
 .list { display: flex; flex-direction: column; }
 .item { display: grid; grid-template-columns: 38px minmax(0,1fr) auto; gap: 2px 12px; align-items: center; padding: 12px 8px; border-radius: 12px; text-decoration: none; color: inherit; transition: background .2s; }
@@ -192,7 +198,10 @@ tr:last-child td { border-bottom: 0; }
 .landing .lead { font-size: 18px; color: var(--muted); max-width: 56ch; }
 /* Page d'accueil */
 .landing:has(.lp-hero) { max-width: 1180px; }
-.lp-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.lp-nav { display: flex; justify-content: space-between; align-items: center; gap: 12px; position: sticky; top: 0; z-index: 20; margin: -32px -16px 0; padding: 14px 16px; background: rgba(245,247,252,.86); backdrop-filter: saturate(1.4) blur(12px); -webkit-backdrop-filter: saturate(1.4) blur(12px); }
+.lp-cta-row { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 24px; }
+.lp-cta-row .lp-note { margin: 0; }
+.lp-cta-inline { margin-top: 20px; }
 .lp-hero { text-align: center; }
 .lp-hero h1 { margin: 48px auto 16px; max-width: 18ch; }
 .lp-hero .lead { margin: 0 auto; }

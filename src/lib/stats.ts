@@ -10,6 +10,8 @@ export type Stats = {
   objections: { key: string; count: number; passedRate: number | null }[];
   daily: { day: string; conversations: number; meetings: number }[];
   heat: Record<string, number>;
+  /** Par créneau « jour-heure » (lun-ven, 8h-19h, heure de Paris) : appels passés et appels décrochés. */
+  slots: Record<string, { calls: number; connected: number }>;
   reps: { name: string; total: number; connected: number; conversations: number; meetings: number }[];
   lastCallAt: Date | null;
 };
@@ -31,7 +33,7 @@ export function computeStats(all: Call[], days: number): Stats {
     meetings: calls.filter((c) => c.meetingBooked).length,
     talkSec: calls.reduce((a, c) => a + (c.connected ? c.durationSec : 0), 0),
     connectRate: 0, convToMeeting: 0, avgConvSec: 0,
-    objections: [], daily: [], heat: {}, reps: [],
+    objections: [], daily: [], heat: {}, slots: {}, reps: [],
     lastCallAt: all[0]?.startedAt ?? null,
   };
   s.connectRate = s.total ? (s.connected / s.total) * 100 : 0;
@@ -62,6 +64,13 @@ export function computeStats(all: Call[], days: number): Stats {
     const d = weekdayParis(c.startedAt), h = hourParis(c.startedAt);
     if (d < 5 && h >= 8 && h < 20) s.heat[`${d}-${h}`] = (s.heat[`${d}-${h}`] || 0) + 1;
   }
+  for (const c of calls) {
+    const d = weekdayParis(c.startedAt), h = hourParis(c.startedAt);
+    if (d >= 5 || h < 8 || h >= 20) continue;
+    const k = `${d}-${h}`, slot = (s.slots[k] ||= { calls: 0, connected: 0 });
+    slot.calls++;
+    if (c.connected) slot.connected++;
+  }
   const reps = new Map<string, Stats["reps"][number]>();
   for (const c of calls) {
     const n = c.repName || "Non attribué";
@@ -71,4 +80,28 @@ export function computeStats(all: Call[], days: number): Stats {
   }
   s.reps = [...reps.values()].sort((a, b) => b.total - a.total);
   return s;
+}
+
+/** Niveaux de la carte des créneaux, selon le taux de décroché. */
+export const SLOT_MIN_CALLS = 3;
+export const SLOT_LEVELS = [
+  { min: 30, label: "Excellent", sub: "30 % et plus", color: "#0F9F6E" },
+  { min: 20, label: "Bon", sub: "20 à 30 %", color: "#6FD3A4" },
+  { min: 10, label: "Moyen", sub: "10 à 20 %", color: "#F2B84B" },
+  { min: 0, label: "Faible", sub: "moins de 10 %", color: "#E8697D" },
+] as const;
+
+export function slotLevel(slot: { calls: number; connected: number } | undefined) {
+  if (!slot || !slot.calls) return { kind: "none" as const };
+  if (slot.calls < SLOT_MIN_CALLS) return { kind: "few" as const };
+  const rate = (slot.connected / slot.calls) * 100;
+  return { kind: "rate" as const, rate, level: SLOT_LEVELS.find((l) => rate >= l.min)! };
+}
+
+/** Meilleur créneau : le plus fort taux de décroché parmi ceux qui ont assez d'appels (à égalité, le plus d'appels). */
+export function bestSlot(slots: Stats["slots"]) {
+  return Object.entries(slots)
+    .filter(([, v]) => v.calls >= SLOT_MIN_CALLS)
+    .map(([k, v]) => ({ key: k, rate: (v.connected / v.calls) * 100, calls: v.calls }))
+    .sort((a, b) => b.rate - a.rate || b.calls - a.calls)[0] ?? null;
 }

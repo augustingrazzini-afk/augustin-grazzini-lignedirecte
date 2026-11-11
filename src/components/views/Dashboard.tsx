@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Scope } from "@/lib/access";
-import { computeStats, windowCalls } from "@/lib/stats";
+import { SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotLevel, windowCalls } from "@/lib/stats";
 import { OBJ_LABEL, fmt, fmtDuration, isConversation, pct } from "@/lib/format";
 import { CallItem } from "../CallItem";
 import { ChannelOverview } from "./Channels";
@@ -29,8 +29,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = true 
 
   const steps: [string, number][] = [["Appels", s.total], ["Décrochés", s.connected], ["Conversations", s.conversations], ["Rendez-vous", s.meetings]];
   const omx = Math.max(1, ...s.objections.map((o) => o.count));
-  const hmax = Math.max(1, ...Object.values(s.heat));
-  const best = Object.entries(s.heat).sort((a, b) => b[1] - a[1])[0];
+  const best = bestSlot(s.slots);
   const feed = calls.filter((c) => isConversation(c) || c.kind === "meeting").slice(0, 7);
   const multiSource = new Set(calls.map((c) => c.provider)).size > 1;
 
@@ -81,11 +80,20 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = true 
               <div key={o.key} className="obj"><span>{OBJ_LABEL[o.key] || o.key}</span><div className="bar" style={{ width: `${(o.count / omx) * 100}%` }}><i style={{ width: `${o.passedRate ?? 0}%` }} /></div><span className="n">{o.count}</span></div>
             ))}<div className="legend" style={{ marginTop: 12 }}><span><i style={{ background: "var(--mint)" }} />Passée</span><span><i style={{ background: "rgba(221,63,85,.3)" }} />Non passée ou inconnue</span></div></> : <div className="empty">Aucune objection détectée.</div>}
           </div>
-          <div className="card"><h2>Quand ça décroche</h2><p className="sub">Conversations par jour et par heure</p>
+          <div className="card"><h2>Quand ça décroche</h2><p className="sub">Taux de décroché par jour et par heure (heure de Paris)</p>
             <div className="heat"><span />{HRS.map((h) => <label key={h} style={{ textAlign: "center" }}>{h % 2 ? "" : `${h}h`}</label>)}
-              {DAYS.map((d, di) => [<label key={d}>{d}</label>, ...HRS.map((h) => { const v = s.heat[`${di}-${h}`] || 0; return <div key={`${d}${h}`} className="cell" data-tip={v ? `${d} ${h}h · ${v} conv.` : undefined} style={v ? { background: `rgba(46,91,255,${0.18 + (0.82 * v) / hmax})` } : undefined} />; })])}
+              {DAYS.map((d, di) => [<label key={d}>{d}</label>, ...HRS.map((h) => {
+                const slot = s.slots[`${di}-${h}`], lv = slotLevel(slot);
+                const tip = slot ? `${d} ${h}h · ${slot.calls} appel${slot.calls > 1 ? "s" : ""} · ${slot.connected} décroché${slot.connected > 1 ? "s" : ""}${lv.kind === "rate" ? ` (${Math.round(lv.rate)} %)` : " · trop peu d'appels"}` : undefined;
+                return <div key={`${d}${h}`} className={`cell${lv.kind === "few" ? " few" : ""}`} data-tip={tip} style={lv.kind === "rate" ? { background: lv.level.color } : undefined} />;
+              })])}
             </div>
-            <p className="sub" style={{ margin: "14px 0 0" }}>{best ? <>Meilleur créneau : <b style={{ color: "var(--ink)" }}>{DAYS[+best[0].split("-")[0]]} {best[0].split("-")[1]}h</b>, heure de Paris.</> : "Pas encore assez de conversations."}</p>
+            <div className="heat-legend">
+              {[...SLOT_LEVELS].reverse().map((l) => <span key={l.label}><i style={{ background: l.color }} /><b>{l.label}</b> {l.sub}</span>)}
+              <span><i className="few" />Moins de {SLOT_MIN_CALLS} appels</span>
+              <span><i />Aucun appel</span>
+            </div>
+            <p className="sub" style={{ margin: "12px 0 0" }}>{best ? <>Meilleur créneau : <b style={{ color: "var(--ink)" }}>{DAYS[+best.key.split("-")[0]]} {best.key.split("-")[1]}h</b>, {Math.round(best.rate)} % de décroché sur {best.calls} appels.</> : `Pas encore assez d'appels : il en faut au moins ${SLOT_MIN_CALLS} sur un même créneau.`}</p>
           </div>
         </div>
       </div>

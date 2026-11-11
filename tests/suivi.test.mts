@@ -51,3 +51,16 @@ test("périodes : jour = depuis minuit à Paris, sinon N jours glissants", () =>
   assert.equal(pickDays("12"), 30);
   assert.equal(pickDays("1", [7, 30, 90]), 30);
 });
+
+test("carte des créneaux : couleurs selon le taux de décroché, et meilleur créneau", async () => {
+  const { slotLevel, bestSlot } = await import("../src/lib/stats");
+  assert.equal(slotLevel(undefined).kind, "none");
+  assert.equal(slotLevel({ calls: 2, connected: 2 }).kind, "few", "moins de 3 appels : pas de couleur");
+  const lv = (calls: number, connected: number) => { const r = slotLevel({ calls, connected }); return r.kind === "rate" ? r.level.label : r.kind; };
+  assert.equal(lv(10, 0), "Faible");
+  assert.equal(lv(10, 1), "Moyen");
+  assert.equal(lv(10, 2), "Bon");
+  assert.equal(lv(10, 3), "Excellent");
+  const best = bestSlot({ "1-13": { calls: 3, connected: 3 }, "0-9": { calls: 2, connected: 2 }, "2-10": { calls: 20, connected: 6 } });
+  assert.equal(best?.key, "1-13", "le créneau à 2 appels est ignoré");
+});
