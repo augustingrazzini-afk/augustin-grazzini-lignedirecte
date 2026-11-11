@@ -1,4 +1,5 @@
 import { http, num, Provider, NormalizedCall, str, toDate, trimTranscript } from "./types";
+import { callTool, type McpCreds } from "../mcp";
 
 // Format des appels Minari (observé sur leurs données) : { data: [...], has_more, next_cursor }.
 // L'URL de base est configurable : à confirmer dans Minari > Settings > API & webhook.
@@ -45,6 +46,7 @@ export const minari: Provider = {
   ],
   help: "Appels, résumés, objections et transcriptions. Pour du temps réel, ajoutez aussi l'URL de webhook dans Minari.",
   async test(c) {
+    if (c.accessToken) { await callTool(c as McpCreds, "Minari", "list_workspaces", {}); return; }
     const end = new Date(Date.now() + 864e5), start = new Date(Date.now() - 864e5);
     await http(`${base(c)}/calls?start_date=${day(start)}&end_date=${day(end)}`, { headers: headers(c), label: "Minari" });
   },
@@ -56,7 +58,9 @@ export const minari: Provider = {
       const q = new URLSearchParams({ start_date: day(since), end_date: day(end) });
       if (cursor) q.set("cursor", cursor);
       lists.forEach((l) => q.append("list_id", l));
-      const res = (await http(`${base(c)}/calls?${q}`, { headers: headers(c), label: "Minari" })) as any;
+      const res = (c.accessToken
+        ? await callTool(c as McpCreds, "Minari", "list_calls", { start_date: day(since), end_date: day(end), ...(cursor ? { cursor } : {}), ...(lists.length ? { list_id: lists } : {}) })
+        : await http(`${base(c)}/calls?${q}`, { headers: headers(c), label: "Minari" })) as any;
       const rows: MinariCall[] = res.data || res.calls || [];
       yield rows.filter((r) => !lists.length || lists.includes(str(r.list?.list_id))).map(map);
       if (!res.has_more || !res.next_cursor) break;
@@ -64,7 +68,9 @@ export const minari: Provider = {
     }
   },
   async details(c, id) {
-    const res = (await http(`${base(c)}/calls/${encodeURIComponent(id)}`, { headers: headers(c), label: "Minari" })) as any;
+    const res = (c.accessToken
+      ? await callTool(c as McpCreds, "Minari", "get_call", { call_id: id })
+      : await http(`${base(c)}/calls/${encodeURIComponent(id)}`, { headers: headers(c), label: "Minari" })) as any;
     const d = res.data || res;
     if (!d) return null;
     return {

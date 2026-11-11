@@ -297,3 +297,15 @@ model AiUsage {
 
   @@id([key, day])
 }
+
+/// Identifiant client OAuth de Trustpipe auprès d'un outil (connexion en un clic via MCP), enregistré une seule fois.
+model OAuthClient {
+  id           String   @id @default(cuid())
+  issuer       String
+  redirectUri  String
+  clientId     String
+  clientSecret String?
+  createdAt    DateTime @default(now())
+
+  @@unique([issuer, redirectUri])
+}

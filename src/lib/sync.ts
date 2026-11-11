@@ -1,5 +1,5 @@
 import { db } from "./db";
-import { open } from "./crypto";
+import { open, seal } from "./crypto";
 import { upsertActivities, upsertCalls } from "./ingest";
 import { getProvider } from "./providers";
 import { ProviderError } from "./providers/types";
@@ -28,14 +28,23 @@ export async function syncIntegration(integrationId: string, opts: { full?: bool
       created += r.created; updated += r.updated;
     }
     if (p.details) await fillDetails(integ.id, integ.orgId, integ.provider, integ.clientId, creds);
+    await saveCreds(integ.id, creds);
     await db.integration.update({ where: { id: integ.id }, data: { lastSyncAt: startedAt, status: "active", lastError: null } });
   } catch (e) {
+    await saveCreds(integ.id, creds);
     const msg = e instanceof ProviderError ? e.message : "Erreur inattendue pendant la synchronisation.";
     if (!(e instanceof ProviderError)) console.error("sync", integ.id, e);
     await db.integration.update({ where: { id: integ.id }, data: { status: "error", lastError: msg } });
     throw e;
   }
   return { created, updated, skipped: false };
+}
+
+/** Connexion OAuth : les jetons renouvelés pendant la synchro sont réenregistrés (chiffrés). */
+async function saveCreds(id: string, creds: Record<string, string>) {
+  if (!creds.__dirty) return;
+  delete creds.__dirty;
+  await db.integration.update({ where: { id }, data: { credentials: seal(creds) } }).catch((e) => console.error("jetons", id, e));
 }
 
 /** Récupère transcriptions et détails des conversations qui n'en ont pas encore. */

@@ -51,6 +51,9 @@ export function Connectors({ providers, clientId, connected }: { providers: Prov
   );
 }
 
+/** Outils connectables en un clic (OAuth, comme les connecteurs de Claude). */
+const ONE_CLICK = new Set(["minari"]);
+
 function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: string | null; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<FormState, FormData>(addIntegration, null);
@@ -76,6 +79,15 @@ function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: st
         <form action={action} className="cx-form">
           <input type="hidden" name="provider" value={p.id} />
           {clientId && <input type="hidden" name="clientId" value={clientId} />}
+          {ONE_CLICK.has(p.id) && (
+            <div className="cx-oneclick">
+              <a className="btn primary cx-oauth" href={`/api/connect/${p.id}/start${clientId ? `?client=${clientId}` : ""}`}>
+                <BrandLogo id={p.id} mono={m?.mono} color={m?.color} /> Se connecter avec {p.label}
+              </a>
+              <p className="muted small">Vous vous connectez à {p.label}, vous autorisez Trustpipe, c&apos;est tout. Aucune clé à copier.</p>
+              <div className="cx-or"><span>ou avec une clé API</span></div>
+            </div>
+          )}
           {p.id === "webhook" ? (
             <ol className="cx-steps">
               <li>Cliquez sur « Créer mon URL » : vous obtenez une adresse personnelle et secrète.</li>
