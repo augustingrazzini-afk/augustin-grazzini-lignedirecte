@@ -122,7 +122,7 @@ function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: st
             <button type="button" className="btn" onClick={() => ref.current?.close()}>Annuler</button>
             <button className="btn primary" disabled={pending}>{pending ? "Vérification…" : p.id === "webhook" ? "Créer mon URL" : `Connecter ${p.label}`}</button>
           </div>
-          <p className="muted small" style={{ margin: 0 }}>🔒 Clé chiffrée (AES-256), jamais affichée, utilisée uniquement pour lire vos données.</p>
+          <p className="muted small" style={{ margin: 0 }}>🔒 Clé chiffrée (AES-256), jamais affichée, utilisée uniquement pour lire vos données. Hébergé en France, conforme RGPD.</p>
         </form>
       )}
     </dialog>

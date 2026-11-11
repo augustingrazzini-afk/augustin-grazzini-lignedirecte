@@ -74,6 +74,25 @@ const CLIENT_PERKS = [
   { icon: "✨", title: "Son assistant IA", text: "Il prépare ses rendez-vous et fait résumer ses appels en une question : « Prépare mon RDV de jeudi avec Talentis RH »." },
 ];
 
+/** Arguments de confiance : uniquement ce qui est réellement en place. */
+const SECURITY = [
+  { icon: "🇫🇷", title: "Hébergé en France", text: "La base de données est à Paris, l'application tourne à Paris. Vos données ne quittent pas l'Union européenne, sauf pour l'analyse IA des appels." },
+  { icon: "🔐", title: "Connexions chiffrées", text: "Les accès à vos outils (Minari, lemlist…) sont chiffrés en AES-256 et ne sont jamais affichés, même à vous." },
+  { icon: "🧱", title: "Cloisonnement par client", text: "Chaque client ne voit que ses propres appels, emails et messages. Ce cloisonnement est vérifié par des tests automatiques à chaque mise à jour." },
+  { icon: "👁️", title: "Lecture seule", text: "Trustpipe lit vos outils mais n'écrit rien, n'appelle personne et n'envoie aucun email en votre nom." },
+  { icon: "📵", title: "Moins de données personnelles", text: "Les numéros de téléphone des prospects ne sont pas conservés : seuls les 4 derniers chiffres sont gardés." },
+  { icon: "🔗", title: "Vous gardez la main", text: "Les liens de suivi sont secrets et désactivables en un clic. Vous déconnectez un outil quand vous voulez." },
+];
+
+const FAQ: [string, string][] = [
+  ["Qui peut voir mes données ?", "Vous et les membres que vous invitez dans votre espace. Vos clients ne voient que ce qui les concerne, via leur lien de suivi ou leur accès client, en lecture seule."],
+  ["Mon client voit-il tout ce que je fais ?", "Non. Il ne voit que les appels, emails et messages LinkedIn rangés chez lui, c'est-à-dire liés à sa liste ou à sa campagne. Vos autres clients et vos réglages restent invisibles."],
+  ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
+  ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
+  ["Faut-il une carte bancaire pour l'essai ?", "Oui, elle est enregistrée sur Stripe, qui gère le paiement : nous ne voyons jamais votre numéro de carte. Rien n'est débité pendant les 14 jours d'essai, et vous résiliez en un clic depuis la page Abonnement."],
+  ["Et si je n'utilise pas Minari, lemlist ou Instantly ?", "Aircall, Ringover, HubSpot, Smartlead, La Growth Machine ou Waalaxy fonctionnent aussi, directement ou via Zapier, Make et n8n. Vous pouvez aussi importer un simple CSV, ou l'export de vos relations et messages LinkedIn."],
+];
+
 export default async function Home() {
   const u = await currentUser();
   return (
@@ -177,6 +196,23 @@ export default async function Home() {
           <li><b>3</b>Vos stats arrivent, en direct</li>
         </ol>
         <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Connecter mon premier outil</Link></div>
+      </section>
+
+      <section id="securite" className="lp-sec">
+        <span className="lp-tag">Sécurité et RGPD</span>
+        <h2 className="lp-h2">Vos données et celles de vos clients sont protégées</h2>
+        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Trustpipe lit vos outils, rien de plus. Vos données restent en France, chiffrées et cloisonnées client par client.</p>
+        <div className="lp-sec-badges"><span>🇫🇷 Hébergé en France</span><span>🔒 Chiffrement AES-256</span><span>🇪🇺 Conforme RGPD</span></div>
+        <div className="lp-sec-grid">
+          {SECURITY.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
+        </div>
+      </section>
+
+      <section id="faq" className="lp-faq">
+        <h2 className="lp-h2">Questions fréquentes</h2>
+        <div className="lp-faq-list">
+          {FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}
+        </div>
       </section>
 
       <section id="tarifs" className="lp-pricing">
