@@ -97,7 +97,7 @@ export default async function Home() {
       </section>
 
       <section id="video" className="lp-video">
-        <h2 className="lp-h2">Trustpipe en 40 secondes</h2>
+        <h2 className="lp-h2">Trustpipe en 1 minute</h2>
         <figure className="lp-shot">
           <video controls playsInline preload="none" poster="/video/trustpipe-poster.jpg" width={1920} height={1080}>
             <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
