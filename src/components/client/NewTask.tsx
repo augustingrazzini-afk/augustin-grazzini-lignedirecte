@@ -20,7 +20,7 @@ export function NewTask({ contactKey, clientId }: { contactKey: string; clientId
       (e.target as HTMLFormElement).reset(); setMsg({ ok: "Relance ajoutée" }); router.refresh();
     }}>
       <label>Date<input className="input" type="date" name="date" defaultValue={tomorrow()} required /></label>
-      <label>Canal<select className="select" name="channel"><option value="call">Appel</option><option value="email">Email</option><option value="linkedin">LinkedIn</option></select></label>
+      <label>Canal<select className="select" name="channel"><option value="call">Appel</option></select></label>
       <label className="full">Motif<input className="input" name="reason" required placeholder="Rappeler après son comité de direction" /></label>
       <div className="full row"><button className="btn" disabled={busy}>{busy ? "…" : "Ajouter une relance"}</button>{msg.err && <span className="pill bad">{msg.err}</span>}{msg.ok && <span className="pill win">{msg.ok}</span>}</div>
     </form>

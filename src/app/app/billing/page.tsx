@@ -28,7 +28,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
               <div className="amt">{p.price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
               <ul>
                 <li>{Number.isFinite(p.maxClients) ? `${p.maxClients} espaces clients` : "Espaces clients illimités"}</li>
-                <li>Toutes les sources : Minari, Aircall, Ringover, HubSpot, lemlist, CSV</li>
+                <li>Toutes les sources : Minari, Aircall, Ringover, HubSpot, CSV</li>
                 <li>Transcriptions, briefs IA, coach, relances</li>
                 {id === "agency" && <li>Plusieurs commerciaux dans l&apos;équipe</li>}
               </ul>

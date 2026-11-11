@@ -1,6 +1,6 @@
 // Assistant IA (chatbot) : Claude répond aux questions sur la prospection en interrogeant les données
 // via des outils. Chaque outil applique le périmètre de la personne connectée (callScope / activityScope) :
-// un client ne voit jamais que ses propres appels, emails et messages LinkedIn.
+// un client ne voit jamais que ses propres appels.
 import Anthropic from "@anthropic-ai/sdk";
 import type { Prisma } from "@prisma/client";
 import { callScope, scopeClientId, type Scope } from "./access";
@@ -18,7 +18,7 @@ const day = (d: Date) => d.toLocaleString("fr-FR", { timeZone: "Europe/Paris", d
 export const ASSISTANT_TOOLS: Anthropic.Tool[] = [
   {
     name: "stats",
-    description: "Statistiques de prospection sur une période : appels (volume, décroché, conversations, RDV, taux, objections, meilleur créneau, par commercial), emails et LinkedIn (envois, réponses, positives, RDV, par campagne). À utiliser pour toute question chiffrée ou de diagnostic.",
+    description: "Statistiques de prospection sur une période : appels (volume, décroché, conversations, RDV, taux, objections, meilleur créneau, par commercial). À utiliser pour toute question chiffrée ou de diagnostic.",
     input_schema: { type: "object", properties: { days: DAYS }, additionalProperties: false },
   },
   {
@@ -42,23 +42,8 @@ export const ASSISTANT_TOOLS: Anthropic.Tool[] = [
     input_schema: { type: "object", properties: { id: { type: "string" } }, required: ["id"], additionalProperties: false },
   },
   {
-    name: "search_messages",
-    description: "Cherche dans les emails et LinkedIn : réponses des prospects (avec leur texte et leur tonalité), envois, invitations, RDV.",
-    input_schema: {
-      type: "object",
-      properties: {
-        query: { type: "string", description: "Nom, entreprise, campagne ou mot du message (facultatif)" },
-        channel: { type: "string", enum: ["email", "linkedin"] },
-        days: DAYS,
-        only_replies: { type: "boolean", description: "Uniquement les réponses (par défaut true)" },
-        limit: { type: "integer", description: "1 à 40, 15 par défaut" },
-      },
-      additionalProperties: false,
-    },
-  },
-  {
     name: "prospect_history",
-    description: "Tout l'historique d'un prospect ou d'une entreprise, tous canaux confondus (appels avec résumés, emails, LinkedIn, relances), du plus récent au plus ancien. Idéal pour préparer un rendez-vous.",
+    description: "Tout l'historique d'un prospect ou d'une entreprise, (appels avec résumés et objections, relances), du plus récent au plus ancien. Idéal pour préparer un rendez-vous.",
     input_schema: { type: "object", properties: { name: { type: "string", description: "Nom du prospect ou de son entreprise" } }, required: ["name"], additionalProperties: false },
   },
   {
@@ -151,7 +136,7 @@ export type ChatTurn = { role: "user" | "assistant"; content: string };
 /** Fait tourner la conversation : Claude appelle les outils autant que nécessaire (8 étapes max), puis répond. */
 export async function askAssistant(scope: Scope, history: ChatTurn[], ctx: { who: string; offer: string; isClient: boolean }): Promise<{ text: string; steps: string[] }> {
   const system = `Tu es l'assistant de prospection de Trustpipe, pour ${ctx.who}.${ctx.offer ? ` Ce qu'il vend : ${ctx.offer.slice(0, 1500)}` : ""}
-${ctx.isClient ? "Tu parles au client d'un SDR : ses données sont les appels, emails et messages LinkedIn que son prestataire a menés pour lui. Aide-le surtout à préparer ses rendez-vous et à comprendre les résultats." : "Tu parles à un SDR (ou à son équipe) qui prospecte pour ses clients."}
+${ctx.isClient ? "Tu parles au client d'un SDR : ses données sont les appels que son prestataire a menés pour lui. Aide-le surtout à préparer ses rendez-vous et à comprendre les résultats." : "Tu parles à un SDR (ou à son équipe) qui prospecte pour ses clients."}
 Nous sommes le ${day(new Date())} (heure de Paris).
 
 Règles :

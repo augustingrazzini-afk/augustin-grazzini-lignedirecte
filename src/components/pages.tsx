@@ -50,7 +50,7 @@ export async function RelancesPage({ scope, base }: { scope: Scope; base: string
     const [cm, client] = await Promise.all([db.clientMember.findFirst({ where: { clientId: scope.clientId, userId: scope.userId } }), db.client.findUnique({ where: { id: scope.clientId } })]);
     alerts = <AlertSettings digest={cm?.digest ?? false} slack={client?.slackWebhook ?? null} clientId={scope.clientId} canSlack={!!cm} />;
   }
-  return (<><PageTop title="Relances" subtitle="Appels, emails et LinkedIn : ce qui est à faire, quand" /><Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
+  return (<><PageTop title="Relances" subtitle="Les rappels à faire, quand" /><Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
 }
 
 export function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {

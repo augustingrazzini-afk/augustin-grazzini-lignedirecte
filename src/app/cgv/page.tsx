@@ -8,7 +8,7 @@ export default function Page() {
   return (
     <LegalPage title="Conditions générales de vente et d'utilisation">
       <h2>1. Objet</h2>
-      <p>Les présentes conditions régissent l&apos;accès et l&apos;utilisation du service {L.brand} (le « Service »), édité par <V v={L.company} /> (l&apos;« Éditeur »). Le Service centralise les statistiques de prospection (appels, campagnes email, LinkedIn) issues des outils connectés par l&apos;utilisateur, les analyse, et permet de les partager avec ses clients.</p>
+      <p>Les présentes conditions régissent l&apos;accès et l&apos;utilisation du service {L.brand} (le « Service »), édité par <V v={L.company} /> (l&apos;« Éditeur »). Le Service centralise les statistiques des appels de prospection issues des outils connectés par l&apos;utilisateur, les analyse, et permet de les partager avec ses clients.</p>
       <h2>2. Clients concernés</h2>
       <p>Le Service est réservé aux professionnels (SDR indépendants, entreprises, équipes commerciales) agissant dans le cadre de leur activité. Le droit de rétractation du Code de la consommation ne s&apos;applique pas.</p>
       <h2>3. Compte et accès</h2>
@@ -20,13 +20,13 @@ export default function Page() {
       <h2>6. Résiliation</h2>
       <p>L&apos;utilisateur résilie à tout moment depuis la page Abonnement ; la résiliation prend effet à la fin de la période payée, sans remboursement de la période en cours. L&apos;Éditeur peut suspendre ou résilier un compte en cas de manquement grave aux présentes conditions.</p>
       <h2>7. Outils connectés et données importées</h2>
-      <p>L&apos;utilisateur connecte ses propres outils (Minari, Aircall, Ringover, HubSpot, lemlist, Instantly, Smartlead, Zapier, Make, n8n…) avec ses identifiants, qui sont chiffrés. Il garantit disposer des droits nécessaires sur ces outils et sur les données qu&apos;ils contiennent, et respecter leurs conditions d&apos;utilisation. L&apos;Éditeur n&apos;est pas responsable de l&apos;indisponibilité ou des changements de ces outils tiers.</p>
+      <p>L&apos;utilisateur connecte ses propres outils (Minari, Aircall, Ringover, HubSpot, Zapier, Make, n8n…) avec ses identifiants, qui sont chiffrés. Il garantit disposer des droits nécessaires sur ces outils et sur les données qu&apos;ils contiennent, et respecter leurs conditions d&apos;utilisation. L&apos;Éditeur n&apos;est pas responsable de l&apos;indisponibilité ou des changements de ces outils tiers.</p>
       <h2>8. Intelligence artificielle</h2>
       <p>Les résumés, objections, relances, briefs et réponses du coach sont produits automatiquement et peuvent contenir des erreurs. Ils constituent une aide à la décision et doivent être vérifiés par l&apos;utilisateur.</p>
       <h2>9. Disponibilité et responsabilité</h2>
       <p>L&apos;Éditeur met en œuvre les moyens raisonnables pour assurer la disponibilité et la sécurité du Service (obligation de moyens). Sa responsabilité est limitée aux dommages directs et plafonnée aux sommes payées par l&apos;utilisateur au cours des 12 derniers mois. Les pertes indirectes (chiffre d&apos;affaires, clientèle, données) sont exclues.</p>
       <h2>10. Données personnelles : sous-traitance (article 28 du RGPD)</h2>
-      <p>Pour les données de prospection (prospects, appels, transcriptions, emails, messages LinkedIn) que l&apos;utilisateur fait traiter par le Service, l&apos;utilisateur est <b>responsable de traitement</b> et l&apos;Éditeur <b>sous-traitant</b>. À ce titre, l&apos;Éditeur :</p>
+      <p>Pour les données de prospection (prospects, appels, enregistrements, transcriptions) que l&apos;utilisateur fait traiter par le Service, l&apos;utilisateur est <b>responsable de traitement</b> et l&apos;Éditeur <b>sous-traitant</b>. À ce titre, l&apos;Éditeur :</p>
       <ul>
         <li>ne traite ces données que sur instruction de l&apos;utilisateur, pour fournir le Service ;</li>
         <li>veille à la confidentialité des personnes autorisées à y accéder ;</li>

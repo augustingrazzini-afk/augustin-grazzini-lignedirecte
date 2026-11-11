@@ -461,3 +461,25 @@ mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 
 .check-mail-actions { display: flex; gap: 8px; align-items: center; color: var(--dim); }
 .check-mail-actions .as-reset { margin: 0; }
 .auth .card:has(.check-mail) > h1, .auth .card:has(.check-mail) > p.muted, .auth .card:has(.check-mail) .auth-foot { display: none; }
+
+/* Création de client : plusieurs listes */
+.lists-field { display: flex; flex-direction: column; gap: 8px; }
+.lf-label { font-weight: 600; font-size: 13.5px; }
+.lf-row { display: flex; gap: 6px; align-items: center; }
+.lf-row .input { flex: 1; }
+.lf-x { border: 1px solid var(--stroke-2); background: #fff; border-radius: 10px; width: 38px; height: 38px; font-size: 20px; color: var(--muted); cursor: pointer; }
+.lf-add { align-self: flex-start; border: 0; background: none; color: var(--blue); font: inherit; font-weight: 600; cursor: pointer; padding: 2px 0; }
+.lf-sugg { display: flex; flex-direction: column; gap: 6px; margin-top: 4px; }
+.lf-sugg .chip { font-size: 12.5px; }
+
+/* Landing : intelligence terrain, connecteurs sur 2 colonnes */
+.lp-intel { margin: 80px 0 0; text-align: center; }
+.lp-intel-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; text-align: left; }
+.lp-intel-grid .card { padding: 20px; }
+.lp-intel-grid b { display: block; font-family: var(--f-display); font-size: 17px; margin: 10px 0 6px; }
+.lp-intel-grid p { margin: 0; color: var(--muted); line-height: 1.55; }
+.lp-tools-grid.lp-tools-2 { grid-template-columns: repeat(2, minmax(0,1fr)); max-width: 760px; margin-inline: auto; }
+@media (max-width: 960px) { .lp-intel-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 600px) { .lp-intel-grid, .lp-tools-grid.lp-tools-2 { grid-template-columns: 1fr; } }
+.lf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.lf-count { font-style: normal; color: var(--dim); margin-left: 4px; }

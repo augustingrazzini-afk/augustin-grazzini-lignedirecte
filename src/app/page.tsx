@@ -10,53 +10,25 @@ import { Mascot } from "@/components/client/Mascot";
 const SECTIONS = [
   {
     img: "/screens/reporting-client.jpg",
-    tag: "Reporting client",
+    tag: "Reporting d'appels par client",
     title: "Un reporting prêt pour chaque client, sans rien préparer",
-    text: "Chaque client a son tableau de bord : appels, campagnes email, LinkedIn et rendez-vous, rangés automatiquement selon la liste ou la campagne utilisée. Vous passez d'un client à l'autre en un clic.",
-    points: ["Un espace par client, rangé automatiquement", "Par jour, semaine, mois, trimestre ou année", "Rendez-vous, taux de décroché, entonnoir"],
-  },
-  {
-    img: "/screens/multicanal.jpg",
-    tag: "Reporting multicanal",
-    title: "Appels, emails et LinkedIn dans le même tableau",
-    text: "Vos appels (Minari, Aircall, Ringover…), vos campagnes email (lemlist, Instantly, Smartlead) et votre prospection LinkedIn réunis : vous voyez d'un coup d'œil d'où viennent les rendez-vous.",
-    points: ["Rendez-vous par canal", "Tous vos clients, ou un seul", "Synchronisation automatique"],
-  },
-  {
-    img: "/screens/emails.jpg",
-    tag: "Campagnes email · lemlist, Instantly, Smartlead",
-    title: "Vos campagnes email, enfin lisibles",
-    text: "Envois, ouvertures, réponses et rendez-vous remontent tout seuls. L'IA classe chaque réponse : positive, objection, absent.",
-    points: ["Entonnoir et taux de réponse par campagne", "Réponses classées par l'IA", "Rendez-vous pris par email"],
-  },
-  {
-    img: "/screens/linkedin.jpg",
-    tag: "LinkedIn · lemlist, La Growth Machine, Waalaxy",
-    title: "LinkedIn, à côté de vos appels et de vos emails",
-    text: "Invitations, acceptations, réponses et rendez-vous, client par client. Pas d'outil LinkedIn ? Importez simplement l'export de vos relations et de vos messages.",
-    points: ["Taux d'acceptation et de réponse", "Réponses classées par l'IA", "Relance créée quand une invitation est acceptée"],
+    text: "Chaque client a son tableau de bord : appels, décrochés, conversations et rendez-vous, rangés automatiquement selon ses listes d'appels. Vous passez d'un client à l'autre en un clic.",
+    points: ["Un espace par client, une ou plusieurs listes", "Par jour, semaine, mois, trimestre ou année", "Rendez-vous, taux de décroché, entonnoir"],
   },
   {
     img: "/screens/fiche-appel.jpg",
-    tag: "Analyse d'appel",
+    tag: "Analyse de chaque appel",
     title: "Chaque appel, résumé et décortiqué par l'IA",
     text: "Dès qu'un appel arrive, l'IA écrit le résumé, repère les objections et vérifie si elles ont été passées. La transcription et l'enregistrement sont juste à côté.",
     points: ["Résumé en 3 à 5 points", "Objections classées : timing, budget, pas décideur…", "Transcription et enregistrement"],
   },
   {
     img: "/screens/objections.jpg",
-    tag: "Objections et créneaux",
-    title: "Sachez ce qui bloque, et quand appeler",
-    text: "Les objections les plus fréquentes, la part réellement passée, et la carte des créneaux où vos prospects décrochent vraiment.",
+    tag: "Intelligence terrain",
+    title: "Ce que vos appels disent du marché",
+    text: "Les objections qui reviennent, la part réellement passée, les créneaux où les prospects décrochent : vos appels deviennent des données que vous et votre client pouvez exploiter.",
     points: ["Top des objections sur la période", "Part passée et non passée", "Meilleur créneau d'appel, heure de Paris"],
     narrow: true,
-  },
-  {
-    img: "/screens/relances.jpg",
-    tag: "Relances",
-    title: "Plus aucun « rappelez-moi en mars » oublié",
-    text: "Les relances sont créées automatiquement à partir des appels et des réponses email ou LinkedIn, avec une date. Chaque matin, la liste de ce qui est à faire.",
-    points: ["Relances datées automatiquement", "Récapitulatif chaque matin par email", "Fait, reporté ou ignoré en un clic"],
   },
   {
     img: "/screens/appels.jpg",
@@ -65,20 +37,35 @@ const SECTIONS = [
     text: "Minari, Aircall, Ringover, HubSpot ou un simple CSV : tous les appels arrivent ici. Filtrez par rendez-vous, par objection ou par commercial, et cherchez un prospect en une seconde.",
     points: ["Synchronisation automatique", "Performance par commercial", "Recherche plein texte"],
   },
+  {
+    img: "/screens/relances.jpg",
+    tag: "Relances",
+    title: "Plus aucun « rappelez-moi en mars » oublié",
+    text: "Quand un prospect demande à être rappelé, la relance est créée automatiquement avec la bonne date. Chaque matin, la liste de ce qui est à faire.",
+    points: ["Relances datées automatiquement", "Récapitulatif chaque matin par email", "Fait, reporté ou ignoré en un clic"],
+  },
+];
+
+/** L'intelligence terrain : ce que l'IA tire des appels, pour vous et pour votre client. */
+const INTEL = [
+  { icon: "🧱", title: "Ce qui bloque", text: "Les objections classées et comptées : timing, budget, pas décideur, déjà équipé… et la part réellement passée au téléphone." },
+  { icon: "🎯", title: "Ce que dit le marché", text: "Besoins exprimés, projets en cours, concurrents cités : posez la question à l'assistant, il relit les appels pour vous répondre." },
+  { icon: "⏰", title: "Quand appeler", text: "La carte des créneaux où vos prospects décrochent vraiment, par jour et par heure." },
+  { icon: "🤝", title: "Ce qui fait signer", text: "Les appels qui finissent en rendez-vous, résumés : ce qui a été dit, l'angle qui a marché, la prochaine étape." },
 ];
 
 /** Ce que voit le client du freelance : la promesse principale du produit. */
 const CLIENT_PERKS = [
-  { icon: "📈", title: "Ses stats en direct", text: "Appels, emails, LinkedIn et rendez-vous, par jour, semaine, mois ou année. Toujours à jour, sans que vous ayez rien à envoyer." },
+  { icon: "📈", title: "Ses stats en direct", text: "Appels, décrochés, conversations et rendez-vous, par jour, semaine, mois ou année. Toujours à jour, sans que vous ayez rien à envoyer." },
   { icon: "🎧", title: "Ses appels, écoutés et résumés", text: "Chaque appel mené pour lui : résumé par l'IA, transcription, enregistrement et objections." },
-  { icon: "✨", title: "Son assistant IA", text: "Il prépare ses rendez-vous et fait résumer ses appels en une question : « Prépare mon RDV de jeudi avec Talentis RH »." },
+  { icon: "✨", title: "L'intelligence terrain, pour lui aussi", text: "Son assistant IA lui fait le point sur son marché et prépare ses rendez-vous : « Prépare mon RDV de jeudi avec Talentis RH »." },
 ];
 
 /** Arguments de confiance : uniquement ce qui est réellement en place. */
 const SECURITY = [
   { icon: "🇫🇷", title: "Hébergé en France", text: "La base de données est à Paris, l'application tourne à Paris. Vos données ne quittent pas l'Union européenne, sauf pour l'analyse IA des appels." },
-  { icon: "🔐", title: "Connexions chiffrées", text: "Les accès à vos outils (Minari, lemlist…) sont chiffrés en AES-256 et ne sont jamais affichés, même à vous." },
-  { icon: "🧱", title: "Cloisonnement par client", text: "Chaque client ne voit que ses propres appels, emails et messages. Ce cloisonnement est vérifié par des tests automatiques à chaque mise à jour." },
+  { icon: "🔐", title: "Connexions chiffrées", text: "Les accès à vos outils (Minari, Aircall…) sont chiffrés en AES-256 et ne sont jamais affichés, même à vous." },
+  { icon: "🧱", title: "Cloisonnement par client", text: "Chaque client ne voit que ses propres appels. Ce cloisonnement est vérifié par des tests automatiques à chaque mise à jour." },
   { icon: "👁️", title: "Lecture seule", text: "Trustpipe lit vos outils mais n'écrit rien, n'appelle personne et n'envoie aucun email en votre nom." },
   { icon: "📵", title: "Moins de données personnelles", text: "Les numéros de téléphone des prospects ne sont pas conservés : seuls les 4 derniers chiffres sont gardés." },
   { icon: "🔗", title: "Vous gardez la main", text: "Les liens de suivi sont secrets et désactivables en un clic. Vous déconnectez un outil quand vous voulez." },
@@ -86,11 +73,11 @@ const SECURITY = [
 
 const FAQ: [string, string][] = [
   ["Qui peut voir mes données ?", "Vous et les membres que vous invitez dans votre espace. Vos clients ne voient que ce qui les concerne, via leur lien de suivi ou leur accès client, en lecture seule."],
-  ["Mon client voit-il tout ce que je fais ?", "Non. Il ne voit que les appels, emails et messages LinkedIn rangés chez lui, c'est-à-dire liés à sa liste ou à sa campagne. Vos autres clients et vos réglages restent invisibles."],
+  ["Mon client voit-il tout ce que je fais ?", "Non. Il ne voit que les appels rangés chez lui, c'est-à-dire ceux de ses listes d'appels. Vos autres clients et vos réglages restent invisibles."],
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Faut-il une carte bancaire pour l'essai ?", "Oui, elle est enregistrée sur Stripe, qui gère le paiement : nous ne voyons jamais votre numéro de carte. Rien n'est débité pendant les 14 jours d'essai, et vous résiliez en un clic depuis la page Abonnement."],
-  ["Et si je n'utilise pas Minari, lemlist ou Instantly ?", "Aircall, Ringover, HubSpot, Smartlead, La Growth Machine ou Waalaxy fonctionnent aussi, directement ou via Zapier, Make et n8n. Vous pouvez aussi importer un simple CSV, ou l'export de vos relations et messages LinkedIn."],
+  ["Et si je n'utilise pas Minari ?", "Aircall, Ringover et HubSpot se connectent directement. Les autres outils d'appel passent par Zapier, Make ou n8n, et vous pouvez toujours importer un simple CSV."],
 ];
 
 export default async function Home() {
@@ -109,35 +96,44 @@ export default async function Home() {
       <section className="lp-hero">
         <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
         <h1>Fini les reportings clients faits à la main.</h1>
-        <p className="lp-sub">Un reporting pour chaque client. Tous vos outils au même endroit.</p>
-        <p className="lead">Vos clients suivent en direct vos appels, vos stats et vos rendez-vous, et préparent leurs meetings avec leur propre assistant IA. Vous, vous pilotez tous vos clients au même endroit : appels, campagnes email et LinkedIn.</p>
+        <p className="lp-sub">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</p>
+        <p className="lead">L&apos;IA analyse chacun de vos appels : ce qui bloque, ce que dit le marché, ce qui fait signer. Vos clients suivent en direct vos appels, vos stats et vos rendez-vous, et accèdent eux aussi à cette intelligence terrain. Vous, vous pilotez tous vos clients au même endroit.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que voit votre client</a>
         </div>
         <p className="lp-note">{TRIAL_DAYS} jours gratuits, aucun débit pendant l&apos;essai · Connectez vos outils en une minute</p>
         <figure className="lp-shot lp-shot-hero">
-          <img src="/screens/suivi-chatbot.jpg" alt="Espace de suivi d'un client : ses appels, emails, LinkedIn et rendez-vous en direct, avec son assistant IA" width={2880} height={1800} />
+          <img src="/screens/suivi-chatbot.jpg" alt="Espace de suivi d'un client : ses appels et rendez-vous en direct, avec son assistant IA" width={2880} height={1800} />
         </figure>
       </section>
 
       <section className="lp-strip">
-        {[["Reporting client", "un tableau de bord par client"], ["Suivi en direct", "partagé par un simple lien"], ["Assistant IA client", "il prépare ses rendez-vous"], ["Multicanal", "appels, campagnes email, LinkedIn"]].map(([a, b]) => (
+        {[["Reporting d'appels", "par client, en direct"], ["Intelligence terrain", "l'IA analyse chaque appel"], ["Accès client", "ses stats et son assistant IA"], ["Tous vos outils", "Minari, Aircall, Ringover…"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
+      </section>
+
+      <section id="intelligence" className="lp-intel">
+        <span className="lp-tag">Intelligence terrain</span>
+        <h2 className="lp-h2">Vos appels deviennent de l&apos;intelligence terrain</h2>
+        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>L&apos;IA écoute chaque appel et en tire ce qu&apos;un manager mettrait des heures à repérer. Pour vous, et pour votre client.</p>
+        <div className="lp-intel-grid">
+          {INTEL.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
+        </div>
       </section>
 
       <section id="clients" className="lp-client">
         <div className="lp-client-head">
           <div className="lp-client-badge"><Mascot size={44} /><span>Pour vos clients</span></div>
           <h2>Facilitez la vie de vos clients.<br />Renforcez votre relation.</h2>
-          <p>Partagez un lien à chaque client : il suit en direct les appels menés pour lui, ses stats et ses rendez-vous, sans compte et sans mot de passe. Il garde la main, vous gagnez sa confiance.</p>
+          <p>Partagez un lien à chaque client : il suit en direct les appels menés pour lui, ses stats et ses rendez-vous, et profite lui aussi de l&apos;intelligence terrain. Sans compte, sans mot de passe. Il garde la main, vous gagnez sa confiance.</p>
         </div>
         <div className="lp-client-perks">
           {CLIENT_PERKS.map((c) => <div key={c.title}><span className="lp-client-ico" aria-hidden="true">{c.icon}</span><b>{c.title}</b><p>{c.text}</p></div>)}
         </div>
         <div className="lp-client-shots">
-          <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels, emails, LinkedIn et rendez-vous en direct" loading="lazy" /><figcaption>Ses stats et ses appels, en direct</figcaption></figure>
+          <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels et rendez-vous en direct" loading="lazy" /><figcaption>Ses stats et ses appels, en direct</figcaption></figure>
           <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>Son assistant IA prépare ses rendez-vous</figcaption></figure>
         </div>
         <ul className="lp-client-list">
@@ -178,18 +174,15 @@ export default async function Home() {
       <section id="connecteurs" className="lp-tools">
         <span className="lp-tag">Connecteurs</span>
         <h2 className="lp-h2">Connectez vos outils, les stats arrivent toutes seules</h2>
-        <p className="lead" style={{ margin: "0 auto 32px", textAlign: "center" }}>Choisissez votre outil, connectez votre compte, c&apos;est tout. Vos appels, emails et messages LinkedIn remontent automatiquement, client par client.</p>
-        <div className="lp-tools-grid">
+        <p className="lead" style={{ margin: "0 auto 32px", textAlign: "center" }}>Choisissez votre outil d&apos;appel, connectez votre compte, c&apos;est tout. Vos appels remontent automatiquement, client par client.</p>
+        <div className="lp-tools-grid lp-tools-2">
           {[
-            ["Téléphone", ["Minari", "Aircall", "Ringover", "HubSpot"]],
-            ["Cold email", ["lemlist", "Instantly", "Smartlead", "HubSpot"]],
-            ["LinkedIn", ["lemlist", "La Growth Machine*", "Waalaxy*"]],
+            ["Outils d'appel", ["Minari", "Aircall", "Ringover", "HubSpot"]],
             ["Et le reste", ["Zapier", "Make", "n8n", "Import CSV"]],
           ].map(([ch, tools]) => (
             <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => { const l = BRAND_LOGOS[t.toLowerCase()]; return <span key={t}>{l && <svg viewBox="0 0 24 24" width="14" height="14" fill={l.hex} aria-hidden="true"><path d={l.path} /></svg>}{t}</span>; })}</div></div>
           ))}
         </div>
-        <p className="lp-foot" style={{ marginTop: 14 }}>* via Zapier, Make ou n8n</p>
         <ol className="lp-steps">
           <li><b>1</b>Choisissez votre outil</li>
           <li><b>2</b>Connectez votre compte</li>
@@ -225,8 +218,8 @@ export default async function Home() {
               <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
               <ul>
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
-                <li>Appels, campagnes email (lemlist, Instantly, Smartlead…) et LinkedIn</li>
-                <li>Analyse IA de chaque appel</li>
+                <li>Minari, Aircall, Ringover, HubSpot ou CSV</li>
+                <li>Analyse IA de chaque appel et intelligence terrain</li>
                 <li>Lien de suivi en direct et assistant IA pour vos clients</li>
                 <li>Relances et brief pré-meeting</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
@@ -238,7 +231,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-final">
-        <h2 className="lp-h2">Un reporting pour chaque client, et tous vos outils au même endroit.</h2>
+        <h2 className="lp-h2">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h2>
         <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>

@@ -1,7 +1,3 @@
-import { requireOrgScope } from "@/lib/access";
-import { ChannelPage } from "@/components/pages";
-export const metadata = { title: "Cold email" };
-export default async function Page({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
-  const sp = await searchParams;
-  return <ChannelPage scope={await requireOrgScope(sp.client)} base="/app" sp={sp} channel="email" />;
-}
+import { redirect } from "next/navigation";
+/** Trustpipe se concentre sur le reporting d'appels : ancienne page, redirigée. */
+export default function Page() { redirect("/app"); }

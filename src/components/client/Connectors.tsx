@@ -11,13 +11,13 @@ const META: Record<string, { mono: string; color: string; tagline: string; cats:
   minari: { mono: "Mi", color: "#5B4BFF", tagline: "Appels, résumés, objections et transcriptions", cats: ["call"], where: "Settings › API & webhook" },
   aircall: { mono: "Ai", color: "#00A87A", tagline: "Appels, tags, enregistrements et transcriptions", cats: ["call"], where: "Intégrations & API › Clés API", url: "https://dashboard.aircall.io" },
   ringover: { mono: "Ri", color: "#2C6BED", tagline: "Appels, notes, tags et enregistrements", cats: ["call"], where: "Développeur › Créer une clé API (lecture des appels)", url: "https://dashboard.ringover.com" },
-  hubspot: { mono: "Hs", color: "#FF5C35", tagline: "Appels et emails journalisés dans le CRM", cats: ["call", "email"], where: "Paramètres › Intégrations › Applications privées", url: "https://app.hubspot.com" },
+  hubspot: { mono: "Hs", color: "#FF5C35", tagline: "Appels journalisés dans le CRM", cats: ["call"], where: "Paramètres › Intégrations › Applications privées", url: "https://app.hubspot.com" },
   lemlist: { mono: "le", color: "#E8457A", tagline: "Emails, LinkedIn et appels de vos campagnes", cats: ["email", "linkedin", "call"], where: "Paramètres › Intégrations › API", url: "https://app.lemlist.com" },
   instantly: { mono: "In", color: "#2563EB", tagline: "Emails envoyés et réponses, par campagne", cats: ["email"], where: "Settings › Integrations › API keys", url: "https://app.instantly.ai" },
   smartlead: { mono: "Sl", color: "#7C3AED", tagline: "Envois, ouvertures et réponses par campagne", cats: ["email"], where: "Settings › API Key", url: "https://app.smartlead.ai" },
-  webhook: { mono: "⚡", color: "#0C3D2F", tagline: "Tous les autres outils via Zapier, Make ou n8n (Waalaxy, La Growth Machine, Brevo…)", cats: ["other", "linkedin", "email", "call"] },
+  webhook: { mono: "⚡", color: "#0C3D2F", tagline: "Tous les autres outils d'appel via Zapier, Make ou n8n", cats: ["other", "call"] },
 };
-const CATS: [Cat | "all", string][] = [["all", "Tous"], ["call", "Téléphone"], ["email", "Campagnes email"], ["linkedin", "LinkedIn"], ["other", "Autres outils"]];
+const CATS: [Cat | "all", string][] = [["all", "Tous"], ["call", "Téléphone"], ["other", "Autres outils"]];
 const CH: Record<string, string> = { call: "Appels", email: "Email", linkedin: "LinkedIn" };
 
 export function Connectors({ providers, clientId, connected }: { providers: ProviderInfo[]; clientId: string | null; connected: string[] }) {

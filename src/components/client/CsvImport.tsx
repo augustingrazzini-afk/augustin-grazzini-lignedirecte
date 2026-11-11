@@ -81,6 +81,9 @@ export function parseTranscript(txt: string) {
   });
 }
 
+/** Import emails / LinkedIn : désactivé (Trustpipe se concentre sur les appels). */
+const SOCIAL_IMPORT: boolean = false;
+
 export function CsvImport({ clientId }: { clientId: string | null }) {
   const router = useRouter();
   const [mode, setMode] = useState<"call" | "activity">("call");
@@ -97,7 +100,7 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
       const rows = res.data.filter((r) => Object.values(r).some((v) => String(v ?? "").trim()));
       if (!rows.length) return setSt({ status: "idle", err: "Ce fichier ne contient pas de lignes lisibles." });
       const li = detectLinkedin(headers);
-      if (li) { setMode("activity"); return setSt({ status: "li", li, rows: rows.slice(0, 20000), headers, file: f.name, err: rows.length > 20000 ? "Seules les 20 000 premières lignes seront importées." : undefined }); }
+      if (li && SOCIAL_IMPORT) { setMode("activity"); return setSt({ status: "li", li, rows: rows.slice(0, 20000), headers, file: f.name, err: rows.length > 20000 ? "Seules les 20 000 premières lignes seront importées." : undefined }); }
       const map: Record<string, string> = {}, used = new Set<string>();
       for (const [k, , re] of fields) { const h = headers.find((h) => !used.has(h) && re.test(h.trim())); if (h) { map[k] = h; used.add(h); } }
       setSt({ status: "map", rows: rows.slice(0, 5000), headers, map, file: f.name, err: rows.length > 5000 ? "Seules les 5 000 premières lignes seront importées." : undefined });
@@ -197,10 +200,6 @@ export function CsvImport({ clientId }: { clientId: string | null }) {
   return (
     <div className="card">
       <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#34D6A0,#1FB985)" }}>CSV</span><div><h2>Import CSV</h2><span className="muted small">Exports de n&apos;importe quel outil : les colonnes sont reconnues automatiquement. Réimporter le même fichier ne crée pas de doublons.</span></div></div>
-      <div className="seg" style={{ marginTop: 14 }} role="group" aria-label="Type de fichier">
-        <button type="button" aria-pressed={mode === "call"} onClick={() => { setMode("call"); setSt({ status: "idle" }); }}>Appels</button>
-        <button type="button" aria-pressed={mode === "activity"} onClick={() => { setMode("activity"); setSt({ status: "idle" }); }}>Emails / LinkedIn</button>
-      </div>
       {mode === "activity" && (
         <details className="csv-help" style={{ marginTop: 12 }}>
           <summary>Où trouver mon fichier LinkedIn ou email ?</summary>

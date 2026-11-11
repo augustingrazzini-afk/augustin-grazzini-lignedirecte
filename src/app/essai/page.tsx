@@ -37,7 +37,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
                 <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0 }}> HT / mois après l&apos;essai</span></div>
                 <ul>
                   <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
-                  <li>Appels, campagnes email et LinkedIn</li>
+                  <li>Appels analysés et résumés par l&apos;IA</li>
                   <li>Assistant IA, relances, lien de suivi client</li>
                   {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
                 </ul>

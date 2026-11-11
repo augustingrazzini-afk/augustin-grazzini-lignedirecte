@@ -72,7 +72,7 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
           <div className="as-hello">
             {!compact && <div className="as-avatar">✦</div>}
             <h2>{compact ? "Bonjour, je suis Pip 👋" : "Posez votre question"}</h2>
-            <p className="muted">{isClient ? "L'assistant lit les appels, emails et messages LinkedIn menés pour vous, et vous aide à préparer vos rendez-vous." : "L'assistant lit vos appels, transcriptions, emails, messages LinkedIn et relances pour vous répondre."}</p>
+            <p className="muted">{isClient ? "L'assistant lit les appels menés pour vous, et vous aide à préparer vos rendez-vous." : "L'assistant lit vos appels, transcriptions et relances pour vous répondre."}</p>
             <div className="as-sugg">{suggestions.map((s) => <button key={s} type="button" className="chip" onClick={() => send(s)}>{s}</button>)}</div>
           </div>
         )}

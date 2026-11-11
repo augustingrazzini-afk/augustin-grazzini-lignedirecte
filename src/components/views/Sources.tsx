@@ -19,7 +19,7 @@ export async function Sources({ scope }: { scope: Scope }) {
     orderBy: { createdAt: "asc" },
   });
   const CH: Record<string, string> = { call: "appels", email: "email", linkedin: "LinkedIn" };
-  const providers: ProviderInfo[] = providerList.map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
+  const providers: ProviderInfo[] = providerList.filter((p) => ["minari", "aircall", "ringover", "hubspot", "webhook"].includes(p.id)).map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
   const app = process.env.APP_URL || "http://localhost:3000";
   return (
     <div className="stack">
@@ -34,7 +34,7 @@ export async function Sources({ scope }: { scope: Scope }) {
                 <span className="logo-src" style={{ background: providerColor(i.provider), gridRow: "span 2" }}>{p.label[0]}</span>
                 <span className="who">{i.label}{i.client && scope.kind === "org" && <span> · espace {i.client.name}</span>}</span>
                 <span>{i.status === "error" ? <span className="pill bad">Erreur</span> : <span className="pill win">Actif</span>}</span>
-                <span className="sum" style={{ WebkitLineClamp: 3 }}>{i._count.calls} appels · {i._count.activities} actions email/LinkedIn · {universal ? "dernier envoi" : "dernière synchro"} {ago(i.lastSyncAt)}{i.lastError ? ` · ${i.lastError}` : ""}{p.beta ? " · intégration bêta" : ""}</span>
+                <span className="sum" style={{ WebkitLineClamp: 3 }}>{i._count.calls} appels · {universal ? "dernier envoi" : "dernière synchro"} {ago(i.lastSyncAt)}{i.lastError ? ` · ${i.lastError}` : ""}{p.beta ? " · intégration bêta" : ""}</span>
                 <span className="tags" style={{ gridColumn: "1/-1" }}>
                   <details style={{ flex: "1 1 280px" }} open={universal && i._count.calls + i._count.activities === 0}><summary className="muted small" style={{ cursor: "pointer" }}>{universal ? "URL à brancher dans Zapier, Make ou n8n" : "URL de webhook (temps réel)"}</summary>
                     <div className="row" style={{ marginTop: 8 }}><span className="code" style={{ flex: 1 }}>{hook}</span><CopyButton text={hook} /></div>

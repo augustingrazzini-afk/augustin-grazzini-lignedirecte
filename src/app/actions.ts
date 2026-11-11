@@ -135,9 +135,10 @@ export async function createClient(_: FormState, f: FormData): Promise<FormState
     const count = await db.client.count({ where: { orgId: scope.orgId } });
     if (count >= maxClients(org)) return { error: `Votre formule est limitée à ${maxClients(org)} clients. Passez à la formule Équipe pour en ajouter.` };
     const c = await db.client.create({ data: { orgId: scope.orgId, name } });
-    const list = s(f, "list", 200);
-    if (list) {
-      await db.clientRule.create({ data: { orgId: scope.orgId, clientId: c.id, field: "list", value: list } });
+    // Plusieurs listes possibles pour un même client (sans doublon, 20 au plus).
+    const lists = [...new Map(f.getAll("list").map((v) => String(v).trim().slice(0, 200)).filter(Boolean).map((v) => [v.toLowerCase(), v])).values()].slice(0, 20);
+    if (lists.length) {
+      await db.clientRule.createMany({ data: lists.map((value) => ({ orgId: scope.orgId, clientId: c.id, field: "list", value })) });
       await reapplyRules(scope.orgId);
     }
     revalidatePath("/app/clients");

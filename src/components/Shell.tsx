@@ -24,8 +24,6 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
-    { href: `${base}/emails`, label: "Emails", icon: "email" },
-    { href: `${base}/linkedin`, label: "LinkedIn", icon: "linkedin" },
     { href: `${base}/brief`, label: "Brief pré-meeting", icon: "brief" },
     { href: `${base}/relances`, label: "Relances", icon: "relances", badge: followUps },
     { href: `${base}/coach`, label: "Assistant IA", icon: "coach" },
@@ -38,7 +36,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
-  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/emails`, `${base}/linkedin`, `${base}/coach`].includes(it.href)) : all;
+  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/coach`].includes(it.href)) : all;
   return (
     <>
       <header className="mtop">

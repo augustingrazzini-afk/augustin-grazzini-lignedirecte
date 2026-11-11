@@ -46,7 +46,7 @@ export function BriefPanel({ clientId, history, initialQuery, aiReady }: { clien
   return (
     <div className="grid g-2">
       <div className="stack">
-        <div className="card"><h2>Nouveau brief</h2><p className="sub">Nom du prospect ou de l&apos;entreprise. L&apos;IA relit ses appels, ses emails et ses échanges LinkedIn.</p>
+        <div className="card"><h2>Nouveau brief</h2><p className="sub">Nom du prospect ou de l&apos;entreprise. L&apos;IA relit tous ses appels.</p>
           {!aiReady && <div className="banner">L&apos;IA n&apos;est pas encore activée sur ce serveur.</div>}
           <form className="row" onSubmit={(e) => { e.preventDefault(); run(q); }}>
             <input className="input" style={{ flex: "1 1 240px", fontSize: 15, padding: "13px 16px" }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ex. Jean Dupont ou Acme" aria-label="Prospect ou entreprise" />

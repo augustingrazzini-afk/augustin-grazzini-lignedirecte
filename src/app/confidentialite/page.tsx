@@ -10,14 +10,14 @@ export default function Page() {
 
       <h2>1. Qui est responsable ?</h2>
       <p><b>Pour les données de votre compte</b> (votre email, votre espace, votre abonnement) : <V v={L.company} />, <V v={L.address} />, est responsable de traitement. Contact : <V v={L.email} />.</p>
-      <p><b>Pour les données de prospection</b> que vous faites traiter par le service (prospects, appels, transcriptions, emails, messages LinkedIn) : <b>vous êtes responsable de traitement</b> et {L.brand} agit comme sous-traitant, selon l&apos;article 10 des <a href="/cgv">conditions générales</a>. Les prospects qui souhaitent exercer leurs droits doivent s&apos;adresser à l&apos;entreprise qui les a contactés ; nous l&apos;aidons à y répondre.</p>
+      <p><b>Pour les données de prospection</b> que vous faites traiter par le service (prospects, appels, enregistrements, transcriptions) : <b>vous êtes responsable de traitement</b> et {L.brand} agit comme sous-traitant, selon l&apos;article 10 des <a href="/cgv">conditions générales</a>. Les prospects qui souhaitent exercer leurs droits doivent s&apos;adresser à l&apos;entreprise qui les a contactés ; nous l&apos;aidons à y répondre.</p>
 
       <h2>2. Données traitées</h2>
       <ul>
         <li><b>Compte</b> : adresse email, nom de votre espace, rôle, date de connexion.</li>
         <li><b>Abonnement</b> : formule, statut, identifiants Stripe. Les données de carte bancaire sont traitées uniquement par Stripe et ne nous sont jamais transmises.</li>
         <li><b>Outils connectés</b> : clés d&apos;accès à vos outils, conservées chiffrées (AES-256-GCM) et jamais affichées.</li>
-        <li><b>Données de prospection</b> : nom, prénom, entreprise, poste, email ou profil LinkedIn des prospects ; date, durée, résultat, résumé, transcription et enregistrement des appels ; événements et réponses des campagnes email et LinkedIn. Les numéros de téléphone ne sont pas conservés (4 derniers chiffres seulement).</li>
+        <li><b>Données de prospection</b> : nom, prénom, entreprise et poste des prospects ; date, durée, résultat, résumé, transcription et enregistrement des appels ; événements et réponses des campagnes email et LinkedIn. Les numéros de téléphone ne sont pas conservés (4 derniers chiffres seulement).</li>
         <li><b>Journaux techniques</b> : adresse IP et données de connexion, pour la sécurité et le bon fonctionnement.</li>
       </ul>
 

@@ -9,7 +9,7 @@ import "./globals.css";
 const APP = process.env.APP_NAME || "Trustpipe";
 export const metadata: Metadata = {
   title: { default: APP, template: `%s · ${APP}` },
-  description: "Un reporting pour chaque client et tous vos outils au même endroit : appels, campagnes email et LinkedIn, suivis en direct par vos clients. Pour les SDR freelances et les petites équipes commerciales.",
+  description: "Le reporting d'appels pour chaque client : vos appels Minari, Aircall ou Ringover analysés par l'IA et suivis en direct par vos clients. Pour les SDR freelances et les petites équipes commerciales.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/trustpipe-mark.svg", apple: "/trustpipe-mark.svg" },
   appleWebApp: { capable: true, title: "Trustpipe", statusBarStyle: "black-translucent" },
