@@ -1,13 +1,15 @@
 import Anthropic from "@anthropic-ai/sdk";
-import type { Call, Prisma } from "@prisma/client";
+import type { Activity, Call, Prisma } from "@prisma/client";
 import { db } from "./db";
 import { OBJECTION_KEYS, type TranscriptLine } from "./providers/types";
 import { OBJ_LABEL, fmtDuration, isConversation, displayName } from "./format";
+import { closeTasksOnMeeting, upsertTask, type TaskDraft } from "./tasks";
 
 const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 let client: Anthropic | null = null;
 const anthropic = () => (client ??= new Anthropic());
-export const aiEnabled = () => !!process.env.ANTHROPIC_API_KEY;
+export { aiEnabled } from "./ai-config";
+import { aiEnabled } from "./ai-config";
 
 export class AiError extends Error {}
 
@@ -44,24 +46,42 @@ const strArr = { type: "array", items: { type: "string" } };
 const obj = (props: Record<string, unknown>) => ({ type: "object", additionalProperties: false, required: Object.keys(props), properties: props });
 
 /* ---------- 1. Analyse d'un appel (résumé + objections) ---------- */
+const FOLLOW_UP = obj({
+  needed: { type: "boolean" },
+  date: { type: "string", description: "Date de relance AAAA-MM-JJ, ou chaîne vide" },
+  channel: { type: "string", enum: ["call", "email", "linkedin"] },
+  reason: { type: "string", description: "Pourquoi relancer, en une phrase courte" },
+  suggestion: { type: "string", description: "Message ou phrase d'accroche prêt à utiliser pour la relance" },
+});
 const ANALYSIS_SCHEMA = obj({
   summary: { type: "string", description: "3 à 5 puces commençant par '- '" },
   objections: { type: "array", items: { type: "string", enum: [...OBJECTION_KEYS] } },
   meeting_booked: { type: "boolean" },
+  follow_up: FOLLOW_UP,
 });
+type FollowUp = { needed: boolean; date: string; channel: "call" | "email" | "linkedin"; reason: string; suggestion: string };
+const today = () => new Date().toISOString().slice(0, 10);
+const followRules = () => `Relance (follow_up) : needed = true seulement si une suite est attendue (rappel demandé, email ou document à envoyer, « revenez vers moi plus tard », absent, intérêt à concrétiser). needed = false si refus net, demande de ne plus être contacté ou RDV déjà fixé. date = la date de relance (AAAA-MM-JJ) déduite des propos (« en mars » = 1er mars prochain, « dans 6 mois », « la semaine prochaine »), sinon dans 2 à 7 jours ouvrés selon l'urgence. Nous sommes le ${today()}.`;
+function draft(f: FollowUp, from: Date): TaskDraft | null {
+  if (!f?.needed) return null;
+  let d = /^\d{4}-\d{2}-\d{2}$/.test(f.date) ? new Date(f.date + "T08:00:00Z") : new Date(from.getTime() + 3 * 864e5);
+  if (Number.isNaN(d.getTime()) || d.getTime() < from.getTime() - 864e5) d = new Date(from.getTime() + 3 * 864e5);
+  return { channel: f.channel, dueAt: d, reason: f.reason || "Relance à faire", suggestion: f.suggestion };
+}
 
 function transcriptText(t: TranscriptLine[], max = 40000) {
   return t.map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n").slice(0, max);
 }
 
-export async function analyzeCall(call: Pick<Call, "id" | "kind" | "transcript" | "summary">) {
+export async function analyzeCall(call: Pick<Call, "id" | "kind" | "transcript" | "summary" | "orgId" | "clientId" | "contactKey" | "firstName" | "lastName" | "company" | "startedAt">) {
   const tr = (call.transcript as unknown as TranscriptLine[]) || [];
   if (!tr.length) return;
-  const r = await json<{ summary: string; objections: string[]; meeting_booked: boolean }>(
+  const r = await json<{ summary: string; objections: string[]; meeting_booked: boolean; follow_up: FollowUp }>(
     `Analyse cette transcription ${call.kind === "meeting" ? "de rendez-vous commercial mené par un AE" : "d'appel de prospection téléphonique B2B"}.
 Rédige en français un résumé de 3 à 5 puces (contexte, besoin, objections, issue, prochaine étape) sans rien inventer.
 Classe les objections du prospect parmi : relevance (pas pertinent / pas de besoin), incumbent (solution déjà en place), timing (pas le moment), too_busy (pas le temps), authority (pas décideur), budget, other.
 meeting_booked = true seulement si un rendez-vous est explicitement fixé.
+${followRules()}
 ${call.summary ? `\nNotes existantes :\n${call.summary.slice(0, 2000)}\n` : ""}
 TRANSCRIPTION :
 ${transcriptText(tr)}`,
@@ -77,12 +97,51 @@ ${transcriptText(tr)}`,
       aiStatus: "done",
     },
   });
+  if (r.meeting_booked) return closeTasksOnMeeting(call.orgId, call.contactKey);
+  const d = draft(r.follow_up, call.startedAt);
+  if (d) await upsertTask(call, "call", call.id, d, "ai");
+}
+
+/* ---------- 1 bis. Classement d'une réponse email / LinkedIn ---------- */
+const REPLY_SCHEMA = obj({
+  sentiment: { type: "string", enum: ["positive", "neutral", "negative", "ooo", "objection"] },
+  objections: { type: "array", items: { type: "string", enum: [...OBJECTION_KEYS] } },
+  meeting_booked: { type: "boolean" },
+  follow_up: FOLLOW_UP,
+});
+
+export async function classifyActivity(a: Activity) {
+  const r = await json<{ sentiment: string; objections: string[]; meeting_booked: boolean; follow_up: FollowUp }>(
+    `Voici la réponse d'un prospect à une prospection ${a.channel === "linkedin" ? "LinkedIn" : "par email"} B2B.
+Classe-la : positive (intérêt, demande d'infos ou de RDV), neutral, negative (refus, ne plus contacter), ooo (absence / message automatique), objection (objection argumentée).
+Objections parmi : relevance, incumbent, timing, too_busy, authority, budget, other. meeting_booked = true seulement si un créneau est accepté.
+${followRules()}
+${a.subject ? `Objet : ${a.subject}
+` : ""}RÉPONSE :
+${a.body.slice(0, 12000)}`,
+    REPLY_SCHEMA,
+    "low",
+  );
+  await db.activity.update({ where: { id: a.id }, data: { sentiment: r.sentiment, objections: r.objections.filter((k) => (OBJECTION_KEYS as readonly string[]).includes(k)), aiStatus: "done" } });
+  if (r.meeting_booked) {
+    await db.activity.create({ data: { orgId: a.orgId, clientId: a.clientId, provider: a.provider, externalId: `${a.externalId}:meeting`, channel: a.channel, type: "meeting_booked", occurredAt: a.occurredAt, firstName: a.firstName, lastName: a.lastName, company: a.company, jobTitle: a.jobTitle, contactKey: a.contactKey, repName: a.repName, campaign: a.campaign } }).catch(() => {});
+    return closeTasksOnMeeting(a.orgId, a.contactKey);
+  }
+  const d = draft(r.follow_up, a.occurredAt);
+  if (d) await upsertTask(a, "activity", a.id, d, "ai");
 }
 
 /** Traite les appels en attente d'analyse (tâche planifiée). */
 export async function processPendingAi(limit = 15) {
   if (!aiEnabled()) return 0;
-  const todo = await db.call.findMany({ where: { aiStatus: "pending" }, orderBy: { startedAt: "desc" }, take: limit, select: { id: true, kind: true, transcript: true, summary: true } });
+  const replies = await db.activity.findMany({ where: { aiStatus: "pending" }, orderBy: { occurredAt: "desc" }, take: limit });
+  for (const a of replies) {
+    try { await classifyActivity(a); } catch (e) {
+      await db.activity.update({ where: { id: a.id }, data: { aiStatus: "failed" } });
+      if (e instanceof AiError && /sollicitée/.test(e.message)) return 0;
+    }
+  }
+  const todo = await db.call.findMany({ where: { aiStatus: "pending" }, orderBy: { startedAt: "desc" }, take: limit });
   let n = 0;
   for (const c of todo) {
     try {
@@ -110,7 +169,7 @@ const BRIEF_SCHEMA = obj({
   angle: { type: "string" }, questions: strArr, eviter: strArr, prochaine_etape: { type: "string" },
 });
 
-export async function generateBrief(calls: Call[], query: string, offer: string, sellerName: string): Promise<Brief> {
+export async function generateBrief(calls: Call[], query: string, offer: string, sellerName: string, acts: Activity[] = []): Promise<Brief> {
   let budget = 18000;
   const dossier = calls.slice(0, 12).map((c, i) => {
     let t = `### Appel ${i + 1} — ${c.startedAt.toISOString().slice(0, 16).replace("T", " ")} — ${fmtDuration(c.durationSec)}${c.meetingBooked ? ", RDV PRIS" : ""}${c.kind === "meeting" ? " (rendez-vous AE)" : ""}
@@ -125,6 +184,8 @@ Objections : ${c.objections.map((o) => OBJ_LABEL[o] || o).join(", ") || "aucune"
     }
     return t;
   }).join("\n\n");
+  const written = acts.filter((a) => ["replied", "sent", "message_sent", "invite_accepted", "meeting_booked"].includes(a.type)).slice(0, 25).map((a) =>
+    `- ${a.occurredAt.toISOString().slice(0, 10)} · ${a.channel === "linkedin" ? "LinkedIn" : "Email"} · ${a.type}${a.subject ? ` · « ${a.subject} »` : ""}${a.sentiment ? ` · ${a.sentiment}` : ""}${a.type === "replied" && a.body ? `\n  ${a.body.slice(0, 1200).replace(/\n/g, " ")}` : ""}`).join("\n");
   const b = await json<Brief>(
     `Tu es un directeur commercial B2B senior. Un commercial de ${sellerName} a bientôt un rendez-vous avec ce prospect. À partir de l'historique ci-dessous, rédige un brief pré-meeting en français, concret et actionnable. N'invente aucun fait : si une information manque, laisse le champ vide.
 
@@ -133,8 +194,11 @@ ${offer || "(non renseigné : déduis-le des appels si possible)"}
 
 RECHERCHE : « ${query} »
 
-HISTORIQUE (du plus récent au plus ancien) :
-${dossier}
+HISTORIQUE DES APPELS (du plus récent au plus ancien) :
+${dossier || "(aucun appel)"}
+
+ÉCHANGES EMAIL ET LINKEDIN :
+${written || "(aucun)"}
 
 Consignes : resume en 2-3 phrases ; contexte et besoins en puces courtes ; 2 à 4 objections probables formulées comme le prospect les dirait, avec une réponse recommandée ; angle = comment ouvrir le rendez-vous ; 3 à 5 questions de découverte ; 2 à 4 erreurs à éviter ; prochaine_etape = l'objectif concret à obtenir en fin de rendez-vous.`,
     BRIEF_SCHEMA,

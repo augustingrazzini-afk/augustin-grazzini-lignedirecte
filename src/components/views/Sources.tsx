@@ -13,10 +13,11 @@ export async function Sources({ scope }: { scope: Scope }) {
   const clientId = scope.kind === "client" ? scope.clientId : null;
   const integrations = await db.integration.findMany({
     where: { orgId: scope.orgId, ...(clientId ? { clientId } : {}) },
-    include: { client: true, _count: { select: { calls: true } } },
+    include: { client: true, _count: { select: { calls: true, activities: true } } },
     orderBy: { createdAt: "asc" },
   });
-  const providers: ProviderInfo[] = providerList.map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: p.help, fields: p.credentialFields }));
+  const CH: Record<string, string> = { call: "appels", email: "email", linkedin: "LinkedIn" };
+  const providers: ProviderInfo[] = providerList.map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, fields: p.credentialFields }));
   const app = process.env.APP_URL || "http://localhost:3000";
   return (
     <div className="stack">
@@ -24,18 +25,30 @@ export async function Sources({ scope }: { scope: Scope }) {
         <div className="card"><h2>Outils connectés</h2><p className="sub">Synchronisation automatique toutes les 10 minutes, et en direct si vous ajoutez l&apos;URL de webhook dans l&apos;outil.</p>
           <div className="list">{integrations.map((i) => {
             const p = getProvider(i.provider);
-            const hook = `${app}/api/webhooks/${i.webhookToken}`;
+            const universal = i.provider === "webhook";
+            const hook = universal ? `${app}/api/ingest/${i.webhookToken}` : `${app}/api/webhooks/${i.webhookToken}`;
             return (
               <div key={i.id} className="item" style={{ gridTemplateColumns: "42px minmax(0,1fr) auto" }}>
                 <span className="logo-src" style={{ background: providerColor(i.provider), gridRow: "span 2" }}>{p.label[0]}</span>
                 <span className="who">{i.label}{i.client && scope.kind === "org" && <span> · espace {i.client.name}</span>}</span>
                 <span>{i.status === "error" ? <span className="pill bad">Erreur</span> : <span className="pill win">Actif</span>}</span>
-                <span className="sum" style={{ WebkitLineClamp: 3 }}>{i._count.calls} appels · dernière synchro {ago(i.lastSyncAt)}{i.lastError ? ` · ${i.lastError}` : ""}{p.beta ? " · intégration bêta" : ""}</span>
+                <span className="sum" style={{ WebkitLineClamp: 3 }}>{i._count.calls} appels · {i._count.activities} actions email/LinkedIn · {universal ? "dernier envoi" : "dernière synchro"} {ago(i.lastSyncAt)}{i.lastError ? ` · ${i.lastError}` : ""}{p.beta ? " · intégration bêta" : ""}</span>
                 <span className="tags" style={{ gridColumn: "1/-1" }}>
-                  <details style={{ flex: "1 1 280px" }}><summary className="muted small" style={{ cursor: "pointer" }}>URL de webhook (temps réel)</summary>
+                  <details style={{ flex: "1 1 280px" }} open={universal && i._count.calls + i._count.activities === 0}><summary className="muted small" style={{ cursor: "pointer" }}>{universal ? "URL à brancher dans Zapier, Make ou n8n" : "URL de webhook (temps réel)"}</summary>
                     <div className="row" style={{ marginTop: 8 }}><span className="code" style={{ flex: 1 }}>{hook}</span><CopyButton text={hook} /></div>
-                    <p className="muted small" style={{ margin: "6px 0 0" }}>À coller dans {p.label} (réglages API / webhooks). Gardez-la secrète.</p></details>
-                  <form action={syncNow}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm">Synchroniser</button></form>
+                    {universal ? (
+                      <div className="muted small" style={{ marginTop: 8 }}>
+                        <p style={{ margin: "0 0 6px" }}>Dans Zapier / Make / n8n : déclencheur = votre outil (nouvelle réponse, invitation acceptée, email envoyé…), action = « Webhook POST » vers cette URL, en JSON :</p>
+                        <pre className="code" style={{ whiteSpace: "pre-wrap", margin: 0 }}>{`{ "channel": "email" | "linkedin" | "call",
+  "event": "sent" | "replied" | "invite_sent" | "invite_accepted" | "message_sent" | "meeting_booked",
+  "occurred_at": "2026-11-12T10:30:00Z",
+  "first_name": "Jean", "last_name": "Dupont", "company": "Acme",
+  "email": "jean@acme.fr", "campaign": "Q4 SaaS",
+  "subject": "…", "body": "texte de la réponse" }`}</pre>
+                        <p style={{ margin: "6px 0 0" }}>Le libellé d&apos;événement de votre outil est aussi compris (« emailsReplied », « Connection accepted »…). Gardez cette URL secrète.</p>
+                      </div>
+                    ) : <p className="muted small" style={{ margin: "6px 0 0" }}>À coller dans {p.label} (réglages API / webhooks). Gardez-la secrète.</p>}</details>
+                  {!universal && <form action={syncNow}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm">Synchroniser</button></form>}
                   <form action={deleteIntegration}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm danger">Déconnecter</button></form>
                 </span>
               </div>

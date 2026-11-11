@@ -71,26 +71,3 @@ export function computeStats(all: Call[], days: number): Stats {
   s.reps = [...reps.values()].sort((a, b) => b.total - a.total);
   return s;
 }
-
-/* Relances : dernier échange par contact, qui mentionne un rappel ou un envoi d'email, sans RDV. */
-const RE_CALL = /rappel|rappeler|recontact|dans (\d+|un|une|six|trois|deux) (mois|an|semaine)|en (janvier|février|fevrier|mars|avril|mai|juin|juillet|août|aout|septembre|octobre|novembre|décembre)|202[7-9]|plus tard|ultérieurement|call back|follow.?up/i;
-const RE_MAIL = /e-?mail|mail|slides|plaquette|documentation|linkedin/i;
-export type FollowUpItem = { call: Call; type: "rappel" | "email"; when: string };
-export function followUps(calls: Call[]): FollowUpItem[] {
-  const last = new Map<string, Call>();
-  for (const c of calls) {
-    if (!isConversation(c) && c.kind !== "meeting") continue;
-    const k = c.contactKey || c.id;
-    const p = last.get(k);
-    if (!p || c.startedAt > p.startedAt) last.set(k, c);
-  }
-  const out: FollowUpItem[] = [];
-  for (const c of last.values()) {
-    if (c.meetingBooked) continue;
-    const s = c.summary || "";
-    if (/demande explicite de ne pas|ne pas (être )?recontact|refuse également un recontact/i.test(s)) continue;
-    const isCall = RE_CALL.test(s), isMail = RE_MAIL.test(s) && /envo|demande|recevoir|transmet|send/i.test(s);
-    if (isCall || isMail) out.push({ call: c, type: isCall ? "rappel" : "email", when: (s.match(RE_CALL) || [""])[0] });
-  }
-  return out.sort((a, b) => b.call.startedAt.getTime() - a.call.startedAt.getTime());
-}

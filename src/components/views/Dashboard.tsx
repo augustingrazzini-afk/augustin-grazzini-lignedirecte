@@ -3,13 +3,15 @@ import type { Scope } from "@/lib/access";
 import { computeStats, windowCalls } from "@/lib/stats";
 import { OBJ_LABEL, fmt, fmtDuration, isConversation, pct } from "@/lib/format";
 import { CallItem } from "../CallItem";
+import { ChannelOverview } from "./Channels";
 
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
 const HRS = Array.from({ length: 12 }, (_, i) => i + 8);
 
 export async function Dashboard({ scope, base, days, emptyHint }: { scope: Scope; base: string; days: number; emptyHint: React.ReactNode }) {
   const calls = await windowCalls(scope, days);
-  if (!calls.length) return <div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div>;
+  const overview = <ChannelOverview scope={scope} days={days} base={base} />;
+  if (!calls.length) return <>{overview}<div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div></>;
   const s = computeStats(calls, days);
   const perMeet = s.meetings ? Math.round(s.total / s.meetings) : null;
 
@@ -33,6 +35,7 @@ export async function Dashboard({ scope, base, days, emptyHint }: { scope: Scope
 
   return (
     <>
+      {overview}
       <div className="grid g-kpi">
         <div className="card kpi hero"><div className="lab"><i style={{ ["--c" as string]: "#7CF0C5" }} />Rendez-vous pris</div><div className="val">{fmt(s.meetings)}</div><div className="foot">{perMeet ? `1 RDV tous les ${perMeet} appels` : "Aucun RDV sur la période"}</div></div>
         <div className="card kpi"><div className="lab"><i />Appels passés</div><div className="val">{fmt(s.total)}</div><div className="foot">{fmtDuration(s.talkSec)} au téléphone</div></div>

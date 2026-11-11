@@ -22,7 +22,7 @@ export function BriefDoc({ b, n }: { b: Brief; n?: number }) {
       <div className="sec"><h4>Objections probables</h4><div className="qa">{b.objections.map((o, i) => <div key={i}><b>{o.objection}</b><span>{o.reponse}</span></div>)}</div></div>
       <div className="grid g-2e"><div className="sec"><h4>Questions à poser</h4>{ul(b.questions)}</div><div className="sec"><h4>À éviter</h4>{ul(b.eviter)}</div></div>
       <div className="sec"><h4>Objectif du rendez-vous</h4><p>{b.prochaine_etape}</p></div>
-      <div className="row">{n != null && <span className="muted small">Basé sur {n} appel(s)</span>}<span className="spacer" />
+      <div className="row">{n != null && <span className="muted small">Basé sur {n} échange(s)</span>}<span className="spacer" />
         <button className="btn" onClick={async () => { try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 1800); } catch {} }}>{copied ? "Copié" : "Copier le brief"}</button></div>
     </div>
   );
@@ -46,7 +46,7 @@ export function BriefPanel({ clientId, history, initialQuery, aiReady }: { clien
   return (
     <div className="grid g-2">
       <div className="stack">
-        <div className="card"><h2>Nouveau brief</h2><p className="sub">Nom du prospect ou de l&apos;entreprise. L&apos;IA relit tous les appels et transcriptions qui le concernent.</p>
+        <div className="card"><h2>Nouveau brief</h2><p className="sub">Nom du prospect ou de l&apos;entreprise. L&apos;IA relit ses appels, ses emails et ses échanges LinkedIn.</p>
           {!aiReady && <div className="banner">L&apos;IA n&apos;est pas encore activée sur ce serveur.</div>}
           <form className="row" onSubmit={(e) => { e.preventDefault(); run(q); }}>
             <input className="input" style={{ flex: "1 1 240px", fontSize: 15, padding: "13px 16px" }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ex. Jean Dupont ou Acme" aria-label="Prospect ou entreprise" />

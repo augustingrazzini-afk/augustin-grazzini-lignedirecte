@@ -20,3 +20,18 @@ export async function sendLoginEmail(to: string, link: string, intro?: string) {
   });
   if (!r.ok) throw new Error(`Envoi de l'email impossible (${r.status})`);
 }
+
+/** Email générique (récap des relances…). En développement sans clé Resend : affiché dans les logs. */
+export async function sendEmail(to: string, subject: string, html: string, text: string) {
+  if (!process.env.RESEND_API_KEY) {
+    if (process.env.NODE_ENV === "production") return;
+    console.log(`\n[email pour ${to}] ${subject}\n${text}\n`);
+    return;
+  }
+  const r = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: process.env.EMAIL_FROM, to, subject, text, html }),
+  });
+  if (!r.ok) throw new Error(`Envoi de l'email impossible (${r.status})`);
+}

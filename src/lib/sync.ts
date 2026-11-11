@@ -1,6 +1,6 @@
 import { db } from "./db";
 import { open } from "./crypto";
-import { upsertCalls } from "./ingest";
+import { upsertActivities, upsertCalls } from "./ingest";
 import { getProvider } from "./providers";
 import { ProviderError } from "./providers/types";
 
@@ -16,8 +16,13 @@ export async function syncIntegration(integrationId: string, opts: { full?: bool
   const startedAt = new Date();
   let created = 0, updated = 0;
   try {
-    for await (const page of p.list(creds, since)) {
-      const r = await upsertCalls({ orgId: integ.orgId, provider: integ.provider, integrationId: integ.id, clientId: integ.clientId }, page);
+    const target = { orgId: integ.orgId, provider: integ.provider, integrationId: integ.id, clientId: integ.clientId };
+    if (p.list) for await (const page of p.list(creds, since)) {
+      const r = await upsertCalls(target, page);
+      created += r.created; updated += r.updated;
+    }
+    if (p.listActivities) for await (const page of p.listActivities(creds, since)) {
+      const r = await upsertActivities(target, page);
       created += r.created; updated += r.updated;
     }
     if (p.details) await fillDetails(integ.id, integ.orgId, integ.provider, integ.clientId, creds);
@@ -62,7 +67,7 @@ async function fillDetails(integrationId: string, orgId: string, provider: strin
 export async function syncAll(limit = 50) {
   // On ne synchronise que les espaces dont l'essai ou l'abonnement est en cours.
   const list = await db.integration.findMany({
-    where: { status: { not: "paused" }, org: { OR: [{ subscriptionStatus: { in: ["active", "past_due"] } }, { subscriptionStatus: "trialing", trialEndsAt: { gt: new Date() } }] } },
+    where: { status: { not: "paused" }, provider: { not: "webhook" }, org: { OR: [{ subscriptionStatus: { in: ["active", "past_due"] } }, { subscriptionStatus: "trialing", trialEndsAt: { gt: new Date() } }] } },
     orderBy: { lastSyncAt: { sort: "asc", nulls: "first" } }, take: limit, select: { id: true },
   });
   const results: Record<string, string> = {};

@@ -7,6 +7,9 @@ import { Calls } from "./views/Calls";
 import { CallDetail } from "./views/CallDetail";
 import { Relances } from "./views/Relances";
 import { Sources } from "./views/Sources";
+import { ChannelView } from "./views/Channels";
+import { Contact } from "./views/Contact";
+import { AlertSettings } from "./AlertSettings";
 import { BriefPanel } from "./client/BriefPanel";
 import { CoachPanel } from "./client/CoachPanel";
 
@@ -39,8 +42,13 @@ export async function BriefPage({ scope, q }: { scope: Scope; q?: string }) {
   );
 }
 
-export function RelancesPage({ scope, base }: { scope: Scope; base: string }) {
-  return (<><PageTop title="Relances" subtitle="Les prospects qui attendent un rappel ou un email" /><Relances scope={scope} base={base} /></>);
+export async function RelancesPage({ scope, base }: { scope: Scope; base: string }) {
+  let alerts: React.ReactNode = null;
+  if (scope.kind === "client") {
+    const [cm, client] = await Promise.all([db.clientMember.findFirst({ where: { clientId: scope.clientId, userId: scope.userId } }), db.client.findUnique({ where: { id: scope.clientId } })]);
+    alerts = <AlertSettings digest={cm?.digest ?? false} slack={client?.slackWebhook ?? null} clientId={scope.clientId} canSlack={!!cm} />;
+  }
+  return (<><PageTop title="Relances" subtitle="Appels, emails et LinkedIn : ce qui est à faire, quand" /><Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
 }
 
 export async function CoachPage({ scope, base, sp }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
@@ -52,6 +60,21 @@ export async function CoachPage({ scope, base, sp }: { scope: Scope; base: strin
       <CoachPanel key={days} clientId={clientOf(scope)} days={days} aiReady={aiEnabled()} last={last ? { at: last.createdAt.toISOString(), days: last.days, r: last.content as unknown as CoachResult } : null} />
     </>
   );
+}
+
+export function ChannelPage({ scope, base, sp, channel }: { scope: Scope; base: string; sp: Record<string, string | undefined>; channel: "email" | "linkedin" }) {
+  const days = pickDays(sp.days);
+  const path = channel === "email" ? "emails" : "linkedin";
+  return (
+    <>
+      <PageTop title={channel === "email" ? "Cold email" : "LinkedIn"} subtitle={channel === "email" ? "Envois, réponses et rendez-vous de vos campagnes email" : "Invitations, réponses et rendez-vous sur LinkedIn"}><Period days={days} href={(d) => `${base}/${path}?days=${d}${sp.f ? `&f=${sp.f}` : ""}`} /></PageTop>
+      <ChannelView scope={scope} base={base} days={days} channel={channel} filter={sp.f || "replies"} />
+    </>
+  );
+}
+
+export function ContactPage({ scope, base, contactKey }: { scope: Scope; base: string; contactKey: string }) {
+  return (<><PageTop title="Fiche prospect" subtitle="Tout l'historique, tous canaux confondus" /><Contact scope={scope} base={base} contactKey={decodeURIComponent(contactKey).slice(0, 200)} /></>);
 }
 
 export function SourcesPage({ scope }: { scope: Scope }) {

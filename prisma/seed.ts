@@ -52,6 +52,29 @@ async function main() {
       aiStatus: answered ? "done" : "none",
     } });
   }
+  // Emails et LinkedIn (fictifs) via le même moteur que les vraies sources
+  const { upsertActivities, afterCall } = await import("../src/lib/ingest");
+  const REPLIES = [["positive", "Bonjour, oui ça m'intéresse, on peut en parler jeudi ?"], ["negative", "Merci mais pas intéressé."], ["ooo", "Je suis absent jusqu'au 25/11, je reviens vers vous à mon retour."], ["neutral", "Pouvez-vous m'envoyer une présentation ?"], ["objection", "Nous avons déjà un prestataire, recontactez-moi en mars."]];
+  for (const [camp, clientId] of [["Smoteo - Q4", smoteo.id], ["Acme - outbound", acme.id]] as const) {
+    const acts = [];
+    for (let i = 0; i < 70; i++) {
+      const fn = FIRST[rnd(FIRST.length)], ln = LAST[rnd(LAST.length)], company = COMP[rnd(COMP.length)];
+      const d = new Date(Date.now() - rnd(28) * 864e5 - rnd(8) * 36e5);
+      const who = { firstName: fn, lastName: ln, company, jobTitle: JOBS[rnd(JOBS.length)], campaign: camp, email: `${fn}.${ln}@exemple.invalid`.toLowerCase() };
+      const li = i % 2 === 0;
+      if (li) {
+        acts.push({ ...who, externalId: `${camp}-li-${i}-inv`, channel: "linkedin" as const, type: "invite_sent" as const, occurredAt: d });
+        if (Math.random() < 0.45) acts.push({ ...who, externalId: `${camp}-li-${i}-acc`, channel: "linkedin" as const, type: "invite_accepted" as const, occurredAt: new Date(d.getTime() + 864e5) });
+        if (Math.random() < 0.18) { const [sent, body] = REPLIES[rnd(REPLIES.length)]; acts.push({ ...who, externalId: `${camp}-li-${i}-rep`, channel: "linkedin" as const, type: "replied" as const, occurredAt: new Date(d.getTime() + 2 * 864e5), body, sentiment: sent }); }
+      } else {
+        acts.push({ ...who, externalId: `${camp}-em-${i}-sent`, channel: "email" as const, type: "sent" as const, occurredAt: d, subject: "Votre prospection commerciale", step: 1 });
+        if (Math.random() < 0.5) acts.push({ ...who, externalId: `${camp}-em-${i}-open`, channel: "email" as const, type: "opened" as const, occurredAt: new Date(d.getTime() + 36e5) });
+        if (Math.random() < 0.15) { const [sent, body] = REPLIES[rnd(REPLIES.length)]; acts.push({ ...who, externalId: `${camp}-em-${i}-rep`, channel: "email" as const, type: "replied" as const, occurredAt: new Date(d.getTime() + 864e5), body, sentiment: sent, subject: "RE: Votre prospection commerciale" }); if (sent === "positive" && Math.random() < 0.6) acts.push({ ...who, externalId: `${camp}-em-${i}-rdv`, channel: "email" as const, type: "meeting_booked" as const, occurredAt: new Date(d.getTime() + 2 * 864e5) }); }
+      }
+    }
+    await upsertActivities({ orgId: org.id, provider: "lemlist", clientId }, acts);
+  }
+  for (const c of await db.call.findMany({ where: { orgId: org.id } })) await afterCall(c);
   console.log(`Démo prête : organisation ${org.id}, Smoteo ${smoteo.id}, Acme ${acme.id}`);
   console.log("Comptes : demo@exemple.fr (SDR) · client@exemple.fr (portail Smoteo)");
 }

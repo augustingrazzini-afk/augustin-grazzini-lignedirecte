@@ -17,6 +17,8 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
   const items: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
+    { href: `${base}/emails`, label: "Emails", icon: "email" },
+    { href: `${base}/linkedin`, label: "LinkedIn", icon: "linkedin" },
     { href: `${base}/brief`, label: "Brief pré-meeting", icon: "brief" },
     { href: `${base}/relances`, label: "Relances", icon: "relances", badge: followUps },
     { href: `${base}/coach`, label: "Coach IA", icon: "coach" },

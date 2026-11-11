@@ -3,11 +3,13 @@ import { db } from "@/lib/db";
 import { inviteTeammate, saveOffer } from "@/app/actions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
+import { AlertSettings } from "@/components/AlertSettings";
 
 export const metadata = { title: "Réglages" };
 export default async function Page() {
   const scope = await requireOrgScope();
   const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId }, include: { members: { include: { user: true } } } });
+  const me = org.members.find((m) => m.userId === scope.userId);
   return (
     <>
       <PageTop title="Réglages" subtitle="Votre activité et votre équipe" />
@@ -22,6 +24,7 @@ export default async function Page() {
           <div className="list" style={{ marginBottom: 14 }}>{org.members.map((m) => <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}><span className="who">{m.user.email}</span><span className="pill mute">{m.role === "owner" ? "Propriétaire" : "Membre"}</span></div>)}</div>
           {scope.role === "owner" && <ActionForm action={inviteTeammate} submit="Inviter"><label className="full">Email<input className="input" type="email" name="email" required /></label></ActionForm>}
         </div>
+        <AlertSettings digest={me?.digest ?? true} slack={org.slackWebhook} canSlack={scope.role === "owner"} />
       </div>
     </>
   );

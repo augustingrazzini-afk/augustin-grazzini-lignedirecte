@@ -227,3 +227,34 @@ export async function deleteIntegration(f: FormData) {
   await db.integration.delete({ where: { id: integ.id } });
   revalidatePath("/", "layout");
 }
+
+/* ---------- Alertes de relance ---------- */
+export async function saveAlerts(_: FormState, f: FormData): Promise<FormState> {
+  try {
+    const { isSlackWebhook } = await import("@/lib/digest");
+    const u = await requireUser();
+    const clientId = s(f, "clientId", 40) || null;
+    const digest = f.get("digest") === "on";
+    const slack = s(f, "slack", 300);
+    if (slack && !isSlackWebhook(slack)) return { error: "Le lien Slack doit commencer par https://hooks.slack.com/services/…" };
+    if (clientId) {
+      const access = u.clientAccess.find((a) => a.clientId === clientId);
+      const client = await db.client.findUnique({ where: { id: clientId } });
+      const isOrg = !!client && u.memberships.some((m) => m.orgId === client.orgId);
+      if (!access && !isOrg) return { error: "Accès refusé." };
+      if (access) await db.clientMember.update({ where: { id: access.id }, data: { digest } });
+      if (f.has("slack")) await db.client.update({ where: { id: clientId }, data: { slackWebhook: slack || null } });
+      revalidatePath("/", "layout");
+      return { ok: "Alertes enregistrées." };
+    }
+    const m = u.memberships[0];
+    if (!m) return { error: "Accès refusé." };
+    await db.membership.update({ where: { id: m.id }, data: { digest } });
+    if (f.has("slack")) {
+      if (m.role !== "owner") return { error: "Seul le propriétaire peut changer le lien Slack." };
+      await db.organization.update({ where: { id: m.orgId }, data: { slackWebhook: slack || null } });
+    }
+    revalidatePath("/", "layout");
+    return { ok: "Alertes enregistrées." };
+  } catch (e) { return fail(e); }
+}

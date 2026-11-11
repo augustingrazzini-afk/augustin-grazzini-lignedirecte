@@ -33,6 +33,7 @@ function map(c: any): NormalizedCall {
 export const aircall: Provider = {
   id: "aircall",
   label: "Aircall",
+  channels: ["call"],
   credentialFields: [
     { key: "apiId", label: "API ID" },
     { key: "apiToken", label: "API Token", type: "password", help: "Aircall > Intégrations & API > Clés API" },

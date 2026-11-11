@@ -41,6 +41,7 @@ export async function CallDetail({ scope, base, id }: { scope: Scope; base: stri
           )}
           <div className="row" style={{ marginTop: 16 }}>
             <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
+            <Link className="btn" href={`${base}/contacts/${encodeURIComponent(c.contactKey)}`}>Fiche prospect</Link>
             <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={tr.length > 0} back={`${base}/calls`} clientId={clientParam} />
           </div>
         </div>
