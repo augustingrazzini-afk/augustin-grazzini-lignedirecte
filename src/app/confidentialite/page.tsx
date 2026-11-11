@@ -50,7 +50,7 @@ export default function Page() {
       </ul>
 
       <h2>7. Sécurité</h2>
-      <p>Connexions chiffrées (HTTPS), identifiants des outils chiffrés, cloisonnement strict des données par espace et par client, connexion sans mot de passe par lien à usage unique, base de données hébergée dans l&apos;UE avec un accès dédié à l&apos;application.</p>
+      <p>Connexions chiffrées (HTTPS), identifiants des outils chiffrés, cloisonnement strict des données par espace et par client, connexion par mot de passe (stocké sous forme d'empreinte) ou par lien à usage unique, base de données hébergée dans l&apos;UE avec un accès dédié à l&apos;application.</p>
 
       <h2>8. Vos droits</h2>
       <p>Vous disposez des droits d&apos;accès, de rectification, d&apos;effacement, de limitation, d&apos;opposition et de portabilité, ainsi que du droit de définir des directives sur le sort de vos données après votre décès. Écrivez à <V v={L.email} />. Nous répondons sous un mois. Vous pouvez aussi saisir la CNIL (cnil.fr).</p>
