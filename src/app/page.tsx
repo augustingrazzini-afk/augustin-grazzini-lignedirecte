@@ -10,9 +10,9 @@ import { Mascot } from "@/components/client/Mascot";
 const SECTIONS = [
   {
     img: "/screens/reporting-client.jpg",
-    tag: "Reporting d'appels par client",
-    title: "Un reporting prêt pour chaque client, sans rien préparer",
-    text: "Chaque client a son tableau de bord : appels, décrochés, conversations et rendez-vous, rangés automatiquement selon ses listes d'appels. Vous passez d'un client à l'autre en un clic.",
+    tag: "Reporting automatique",
+    title: "Le reporting se fait tout seul",
+    text: "Plus de tableau Excel le vendredi soir, plus de capture d'écran à envoyer. Chaque client a son tableau de bord : appels, décrochés, conversations et rendez-vous, rangés automatiquement selon ses listes d'appels. Vous passez d'un client à l'autre en un clic.",
     points: ["Un espace par client, une ou plusieurs listes", "Par jour, semaine, mois, trimestre ou année", "Rendez-vous, taux de décroché, entonnoir"],
   },
   {
@@ -109,7 +109,7 @@ export default async function Home() {
         <span className="lp-tag lp-live"><i aria-hidden="true" />Accès en direct pour vos clients</span>
         <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
         <p className="lp-sub">Fini les reportings clients faits à la main.</p>
-        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, écoute les enregistrements, voit ses résultats et <b>prépare ses rendez-vous avec son assistant IA</b>. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
+        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, écoute les enregistrements, voit ses résultats et <b>prépare ses rendez-vous avec son assistant IA</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
