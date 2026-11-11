@@ -73,7 +73,7 @@ export async function createClient(_: FormState, f: FormData): Promise<FormState
     const name = s(f, "name", 80);
     if (name.length < 2) return { error: "Indiquez le nom du client." };
     const count = await db.client.count({ where: { orgId: scope.orgId } });
-    if (count >= maxClients(org)) return { error: `Votre formule est limitée à ${maxClients(org)} clients. Passez à la formule Agence pour en ajouter.` };
+    if (count >= maxClients(org)) return { error: `Votre formule est limitée à ${maxClients(org)} clients. Passez à la formule Équipe pour en ajouter.` };
     const c = await db.client.create({ data: { orgId: scope.orgId, name } });
     const list = s(f, "list", 200);
     if (list) {

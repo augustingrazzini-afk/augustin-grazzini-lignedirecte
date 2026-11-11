@@ -99,3 +99,14 @@ test("statistiques email et LinkedIn", () => {
   assert.equal(e.contacts, 4); assert.equal(e.replyRate, 50); assert.equal(e.positive, 1); assert.equal(e.meetings, 1);
   assert.equal(l.invites, 2); assert.equal(l.acceptRate, 50);
 });
+
+test("les taux de réponse email et LinkedIn ne dépassent jamais 100 %", () => {
+  const act = (contactKey: string, channel: string, type: string) => ({ contactKey, channel, type, sentiment: null, campaign: "", occurredAt: new Date() }) as never;
+  // 1 seule invitation acceptée remontée, mais 3 prospects ont répondu (cas réel : outils qui ne remontent pas tout)
+  const li = linkedinStats([act("a", "linkedin", "invite_sent"), act("a", "linkedin", "invite_accepted"), act("a", "linkedin", "replied"), act("b", "linkedin", "replied"), act("c", "linkedin", "replied")]);
+  assert.ok(li.replyRate <= 100, `LinkedIn ${li.replyRate}`);
+  assert.equal(li.replyRate, 100);
+  const em = emailStats([act("a", "email", "sent"), act("b", "email", "replied")]);
+  assert.ok(em.replyRate <= 100, `email ${em.replyRate}`);
+  assert.equal(em.replyRate, 50);
+});

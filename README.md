@@ -1,8 +1,8 @@
 # Trustpipe
 
-Reporting de prospection multicanale en direct (appels, cold email, LinkedIn), pour les SDR freelances, les agences et leurs clients.
+Reporting de prospection multicanale en direct (appels, cold email, LinkedIn), pour les SDR freelances, les petites équipes commerciales et leurs clients.
 
-- **Espace SDR / agence** : tous les appels, statistiques, briefs IA, relances, coach, clients.
+- **Espace SDR / équipe** : tous les appels, statistiques, briefs IA, relances, coach, clients.
 - **Lien de suivi en direct** (`/suivi/<jeton>`) : un lien secret par client, sans compte, en lecture seule (pilotage et appels, par jour, semaine, mois, trimestre ou année). Créé, renouvelé ou désactivé depuis la fiche du client.
 - **Espace client** (`/portal/<id>`) : le client ne voit **que** ses appels. Il peut ajouter les siens (CSV, ajout manuel, ses propres outils).
 - **Sources** :
@@ -14,7 +14,7 @@ Reporting de prospection multicanale en direct (appels, cold email, LinkedIn), p
 - **Relances** : créées automatiquement (IA ou règles) depuis les appels, les réponses email et LinkedIn, avec une date d'échéance (« rappeler en mars » → 1er mars). Récap chaque matin par email et Slack.
 - **Fiche prospect** : tout l'historique d'un prospect, tous canaux et tous outils confondus.
 - **IA (API Claude)** : résumé et objections de chaque appel transcrit, brief pré-meeting, coach.
-- **Abonnement (Stripe)** : essai 14 jours, formules Solo et Agence.
+- **Abonnement (Stripe)** : essai 14 jours, formules Solo et Équipe.
 
 ## Stack
 
@@ -42,7 +42,7 @@ npm test               # tests d'isolation et de calcul (base locale requise)
 2. **Hébergement** : importer le dépôt sur Vercel, renseigner toutes les variables de `.env.example`. `APP_URL` = l'adresse finale (ex. `https://app.lignedirecte.io`).
 3. **Synchro et tâches planifiées** : les appels et activités sont synchronisés et analysés par l'IA dès leur arrivée (webhook de l'outil, connexion d'un outil, bouton « Synchroniser », import CSV). En filet de sécurité, `vercel.json` déclare `/api/cron/sync` une fois par jour (5h17 UTC, limite de l'offre Hobby ; repassez à `*/10 * * * *` en offre Pro) : il synchronise les outils les plus anciennement à jour, 6 en parallèle, pendant ~3 min, puis rattrape les analyses IA en attente. `/api/cron/digest` envoie le récap des relances en semaine vers 7 h 45 à Paris. Vercel envoie `CRON_SECRET` automatiquement.
 4. **Emails** : créer un compte Resend, vérifier le domaine d'envoi, renseigner `RESEND_API_KEY` et `EMAIL_FROM`.
-5. **Stripe** : créer deux prix mensuels (Solo, Agence) → `STRIPE_PRICE_SOLO`, `STRIPE_PRICE_AGENCY`. Ajouter un webhook vers `https://<APP_URL>/api/stripe/webhook` (événements `checkout.session.completed`, `customer.subscription.*`) → `STRIPE_WEBHOOK_SECRET`. Activer le portail client Stripe.
+5. **Stripe** : créer deux prix mensuels (Solo, Équipe) → `STRIPE_PRICE_SOLO`, `STRIPE_PRICE_AGENCY`. Ajouter un webhook vers `https://<APP_URL>/api/stripe/webhook` (événements `checkout.session.completed`, `customer.subscription.*`) → `STRIPE_WEBHOOK_SECRET`. Activer le portail client Stripe.
 6. **IA** : `ANTHROPIC_API_KEY`. Modèle par défaut : `claude-opus-5-5` (modifiable via `AI_MODEL`).
 7. **Enregistrements** : créer un bucket R2 privé, une clé d'accès, et autoriser en CORS les `PUT` depuis `APP_URL`.
 

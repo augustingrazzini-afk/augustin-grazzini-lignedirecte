@@ -42,7 +42,8 @@ export function emailStats(list: Activity[]): EmailStats {
   const replied = uniq(e, "replied"), opened = uniq(e, "opened"), bounced = uniq(e, "bounced");
   const positive = new Set(e.filter((a) => a.type === "replied" && a.sentiment === "positive").map((a) => a.contactKey)).size;
   const meetings = uniq(e, "meeting_booked");
-  const base = contacts || 1;
+  // Un prospect qui répond a forcément été contacté (même si l'envoi n'a pas été remonté) : taux ≤ 100 %.
+  const base = new Set(e.filter((a) => a.type === "sent" || a.type === "replied").map((a) => a.contactKey)).size || 1;
   return { sent: e.filter((a) => a.type === "sent").length, contacts, opened, replied, positive, bounced, meetings, openRate: (opened / base) * 100, replyRate: (replied / base) * 100, positiveRate: replied ? (positive / replied) * 100 : 0, bounceRate: (bounced / base) * 100, campaigns: campaigns(e, ["sent"]) };
 }
 
@@ -50,7 +51,11 @@ export function linkedinStats(list: Activity[]): LinkedinStats {
   const l = list.filter((a) => a.channel === "linkedin");
   const invites = uniq(l, "invite_sent"), accepted = uniq(l, "invite_accepted"), replied = uniq(l, "replied");
   const positive = new Set(l.filter((a) => a.type === "replied" && a.sentiment === "positive").map((a) => a.contactKey)).size;
-  const reached = new Set(l.filter((a) => a.type === "message_sent").map((a) => a.contactKey)).size || accepted;
+  // Prospects réellement joints : ceux qui ont reçu un message (sinon ceux qui ont accepté l'invitation),
+  // plus ceux qui ont répondu : un prospect qui répond a forcément été joint, donc le taux ne dépasse jamais 100 %.
+  const keysOf = (type: string) => l.filter((a) => a.type === type).map((a) => a.contactKey);
+  const contacted = keysOf("message_sent").length ? keysOf("message_sent") : keysOf("invite_accepted");
+  const reached = new Set([...contacted, ...keysOf("replied")]).size;
   return { invites, accepted, messages: l.filter((a) => a.type === "message_sent").length, replied, positive, meetings: uniq(l, "meeting_booked"), acceptRate: invites ? (accepted / invites) * 100 : 0, replyRate: reached ? (replied / reached) * 100 : 0, campaigns: campaigns(l, ["invite_sent", "message_sent"]) };
 }
 

@@ -14,7 +14,7 @@ export default async function Page() {
         <p className="muted" style={{ margin: "0 0 20px" }}>14 jours d&apos;essai gratuit, sans carte bancaire.</p>
         {u.clientAccess.length > 0 && <div className="banner info">Vous avez aussi accès à l&apos;espace client <a href={`/portal/${u.clientAccess[0].clientId}`}>{u.clientAccess[0].client.name}</a>.</div>}
         <ActionForm action={createOrganization} submit="Créer mon espace">
-          <label className="full">Nom de votre activité<input className="input" name="name" required placeholder="Ex. Agence Prospect+" /></label>
+          <label className="full">Nom de votre activité<input className="input" name="name" required placeholder="Ex. Camille Prospection" /></label>
           <label className="full">Ce que vous vendez (facultatif)<textarea className="input" name="offer" rows={3} placeholder="Prospection téléphonique externalisée pour les SaaS B2B…" /></label>
         </ActionForm>
       </div>
