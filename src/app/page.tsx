@@ -95,8 +95,8 @@ export default async function Home() {
 
       <section className="lp-hero">
         <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
-        <h1>Fini les reportings clients faits à la main.</h1>
-        <p className="lp-sub">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</p>
+        <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
+        <p className="lp-sub">Fini les reportings clients faits à la main.</p>
         <p className="lead">L&apos;IA analyse chacun de vos appels : ce qui bloque, ce que dit le marché, ce qui fait signer. Vos clients suivent en direct vos appels, vos stats et vos rendez-vous, et accèdent eux aussi à cette intelligence terrain. Vous, vous pilotez tous vos clients au même endroit.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
