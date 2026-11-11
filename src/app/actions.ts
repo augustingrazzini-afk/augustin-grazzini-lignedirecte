@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
@@ -41,14 +42,25 @@ export async function signup(_: FormState, f: FormData): Promise<FormState> {
   const problem = passwordProblem(pw, email);
   if (problem) return { error: problem };
   try {
-    const existing = await db.user.findUnique({ where: { email }, select: { passwordHash: true } });
+    const existing = await db.user.findUnique({ where: { email }, select: { id: true, passwordHash: true } });
     if (existing?.passwordHash) {
       // Pas d'information sur l'existence du compte dans la réponse : on prévient par email.
       await sendMagicLink(email, { intro: "Vous avez déjà un compte Trustpipe avec cette adresse. Utilisez ce lien pour vous connecter, ou « Mot de passe oublié » si besoin." });
     } else {
-      await sendMagicLink(email, { purpose: "verify", payload: await hashPassword(pw), redirect: "/onboarding" });
+      const hash = await hashPassword(pw);
+      try {
+        await sendMagicLink(email, { purpose: "verify", payload: hash, redirect: "/onboarding" });
+      } catch (e) {
+        // L'email de confirmation n'a pas pu partir (service d'envoi indisponible) : pour une adresse encore jamais
+        // utilisée, on ouvre le compte tout de suite plutôt que de bloquer l'inscription. L'adresse reste « non confirmée ».
+        if (existing || !(e instanceof Error) || !e.message.startsWith("Envoi de l'email impossible")) throw e;
+        console.error("inscription sans email de confirmation", e.message);
+        const user = await db.user.create({ data: { email, passwordHash: hash } });
+        await createSession(user.id);
+        redirect("/onboarding");
+      }
     }
-  } catch (e) { return fail(e); }
+  } catch (e) { if (isRedirectError(e)) throw e; return fail(e); }
   return { ok: email }; // l'écran de confirmation affiche l'adresse
 }
 
