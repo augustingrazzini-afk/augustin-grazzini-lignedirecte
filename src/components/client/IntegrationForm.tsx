@@ -12,7 +12,7 @@ export function IntegrationForm({ providers, clientId }: { providers: ProviderIn
   const p = providers.find((x) => x.id === pid)!;
   return (
     <div className="card">
-      <h2>Connecter un outil</h2><p className="sub">Vos identifiants sont chiffrés et ne sont jamais affichés. Les appels arrivent automatiquement, puis toutes les 10 minutes.</p>
+      <h2>Connecter un outil</h2><p className="sub">Vos identifiants sont chiffrés et ne sont jamais affichés. Les appels arrivent automatiquement, puis une fois par jour.</p>
       <div className="row" style={{ marginBottom: 14 }}>
         {providers.map((x) => (
           <button key={x.id} type="button" className="chip" aria-pressed={x.id === pid} onClick={() => setPid(x.id)}>{x.label}{x.beta ? " (bêta)" : ""}</button>

@@ -6,7 +6,7 @@ import { db } from "@/lib/db";
 
 export const maxDuration = 300;
 
-/** Tâche planifiée (Vercel Cron toutes les 10 min) : synchronise les outils puis lance l'analyse IA. */
+/** Tâche planifiée (Vercel Cron, une fois par jour à 5h17 UTC — limite de l'offre Hobby) : synchronise les outils puis lance l'analyse IA. */
 export async function GET(req: Request) {
   const auth = req.headers.get("authorization") || "";
   const secret = process.env.CRON_SECRET || "";

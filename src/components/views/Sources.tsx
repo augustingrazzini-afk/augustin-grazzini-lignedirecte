@@ -21,7 +21,7 @@ export async function Sources({ scope }: { scope: Scope }) {
   return (
     <div className="stack">
       {integrations.length > 0 && (
-        <div className="card"><h2>Outils connectés</h2><p className="sub">Synchronisation automatique toutes les 10 minutes, et en direct si vous ajoutez l&apos;URL de webhook dans l&apos;outil.</p>
+        <div className="card"><h2>Outils connectés</h2><p className="sub">Synchronisation automatique chaque jour, et en direct si vous ajoutez l&apos;URL de webhook dans l&apos;outil.</p>
           <div className="list">{integrations.map((i) => {
             const p = getProvider(i.provider);
             const hook = `${app}/api/webhooks/${i.webhookToken}`;
