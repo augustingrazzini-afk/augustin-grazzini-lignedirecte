@@ -1,4 +1,9 @@
 import type { Metadata, Viewport } from "next";
+// Polices hébergées sur le site (aucune requête vers Google : pas de transfert d'adresse IP, RGPD).
+import "@fontsource-variable/outfit";
+import "@fontsource-variable/inter";
+import "@fontsource/jetbrains-mono/400.css";
+import "@fontsource/jetbrains-mono/500.css";
 import "./globals.css";
 
 const APP = process.env.APP_NAME || "Trustpipe";
@@ -14,11 +19,6 @@ export const viewport: Viewport = { themeColor: "#0B122F", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" />
-      </head>
       <body>{children}</body>
     </html>
   );

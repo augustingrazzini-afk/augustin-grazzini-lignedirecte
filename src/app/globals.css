@@ -3,7 +3,7 @@
   --bg: #F5F7FC; --surface: #fff; --panel: rgba(11,18,47,.03); --stroke: rgba(11,18,47,.08); --stroke-2: rgba(11,18,47,.14);
   --ink: #0B122F; --muted: #59628A; --dim: #8D95B5; --navy: #0B122F;
   --blue: #2E5BFF; --sky: #1FA2E6; --mint: #0F9F6E; --amber: #C27F05; --rose: #DD3F55;
-  --f-display: "Outfit", system-ui, sans-serif; --f-body: "Inter", system-ui, sans-serif; --f-mono: "JetBrains Mono", ui-monospace, monospace;
+  --f-display: "Outfit Variable", "Outfit", system-ui, sans-serif; --f-body: "Inter Variable", "Inter", system-ui, sans-serif; --f-mono: "JetBrains Mono", ui-monospace, monospace;
   --r: 16px; --ease: cubic-bezier(.2,.8,.2,1);
   color-scheme: light;
 }
