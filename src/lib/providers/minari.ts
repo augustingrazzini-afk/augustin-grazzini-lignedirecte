@@ -37,6 +37,7 @@ function map(c: MinariCall): NormalizedCall {
 export const minari: Provider = {
   id: "minari",
   label: "Minari",
+  channels: ["call"],
   credentialFields: [
     { key: "apiKey", label: "Clé API Minari", type: "password", help: "Minari > Settings > API & webhook" },
     { key: "baseUrl", label: "URL de l'API", optional: true, help: "Laissez vide sauf indication de Minari" },

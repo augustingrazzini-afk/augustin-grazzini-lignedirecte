@@ -4,11 +4,11 @@ import { currentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { isActive, PLANS, type PlanId } from "@/lib/billing";
 import { Shell } from "@/components/Shell";
-import { countFollowUps } from "@/components/views/Relances";
+import { countDueTasks } from "@/components/views/Relances";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const scope = await requireOrgScope();
-  const [user, org, follow] = await Promise.all([currentUser(), db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }), countFollowUps(scope)]);
+  const [user, org, follow] = await Promise.all([currentUser(), db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }), countDueTasks(scope)]);
   const days = Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5);
   let banner: React.ReactNode = null;
   if (!isActive(org)) banner = <div className="banner err"><div><b>Votre essai est terminé.</b> Vos données restent consultables. <Link href="/app/billing">Choisir une formule</Link> pour continuer à synchroniser et utiliser l&apos;IA.</div></div>;

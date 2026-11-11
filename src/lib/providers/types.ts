@@ -29,6 +29,49 @@ export type NormalizedCall = {
   hasDetail?: boolean; // transcription déjà récupérée
 };
 
+export type Channel = "email" | "linkedin";
+export const ACTIVITY_TYPES = ["sent", "opened", "clicked", "replied", "bounced", "unsubscribed", "invite_sent", "invite_accepted", "message_sent", "profile_visit", "meeting_booked"] as const;
+export type ActivityType = (typeof ACTIVITY_TYPES)[number];
+
+/** Événement email ou LinkedIn, au format commun. */
+export type NormalizedActivity = {
+  externalId: string;
+  channel: Channel;
+  type: ActivityType;
+  occurredAt: Date;
+  firstName?: string;
+  lastName?: string;
+  company?: string;
+  jobTitle?: string;
+  email?: string; // jamais stockée : sert seulement à la clé contact
+  linkedinUrl?: string; // idem
+  contactRef?: string;
+  repName?: string;
+  campaign?: string;
+  step?: number | null;
+  subject?: string;
+  body?: string;
+  sentiment?: string | null;
+};
+
+/** Convertit un libellé d'événement d'outil (« emailsReplied », « linkedinInviteAccepted »…) vers le format commun. */
+export function mapEventType(raw: string): { channel: Channel; type: ActivityType } | null {
+  const t = raw.toLowerCase().replace(/[^a-z]/g, "");
+  const li = /linkedin|invite|connection|inmail/.test(t);
+  const ch: Channel = li ? "linkedin" : "email";
+  if (/meeting|booked|rdv/.test(t)) return { channel: ch, type: "meeting_booked" };
+  if (/invite.*accept|accept.*invit|connectionaccept|accepted/.test(t)) return { channel: "linkedin", type: "invite_accepted" };
+  if (/invite|connectionrequest|connect(ion)?sent/.test(t)) return { channel: "linkedin", type: "invite_sent" };
+  if (/visit|view/.test(t)) return { channel: "linkedin", type: "profile_visit" };
+  if (/repl|answer|respon/.test(t)) return { channel: ch, type: "replied" };
+  if (/bounce/.test(t)) return { channel: "email", type: "bounced" };
+  if (/unsub|optout/.test(t)) return { channel: "email", type: "unsubscribed" };
+  if (/open/.test(t)) return { channel: "email", type: "opened" };
+  if (/click/.test(t)) return { channel: "email", type: "clicked" };
+  if (/sent|send|done|delivered/.test(t)) return { channel: ch, type: li ? "message_sent" : "sent" };
+  return null;
+}
+
 export type CredentialField = { key: string; label: string; type?: "text" | "password"; help?: string; optional?: boolean };
 
 export type Provider = {
@@ -39,8 +82,12 @@ export type Provider = {
   help: string;
   /** Vérifie les identifiants ; lève une erreur lisible sinon. */
   test(creds: Record<string, string>): Promise<void>;
+  /** Canaux couverts par la source. */
+  channels: ("call" | Channel)[];
   /** Appels depuis `since`, page par page. */
-  list(creds: Record<string, string>, since: Date): AsyncGenerator<NormalizedCall[]>;
+  list?(creds: Record<string, string>, since: Date): AsyncGenerator<NormalizedCall[]>;
+  /** Emails / LinkedIn depuis `since`, page par page. */
+  listActivities?(creds: Record<string, string>, since: Date): AsyncGenerator<NormalizedActivity[]>;
   /** Complète un appel (transcription, objections). Optionnel. */
   details?(creds: Record<string, string>, externalId: string): Promise<Partial<NormalizedCall> | null>;
   /** Extrait l'id d'appel d'un webhook, s'il y en a un. */

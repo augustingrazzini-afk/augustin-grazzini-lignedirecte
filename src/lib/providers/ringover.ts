@@ -32,6 +32,7 @@ export const ringover: Provider = {
   id: "ringover",
   label: "Ringover",
   beta: true,
+  channels: ["call"],
   credentialFields: [{ key: "apiKey", label: "Clé API", type: "password", help: "Ringover > Développeur > Créer une clé API (droit lecture des appels)" }],
   help: "Appels, notes, tags et enregistrements.",
   async test(c) {

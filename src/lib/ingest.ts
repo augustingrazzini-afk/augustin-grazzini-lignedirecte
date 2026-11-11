@@ -1,7 +1,9 @@
 import type { ClientRule, Prisma } from "@prisma/client";
 import { db } from "./db";
 import { sha256 } from "./crypto";
-import type { NormalizedCall } from "./providers/types";
+import type { NormalizedActivity, NormalizedCall } from "./providers/types";
+import { closeTasksOnMeeting, draftFromCall, draftFromReply, upsertTask } from "./tasks";
+import { aiEnabled } from "./ai-config";
 
 const norm = (s?: string) => (s || "").trim().toLowerCase();
 
@@ -23,11 +25,18 @@ export function routeClient(call: NormalizedCall, provider: string, rules: Clien
   return null;
 }
 
-export function contactKey(provider: string, c: NormalizedCall): string {
+/**
+ * Identifiant d'un prospect, commun à tous les canaux et tous les outils : prénom + nom + entreprise.
+ * À défaut : email, profil LinkedIn, téléphone (toujours hachés, jamais stockés en clair).
+ */
+export function contactKey(provider: string, c: { firstName?: string; lastName?: string; company?: string; contactRef?: string; phone?: string; email?: string; linkedinUrl?: string; externalId: string }): string {
+  const name = norm(`${c.firstName || ""} ${c.lastName || ""}`).replace(/\s+/g, " ").trim();
+  if (name && c.lastName && c.company) return `p:${sha256(`${name}|${norm(c.company)}`).slice(0, 20)}`;
+  if (c.email) return `e:${sha256(norm(c.email)).slice(0, 20)}`;
+  if (c.linkedinUrl) return `l:${sha256(norm(c.linkedinUrl).replace(/\/$/, "").replace(/^https?:\/\/(www\.)?/, "")).slice(0, 20)}`;
   if (c.contactRef) return `${provider}:${c.contactRef}`;
-  const who = norm(`${c.firstName} ${c.lastName} ${c.company}`).replace(/\s+/g, " ").trim();
-  if (who) return `name:${sha256(who).slice(0, 16)}`;
-  if (c.phone) return `tel:${sha256(c.phone.replace(/\D/g, "")).slice(0, 16)}`;
+  if (name) return `p:${sha256(`${name}|${norm(c.company)}`).slice(0, 20)}`;
+  if (c.phone) return `t:${sha256(c.phone.replace(/\D/g, "")).slice(0, 20)}`;
   return `${provider}:${c.externalId}`;
 }
 
@@ -69,18 +78,20 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{
     };
     const where = { orgId_provider_externalId: { orgId: t.orgId, provider: t.provider, externalId: c.externalId } };
     const existing = await db.call.findUnique({ where, select: { id: true, aiStatus: true, clientId: true } });
+    let saved;
     if (existing) {
-      await db.call.update({
+      saved = await db.call.update({
         where: { id: existing.id },
         data: { ...data, clientId: clientId ?? existing.clientId, ...(hasTr && existing.aiStatus !== "done" && existing.aiStatus !== "processing" ? { aiStatus: needsAi } : {}) },
       });
       updated++;
     } else {
-      await db.call.create({
+      saved = await db.call.create({
         data: { ...(data as Prisma.CallUncheckedCreateInput), orgId: t.orgId, provider: t.provider, externalId: c.externalId, integrationId: t.integrationId ?? null, clientId, aiStatus: needsAi },
       });
       created++;
     }
+    await afterCall(saved);
   }
   return { created, updated };
 }
@@ -96,4 +107,48 @@ export async function reapplyRules(orgId: string) {
     if (cid) { await db.call.update({ where: { id: c.id }, data: { clientId: cid } }); n++; }
   }
   return n;
+}
+
+/** Relances liées à un appel : RDV pris → on ferme ; sinon règles (l'IA affinera si une transcription arrive). */
+export async function afterCall(c: Awaited<ReturnType<typeof db.call.findFirstOrThrow>>) {
+  if (c.meetingBooked) return closeTasksOnMeeting(c.orgId, c.contactKey);
+  if (c.aiStatus === "pending" && aiEnabled()) return; // l'analyse IA créera la relance
+  const d = draftFromCall(c);
+  if (d) await upsertTask(c, "call", c.id, d, "rule");
+}
+
+/** Enregistre des événements email / LinkedIn. */
+export async function upsertActivities(t: Target, items: NormalizedActivity[]): Promise<{ created: number; updated: number }> {
+  if (!items.length) return { created: 0, updated: 0 };
+  const rules = t.clientId ? [] : await db.clientRule.findMany({ where: { orgId: t.orgId } });
+  let created = 0, updated = 0;
+  for (const a of items) {
+    if (!a.externalId) continue;
+    const clientId = routeClient({ externalId: a.externalId, startedAt: a.occurredAt, durationSec: 0, status: "", connected: false, meetingBooked: false, company: a.company, listName: a.campaign, campaign: a.campaign }, t.provider, rules, t.clientId);
+    const isReply = a.type === "replied";
+    const data = {
+      channel: a.channel, type: a.type, occurredAt: a.occurredAt,
+      firstName: (a.firstName || "").slice(0, 120), lastName: (a.lastName || "").slice(0, 120), company: (a.company || "").slice(0, 200), jobTitle: (a.jobTitle || "").slice(0, 200),
+      contactKey: contactKey(t.provider, a), repName: (a.repName || "").slice(0, 120), campaign: (a.campaign || "").slice(0, 200), step: a.step ?? null,
+      subject: (a.subject || "").slice(0, 300), body: (a.body || "").slice(0, 8000),
+      ...(a.sentiment ? { sentiment: a.sentiment } : {}),
+    };
+    const where = { orgId_provider_externalId: { orgId: t.orgId, provider: t.provider, externalId: a.externalId } };
+    const existing = await db.activity.findUnique({ where, select: { id: true, clientId: true } });
+    let saved;
+    if (existing) {
+      saved = await db.activity.update({ where: { id: existing.id }, data: { ...data, clientId: clientId ?? existing.clientId } });
+      updated++;
+    } else {
+      const ai = isReply && data.body && !a.sentiment && aiEnabled() ? "pending" : "none";
+      saved = await db.activity.create({ data: { ...data, orgId: t.orgId, provider: t.provider, externalId: a.externalId, integrationId: t.integrationId ?? null, clientId, aiStatus: ai } });
+      created++;
+      if (a.type === "meeting_booked") await closeTasksOnMeeting(t.orgId, saved.contactKey);
+      else if (isReply && ai === "none") {
+        const d = draftFromReply(saved);
+        if (d) await upsertTask(saved, "activity", saved.id, d, "rule");
+      }
+    }
+  }
+  return { created, updated };
 }

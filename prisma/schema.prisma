@@ -41,6 +41,7 @@ model Organization {
   stripeCustomerId     String?       @unique
   stripeSubscriptionId String?       @unique
   offer                String        @default("")
+  slackWebhook         String? // alertes de relance dans Slack
   createdAt            DateTime      @default(now())
   members              Membership[]
   clients              Client[]
@@ -48,8 +49,9 @@ model Organization {
   calls                Call[]
   rules                ClientRule[]
   briefs               Brief[]
-  followUps            FollowUp[]
   coaches              Coach[]
+  activities           Activity[]
+  tasks                Task[]
 }
 
 model Membership {
@@ -57,6 +59,7 @@ model Membership {
   orgId     String
   userId    String
   role      String       @default("owner") // owner | member
+  digest    Boolean      @default(true) // récap des relances chaque matin
   createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -69,9 +72,12 @@ model Client {
   orgId        String
   name         String
   offer        String         @default("")
+  slackWebhook String?
   createdAt    DateTime       @default(now())
   org          Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
   members      ClientMember[]
+  activities   Activity[]
+  tasks        Task[]
   rules        ClientRule[]
   calls        Call[]
   integrations Integration[]
@@ -83,6 +89,7 @@ model ClientMember {
   id        String   @id @default(cuid())
   clientId  String
   userId    String
+  digest    Boolean  @default(true)
   createdAt DateTime @default(now())
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -94,7 +101,7 @@ model Integration {
   id           String       @id @default(cuid())
   orgId        String
   clientId     String? // intégration connectée par un client : ses appels lui reviennent d'office
-  provider     String // minari | aircall | ringover | lemlist | hubspot
+  provider     String // minari | aircall | ringover | lemlist | hubspot | instantly | smartlead | webhook
   label        String
   credentials  String // chiffré (AES-256-GCM)
   settings     Json         @default("{}")
@@ -106,6 +113,7 @@ model Integration {
   org          Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   client       Client?      @relation(fields: [clientId], references: [id], onDelete: Cascade)
   calls        Call[]
+  activities   Activity[]
 
   @@index([orgId])
 }
@@ -183,18 +191,6 @@ model Brief {
   @@index([orgId, clientId, createdAt])
 }
 
-model FollowUp {
-  id         String       @id @default(cuid())
-  orgId      String
-  contactKey String
-  done       Boolean      @default(true)
-  doneById   String
-  doneAt     DateTime     @default(now())
-  org        Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
-
-  @@unique([orgId, contactKey])
-}
-
 model Coach {
   id        String       @id @default(cuid())
   orgId     String
@@ -205,4 +201,67 @@ model Coach {
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 
   @@index([orgId, clientId, createdAt])
+}
+
+// Événement de prospection écrite : email ou LinkedIn (les appels restent dans Call).
+model Activity {
+  id            String       @id @default(cuid())
+  orgId         String
+  clientId      String?
+  integrationId String?
+  provider      String // lemlist | instantly | smartlead | hubspot | webhook | csv | manual
+  externalId    String
+  channel       String // email | linkedin
+  type          String // sent | opened | clicked | replied | bounced | unsubscribed | invite_sent | invite_accepted | message_sent | profile_visit | meeting_booked
+  occurredAt    DateTime
+  firstName     String       @default("")
+  lastName      String       @default("")
+  company       String       @default("")
+  jobTitle      String       @default("")
+  contactKey    String       @default("")
+  repName       String       @default("")
+  campaign      String       @default("")
+  step          Int?
+  subject       String       @default("")
+  body          String       @default("")
+  sentiment     String? // positive | neutral | negative | ooo | objection
+  objections    String[]     @default([])
+  aiStatus      String       @default("none") // none | pending | done | failed
+  createdAt     DateTime     @default(now())
+  org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client        Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  integration   Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
+
+  @@unique([orgId, provider, externalId])
+  @@index([orgId, occurredAt])
+  @@index([clientId, occurredAt])
+  @@index([orgId, contactKey])
+  @@index([orgId, aiStatus])
+}
+
+// Relance à faire, avec échéance. Créée par l'IA, par une règle ou à la main.
+model Task {
+  id          String       @id @default(cuid())
+  orgId       String
+  clientId    String?
+  contactKey  String
+  contactName String       @default("")
+  company     String       @default("")
+  channel     String // call | email | linkedin
+  dueAt       DateTime
+  reason      String
+  suggestion  String       @default("")
+  status      String       @default("open") // open | done | dismissed
+  source      String // ai | rule | manual
+  sourceKind  String // call | activity | rule | manual
+  sourceId    String
+  doneAt      DateTime?
+  doneById    String?
+  createdAt   DateTime     @default(now())
+  org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
+  client      Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+
+  @@unique([orgId, sourceKind, sourceId])
+  @@index([orgId, status, dueAt])
+  @@index([clientId, status, dueAt])
 }

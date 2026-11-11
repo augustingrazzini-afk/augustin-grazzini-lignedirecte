@@ -8,7 +8,7 @@ const { db } = await import("../src/lib/db");
 const { callScope } = await import("../src/lib/access");
 const { upsertCalls, routeClient, reapplyRules } = await import("../src/lib/ingest");
 const { seal, open } = await import("../src/lib/crypto");
-const { computeStats, followUps } = await import("../src/lib/stats");
+const { computeStats } = await import("../src/lib/stats");
 
 const tag = "test_" + Date.now().toString(36);
 let orgA: string, orgB: string, smoteo: string, other: string;
@@ -77,7 +77,7 @@ test("le numéro de téléphone n'est jamais stocké en entier", async () => {
   assert.ok(!JSON.stringify(c).includes("612345678"));
 });
 
-test("statistiques et relances", async () => {
+test("statistiques d'appels", async () => {
   const now = new Date();
   const base = { orgId: orgA, provider: "csv", kind: "call", direction: null, tags: [], objections: [], objDetails: [], transcript: [], recordingUrl: null, recordingKey: null, aiStatus: "none", createdAt: now, updatedAt: now, clientId: null, integrationId: null, jobTitle: "", repName: "Julie", listName: "", campaign: "", phoneLast4: "", firstName: "A", lastName: "B", company: "C" };
   const rows = [
@@ -88,6 +88,4 @@ test("statistiques et relances", async () => {
   const s = computeStats(rows as never, 7);
   assert.equal(s.total, 3); assert.equal(s.connected, 2); assert.equal(s.conversations, 2); assert.equal(s.meetings, 1);
   assert.equal(Math.round(s.connectRate), 67);
-  const f = followUps(rows as never);
-  assert.equal(f.length, 1); assert.equal(f[0].call.contactKey, "k2"); assert.equal(f[0].type, "rappel");
 });

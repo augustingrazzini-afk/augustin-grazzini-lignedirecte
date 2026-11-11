@@ -7,6 +7,7 @@ import { SOURCE_LABEL } from "@/lib/providers";
 import { addRule, deleteClient, deleteRule, inviteClientUser, removeClientUser, saveOffer } from "@/app/actions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
+import { AlertSettings } from "@/components/AlertSettings";
 
 const FIELD: Record<string, string> = { list: "Liste", campaign: "Campagne", tag: "Tag", number: "Numéro appelé", company: "Entreprise du prospect" };
 
@@ -50,6 +51,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             ))}</div>}
             <ActionForm action={inviteClientUser} submit="Inviter" hidden={{ clientId: client.id }}><label className="full">Email<input className="input" type="email" name="email" required placeholder="prenom@client.fr" /></label></ActionForm>
           </div>
+          <AlertSettings digest={false} slack={client.slackWebhook} clientId={client.id} canSlack />
           {scope.role === "owner" && <div className="card"><h2>Supprimer ce client</h2><p className="sub">Ses appels restent dans votre espace, non rangés. Ses accès sont retirés.</p>
             <form action={deleteClient}><input type="hidden" name="clientId" value={client.id} /><button className="btn danger">Supprimer {client.name}</button></form></div>}
         </div>
