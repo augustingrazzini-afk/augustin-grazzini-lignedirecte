@@ -11,7 +11,7 @@ import { ChannelView } from "./views/Channels";
 import { Contact } from "./views/Contact";
 import { AlertSettings } from "./AlertSettings";
 import { BriefPanel } from "./client/BriefPanel";
-import { CoachPanel } from "./client/CoachPanel";
+import { Assistant } from "./client/Assistant";
 import { pickDays } from "@/lib/period";
 
 export { pickDays } from "@/lib/period";
@@ -53,13 +53,12 @@ export async function RelancesPage({ scope, base }: { scope: Scope; base: string
   return (<><PageTop title="Relances" subtitle="Appels, emails et LinkedIn : ce qui est à faire, quand" /><Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
 }
 
-export async function CoachPage({ scope, base, sp }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
-  const days = pickDays(sp.days, COACH_DAYS);
-  const last = await db.coach.findFirst({ where: { orgId: scope.orgId, clientId: clientOf(scope) }, orderBy: { createdAt: "desc" } });
+export function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
+  const isClient = scope.kind === "client";
   return (
     <>
-      <PageTop title="Coach IA" subtitle="Diagnostic et plan d'action tirés de vos appels"><Period days={days} options={COACH_DAYS} href={(d) => `${base}/coach?days=${d}`} /></PageTop>
-      <CoachPanel key={days} clientId={clientOf(scope)} days={days} aiReady={aiEnabled()} last={last ? { at: last.createdAt.toISOString(), days: last.days, r: last.content as unknown as CoachResult } : null} />
+      <PageTop title="Assistant IA" subtitle={isClient ? "Posez vos questions sur votre prospection et préparez vos rendez-vous" : "Posez vos questions : stats, prospects, objections, relances, préparation de rendez-vous"} />
+      <Assistant clientId={clientOf(scope)} isClient={isClient} aiReady={aiEnabled()} />
     </>
   );
 }

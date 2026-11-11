@@ -8,7 +8,8 @@ import { closeTasksOnMeeting, upsertTask, type TaskDraft } from "./tasks";
 
 const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 let client: Anthropic | null = null;
-const anthropic = () => (client ??= new Anthropic());
+export const anthropic = () => (client ??= new Anthropic());
+export const AI_MODEL = MODEL;
 export { aiEnabled } from "./ai-config";
 import { aiEnabled } from "./ai-config";
 

@@ -61,7 +61,7 @@ const SECTIONS = [
     tag: "Équipe",
     title: "La performance de chaque commercial",
     text: "Vous êtes plusieurs ? Appels, taux de décroché, conversations et rendez-vous, commercial par commercial : vous voyez tout de suite qui a besoin d'aide.",
-    points: ["Comparatif par commercial", "Par jour, semaine, mois ou année", "Coach IA : diagnostic et plan d'action"],
+    points: ["Comparatif par commercial", "Par jour, semaine, mois ou année", "Assistant IA : posez vos questions, préparez vos RDV"],
   },
 ];
 
@@ -160,7 +160,7 @@ export default async function Home() {
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                 <li>Appels, campagnes email (lemlist, Instantly, Smartlead…) et LinkedIn</li>
                 <li>Analyse IA de chaque appel</li>
-                <li>Relances, brief pré-meeting et coach IA</li>
+                <li>Relances, brief pré-meeting et assistant IA</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
               </ul>
               <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/login" style={{ marginTop: 8 }}>Commencer l&apos;essai</Link>

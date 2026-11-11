@@ -25,7 +25,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
     { href: `${base}/linkedin`, label: "LinkedIn", icon: "linkedin" },
     { href: `${base}/brief`, label: "Brief pré-meeting", icon: "brief" },
     { href: `${base}/relances`, label: "Relances", icon: "relances", badge: followUps },
-    { href: `${base}/coach`, label: "Coach IA", icon: "coach" },
+    { href: `${base}/coach`, label: "Assistant IA", icon: "coach" },
     { href: `${base}/sources`, label: "Sources", icon: "sources", sep: true },
     ...(isOrg
       ? [

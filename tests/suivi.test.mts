@@ -64,3 +64,20 @@ test("carte des créneaux : couleurs selon le taux de décroché, et meilleur cr
   const best = bestSlot({ "1-13": { calls: 3, connected: 3 }, "0-9": { calls: 2, connected: 2 }, "2-10": { calls: 20, connected: 6 } });
   assert.equal(best?.key, "1-13", "le créneau à 2 appels est ignoré");
 });
+
+test("assistant IA : les outils ne sortent jamais du périmètre du client", async () => {
+  const { runTool } = await import("../src/lib/assistant");
+  const { scope } = await shareScope(token); // périmètre du client A
+  await db.call.updateMany({ where: { orgId }, data: { connected: true, firstName: "Paul", company: "Acme", summary: "Budget validé pour janvier" } });
+  const calls = (await runTool(scope, "search_calls", { query: "Acme", filter: "all" })) as { id: string }[];
+  const own = await db.call.findMany({ where: { clientId: a }, select: { id: true } });
+  assert.deepEqual(calls.map((c) => c.id).sort(), own.map((c) => c.id).sort(), "seulement les appels du client A");
+  const other = await db.call.findFirstOrThrow({ where: { clientId: b } });
+  assert.deepEqual(await runTool(scope, "get_call", { id: other.id }), { erreur: "Appel introuvable dans votre espace." });
+  const hist = (await runTool(scope, "prospect_history", { name: "Acme" })) as { appels: unknown[] };
+  assert.equal(hist.appels.length, own.length);
+  const msgs = (await runTool(scope, "search_messages", { only_replies: true })) as { canal: string }[];
+  assert.equal(msgs.length, 2, "les 2 réponses du client A, pas celle du client B");
+  const stats = (await runTool(scope, "stats", { days: 30 })) as { appels: { total: number } };
+  assert.equal(stats.appels.total, own.length);
+});
