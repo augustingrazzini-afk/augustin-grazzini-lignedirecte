@@ -1,8 +1,9 @@
-# LigneDirecte Cockpit
+# Trustpipe
 
 Reporting de prospection multicanale en direct (appels, cold email, LinkedIn), pour les SDR freelances, les agences et leurs clients.
 
 - **Espace SDR / agence** : tous les appels, statistiques, briefs IA, relances, coach, clients.
+- **Lien de suivi en direct** (`/suivi/<jeton>`) : un lien secret par client, sans compte, en lecture seule (pilotage et appels, par jour, semaine, mois, trimestre ou année). Créé, renouvelé ou désactivé depuis la fiche du client.
 - **Espace client** (`/portal/<id>`) : le client ne voit **que** ses appels. Il peut ajouter les siens (CSV, ajout manuel, ses propres outils).
 - **Sources** :
   - appels : Minari, Aircall, Ringover (bêta), HubSpot, lemlist (bêta) ;
@@ -48,7 +49,7 @@ npm test               # tests d'isolation et de calcul (base locale requise)
 ## Mettre à jour la base
 
 Les scripts de `prisma/sql/` s'exécutent dans l'ordre, une seule fois chacun, dans Supabase > SQL Editor :
-`002_multicanal.sql` ajoute les emails, LinkedIn, les relances avec échéance et les alertes.
+`002_multicanal.sql` ajoute les emails, LinkedIn, les relances avec échéance et les alertes ; `003_lien_de_suivi.sql` ajoute le lien de suivi en direct partageable avec un client.
 
 ## Sécurité et cloisonnement
 

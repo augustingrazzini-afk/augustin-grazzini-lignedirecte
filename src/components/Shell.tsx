@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { logout } from "@/app/actions";
 import { NavLinks, type NavItem } from "./NavLinks";
+import { PERIODS } from "@/lib/period";
+import { Logo } from "./Logo";
 
 export type ShellProps = {
   base: string; // "/app" ou "/portal/<id>"
@@ -10,11 +12,13 @@ export type ShellProps = {
   email: string;
   followUps?: number;
   banner?: React.ReactNode;
+  /** Lien de suivi partagé : lecture seule, pilotage et appels uniquement, pas de compte. */
+  share?: boolean;
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, children }: ShellProps) {
-  const items: NavItem[] = [
+export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, children }: ShellProps) {
+  const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
     { href: `${base}/emails`, label: "Emails", icon: "email" },
@@ -31,26 +35,25 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
+  const items = share ? all.filter((it) => it.href === base || it.href === `${base}/calls`) : all;
   return (
     <>
       <header className="mtop">
-        <img src="/logo-mark.png" alt="" />
-        <div className="wm" style={{ fontSize: 16 }}><span>Ligne</span><b>Directe</b></div>
+        <Logo size={17} onDark />
       </header>
       <div className="app">
         <aside className="side">
           <Link className="brand" href={base}>
-            <img src="/logo-mark.png" alt="LigneDirecte" />
             <div>
-              <div className="wm"><span>Ligne</span><b>Directe</b></div>
+              <Logo size={21} onDark />
               <span className="client-tag">{clientName ? <>Espace <b>{clientName}</b></> : <b>{orgName}</b>}</span>
             </div>
           </Link>
           <nav className="nav"><NavLinks items={items} variant="side" /></nav>
           <div className="side-foot">
-            <span>{email}</span>
+            {share ? <span>Lien de suivi en lecture seule</span> : <span>{email}</span>}
             {clientName && <span>Suivi par <b>{orgName}</b></span>}
-            <form action={logout}><button type="submit">Se déconnecter</button></form>
+            {!share && <form action={logout}><button type="submit">Se déconnecter</button></form>}
           </div>
         </aside>
         <main className="main">
@@ -76,10 +79,11 @@ export function PageTop({ title, subtitle, live, children }: { title: string; su
   );
 }
 
-export function Period({ days, href }: { days: number; href: (d: number) => string }) {
+export function Period({ days, href, options }: { days: number; href: (d: number) => string; options?: readonly number[] }) {
+  const list = PERIODS.filter((p) => !options || options.includes(p.days));
   return (
     <div className="seg" role="group" aria-label="Période">
-      {[7, 30, 90].map((d) => <Link key={d} href={href(d)} aria-current={d === days ? "true" : undefined} scroll={false}>{d} j</Link>)}
+      {list.map((p) => <Link key={p.days} href={href(p.days)} aria-current={p.days === days ? "true" : undefined} scroll={false}>{p.label}</Link>)}
     </div>
   );
 }

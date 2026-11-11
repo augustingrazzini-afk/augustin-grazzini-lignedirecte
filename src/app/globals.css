@@ -22,6 +22,8 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .brand img { width: 44px; height: auto; }
 .wm { font-family: var(--f-display); font-size: 19px; line-height: 1; color: #fff; letter-spacing: -.01em; }
 .wm span { font-weight: 300; } .wm b { font-weight: 700; }
+.tp-logo { display: inline-flex; align-items: center; gap: .45em; font-family: var(--f-display); font-weight: 600; letter-spacing: -.02em; line-height: 1; white-space: nowrap; }
+.tp-word { display: inline-flex; }
 .client-tag { display: block; margin-top: 6px; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: #8790BC; }
 .client-tag b { color: #fff; font-weight: 600; }
 .nav { display: flex; flex-direction: column; gap: 3px; }

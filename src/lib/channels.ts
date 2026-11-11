@@ -2,6 +2,7 @@ import type { Activity, Prisma } from "@prisma/client";
 import { db } from "./db";
 import type { Scope } from "./access";
 import { isConversation } from "./format";
+import { periodStart } from "./period";
 
 export function activityScope(s: Scope): Prisma.ActivityWhereInput {
   if (s.kind === "client") return { orgId: s.orgId, clientId: s.clientId };
@@ -10,7 +11,7 @@ export function activityScope(s: Scope): Prisma.ActivityWhereInput {
 
 export async function windowActivities(scope: Scope, days: number, channel?: "email" | "linkedin") {
   return db.activity.findMany({
-    where: { ...activityScope(scope), ...(channel ? { channel } : {}), occurredAt: { gte: new Date(Date.now() - days * 864e5) } },
+    where: { ...activityScope(scope), ...(channel ? { channel } : {}), occurredAt: { gte: periodStart(days) } },
     orderBy: { occurredAt: "desc" },
     take: 20000,
   });
@@ -55,7 +56,7 @@ export function linkedinStats(list: Activity[]): LinkedinStats {
 
 /** Vue d'ensemble par canal, pour le pilotage. */
 export async function channelOverview(scope: Scope, days: number) {
-  const since = new Date(Date.now() - days * 864e5);
+  const since = periodStart(days);
   const [acts, calls] = await Promise.all([
     windowActivities(scope, days),
     db.call.findMany({ where: { ...(scope.kind === "client" ? { orgId: scope.orgId, clientId: scope.clientId } : scope.clientFilter ? { orgId: scope.orgId, clientId: scope.clientFilter === "none" ? null : scope.clientFilter } : { orgId: scope.orgId }), startedAt: { gte: since }, kind: "call" }, select: { connected: true, durationSec: true, meetingBooked: true } }),

@@ -2,6 +2,7 @@ import type { Call } from "@prisma/client";
 import { db } from "./db";
 import { callScope, type Scope } from "./access";
 import { dayKey, hourParis, isConversation, weekdayParis } from "./format";
+import { periodStart } from "./period";
 
 export type Stats = {
   total: number; connected: number; conversations: number; meetings: number; talkSec: number;
@@ -15,7 +16,7 @@ export type Stats = {
 
 export async function windowCalls(scope: Scope, days: number) {
   return db.call.findMany({
-    where: { ...callScope(scope), startedAt: { gte: new Date(Date.now() - days * 864e5) } },
+    where: { ...callScope(scope), startedAt: { gte: periodStart(days) } },
     orderBy: { startedAt: "desc" },
   });
 }

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/session";
 import { PLANS, TRIAL_DAYS } from "@/lib/billing";
+import { Logo } from "@/components/Logo";
 
 /** Les captures viennent de l'application elle-même, avec des données de démonstration fictives. */
 const SECTIONS = [
@@ -27,11 +28,11 @@ const SECTIONS = [
     points: ["Synchronisation automatique", "Filtres par résultat et par objection", "Recherche plein texte"],
   },
   {
-    img: "/screens/espace-client.jpg",
-    tag: "Espace client",
-    title: "Vos clients suivent leurs appels en direct",
-    text: "Chaque client a son espace, à ses couleurs, avec uniquement ses appels. Fini les captures d'écran et les reportings du vendredi.",
-    points: ["Un accès par client, cloisonné", "Mis à jour en temps réel", "Ses commerciaux peuvent ajouter leurs appels"],
+    img: "/screens/suivi-client.jpg",
+    tag: "Suivi en direct par le client",
+    title: "Un lien, et votre client suit vos appels en live",
+    text: "Partagez un lien à votre client : il voit vos performances et ses appels en direct, par jour, semaine, mois ou année. Sans compte, sans mot de passe. Fini les reportings du vendredi.",
+    points: ["Un lien secret par client, désactivable", "Stats par jour, semaine, mois, année", "Appels, résumés et transcriptions en lecture seule"],
   },
   {
     img: "/screens/relances.jpg",
@@ -54,7 +55,7 @@ export default async function Home() {
   return (
     <div className="landing">
       <header className="lp-nav">
-        <div className="row" style={{ gap: 10 }}><img src="/logo-mark.png" alt="" style={{ width: 40, background: "var(--navy)", borderRadius: 11, padding: 5 }} /><div className="wm" style={{ color: "var(--ink)" }}><span>Ligne</span><b>Directe</b></div></div>
+        <Logo size={24} />
         <div className="row" style={{ gap: 8 }}>
           <a className="btn lp-hide-sm" href="#tarifs">Tarifs</a>
           <Link className="btn" href={u ? "/app" : "/login"}>{u ? "Ouvrir mon espace" : "Connexion"}</Link>
@@ -63,8 +64,8 @@ export default async function Home() {
 
       <section className="lp-hero">
         <span className="lp-tag">Pour les SDR freelances et les agences de prospection</span>
-        <h1>Vos appels de prospection, analysés et en direct chez vos clients.</h1>
-        <p className="lead">Connectez votre outil d&apos;appel : chaque conversation est résumée par l&apos;IA, les objections sont classées, les relances créées toutes seules. Et vos clients suivent tout dans leur propre espace.</p>
+        <h1>Votre reporting et vos stats, en un seul endroit, par client.</h1>
+        <p className="lead">Et vos clients suivent en direct vos performances et vos appels, avec un simple lien. Chaque appel est résumé par l&apos;IA, les objections sont classées, les relances se créent toutes seules.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/login">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#produit">Voir le produit</a>
@@ -76,7 +77,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-strip">
-        {[["Résumé IA", "de chaque appel transcrit"], ["Objections", "classées et suivies"], ["Espace client", "en temps réel"], ["Relances", "datées automatiquement"]].map(([a, b]) => (
+        {[["Reporting", "par client, en un seul endroit"], ["Suivi live", "partagé par un simple lien"], ["Résumé IA", "de chaque appel transcrit"], ["Relances", "datées automatiquement"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
       </section>
@@ -118,7 +119,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-final">
-        <h2 className="lp-h2">Prêt à montrer vos appels à vos clients ?</h2>
+        <h2 className="lp-h2">Votre reporting par client, et vos clients en live.</h2>
         <Link className="btn primary lp-cta" href="/login">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>

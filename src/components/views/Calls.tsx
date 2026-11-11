@@ -4,6 +4,7 @@ import { callScope, type Scope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { OBJ_LABEL } from "@/lib/format";
 import { CallItem } from "../CallItem";
+import { periodStart } from "@/lib/period";
 
 const FILTERS: Record<string, { label: string; where: Prisma.CallWhereInput }> = {
   conv: { label: "Conversations", where: { connected: true, durationSec: { gte: 30 } } },
@@ -13,11 +14,11 @@ const FILTERS: Record<string, { label: string; where: Prisma.CallWhereInput }> =
   all: { label: "Tous les appels", where: {} },
 };
 
-export async function Calls({ scope, base, days, q, f, obj }: { scope: Scope; base: string; days: number; q: string; f: string; obj: string }) {
+export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: { scope: Scope; base: string; days: number; q: string; f: string; obj: string; readOnly?: boolean }) {
   const filter = FILTERS[f] ? f : "conv";
   const where: Prisma.CallWhereInput = {
     ...callScope(scope),
-    startedAt: { gte: new Date(Date.now() - days * 864e5) },
+    startedAt: { gte: periodStart(days) },
     ...FILTERS[filter].where,
     ...(obj ? { objections: { has: obj } } : {}),
     ...(q ? { OR: ["firstName", "lastName", "company", "jobTitle", "summary", "repName"].map((k) => ({ [k]: { contains: q, mode: "insensitive" } })) } : {}),
@@ -38,7 +39,7 @@ export async function Calls({ scope, base, days, q, f, obj }: { scope: Scope; ba
         <input type="hidden" name="days" value={days} /><input type="hidden" name="f" value={filter} />
         <input className="input" style={{ flex: "1 1 260px" }} type="search" name="q" defaultValue={q} placeholder="Prospect, entreprise, mot-clé…" aria-label="Rechercher" />
         <button className="btn">Rechercher</button>
-        <Link className="btn primary" href={`${base}/sources#ajout`}>+ Ajouter un appel</Link>
+        {!readOnly && <Link className="btn primary" href={`${base}/sources#ajout`}>+ Ajouter un appel</Link>}
       </form>
       <div className="filters">
         {Object.entries(FILTERS).map(([k, v]) => <Link key={k} className="chip" href={href({ f: k })} aria-current={k === filter && !obj ? "true" : undefined}>{v.label}</Link>)}

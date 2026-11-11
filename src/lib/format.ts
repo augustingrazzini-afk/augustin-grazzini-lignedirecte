@@ -8,7 +8,7 @@ export const OBJ_LABEL: Record<string, string> = {
   other: "Autre",
 };
 
-const TZ = "Europe/Paris";
+export const TZ = "Europe/Paris";
 export const fmt = (n: number) => Math.round(n || 0).toLocaleString("fr-FR");
 export const pct = (n: number) => (Number.isFinite(n) ? n.toLocaleString("fr-FR", { maximumFractionDigits: 1 }) + " %" : "–");
 export function fmtDuration(s: number) {

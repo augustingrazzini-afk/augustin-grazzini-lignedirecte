@@ -73,6 +73,7 @@ model Client {
   name         String
   offer        String         @default("")
   slackWebhook String?
+  shareToken   String?        @unique // lien de suivi en direct, lisible sans compte ; null = désactivé
   createdAt    DateTime       @default(now())
   org          Organization   @relation(fields: [orgId], references: [id], onDelete: Cascade)
   members      ClientMember[]

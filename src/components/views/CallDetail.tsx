@@ -9,7 +9,8 @@ import type { ObjDetail, TranscriptLine } from "@/lib/providers/types";
 import { assignCall } from "@/app/actions";
 import { CallActions, CopyButton } from "../client/CallActions";
 
-export async function CallDetail({ scope, base, id }: { scope: Scope; base: string; id: string }) {
+/** `readOnly` : lien de suivi partagé (aucune action, aucun lien vers des pages réservées). */
+export async function CallDetail({ scope, base, id, readOnly = false }: { scope: Scope; base: string; id: string; readOnly?: boolean }) {
   const c = await db.call.findFirst({ where: { id, ...callScope(scope) } });
   if (!c) notFound();
   const tr = (c.transcript as unknown as TranscriptLine[]) || [];
@@ -39,11 +40,11 @@ export async function CallDetail({ scope, base, id }: { scope: Scope; base: stri
               {audio ? <audio controls preload="metadata" src={audio} style={{ width: "100%" }} /> : <a className="btn" href={c.recordingUrl!} target="_blank" rel="noopener noreferrer">Écouter l&apos;enregistrement</a>}
             </div>
           )}
-          <div className="row" style={{ marginTop: 16 }}>
+          {!readOnly && <div className="row" style={{ marginTop: 16 }}>
             <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
             <Link className="btn" href={`${base}/contacts/${encodeURIComponent(c.contactKey)}`}>Fiche prospect</Link>
             <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={tr.length > 0} back={`${base}/calls`} clientId={clientParam} />
-          </div>
+          </div>}
         </div>
         {c.summary && <div className="card"><div className="sec"><h4>Résumé</h4><div className="sumbox">{c.summary.replace(/^-\s*/gm, "• ")}</div></div></div>}
         {det.length > 0 && (

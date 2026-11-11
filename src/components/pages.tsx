@@ -12,8 +12,10 @@ import { Contact } from "./views/Contact";
 import { AlertSettings } from "./AlertSettings";
 import { BriefPanel } from "./client/BriefPanel";
 import { CoachPanel } from "./client/CoachPanel";
+import { pickDays } from "@/lib/period";
 
-export const pickDays = (v?: string) => ([7, 30, 90].includes(Number(v)) ? Number(v) : 30);
+export { pickDays } from "@/lib/period";
+const COACH_DAYS = [7, 30, 90] as const;
 const clientOf = (s: Scope) => (s.kind === "client" ? s.clientId : null);
 
 export function CallsPage({ scope, base, sp }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
@@ -52,11 +54,11 @@ export async function RelancesPage({ scope, base }: { scope: Scope; base: string
 }
 
 export async function CoachPage({ scope, base, sp }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
-  const days = pickDays(sp.days);
+  const days = pickDays(sp.days, COACH_DAYS);
   const last = await db.coach.findFirst({ where: { orgId: scope.orgId, clientId: clientOf(scope) }, orderBy: { createdAt: "desc" } });
   return (
     <>
-      <PageTop title="Coach IA" subtitle="Diagnostic et plan d'action tirés de vos appels"><Period days={days} href={(d) => `${base}/coach?days=${d}`} /></PageTop>
+      <PageTop title="Coach IA" subtitle="Diagnostic et plan d'action tirés de vos appels"><Period days={days} options={COACH_DAYS} href={(d) => `${base}/coach?days=${d}`} /></PageTop>
       <CoachPanel key={days} clientId={clientOf(scope)} days={days} aiReady={aiEnabled()} last={last ? { at: last.createdAt.toISOString(), days: last.days, r: last.content as unknown as CoachResult } : null} />
     </>
   );

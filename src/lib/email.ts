@@ -1,7 +1,7 @@
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export async function sendLoginEmail(to: string, link: string, intro?: string) {
-  const app = process.env.APP_NAME || "Cockpit";
+  const app = process.env.APP_NAME || "Trustpipe";
   const subject = intro ? `${app} : votre accès` : `${app} : votre lien de connexion`;
   const text = `${intro ? intro + "\n\n" : ""}Cliquez pour vous connecter (valable 30 minutes) :\n${link}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.`;
   const html = `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#0B122F">

@@ -4,7 +4,8 @@ import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { fmt } from "@/lib/format";
 import { SOURCE_LABEL } from "@/lib/providers";
-import { addRule, deleteClient, deleteRule, inviteClientUser, removeClientUser, saveOffer } from "@/app/actions";
+import { addRule, deleteClient, deleteRule, disableShareLink, enableShareLink, inviteClientUser, removeClientUser, saveOffer } from "@/app/actions";
+import { CopyButton } from "@/components/client/CallActions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AlertSettings } from "@/components/AlertSettings";
@@ -15,6 +16,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
   const scope = await requireOrgScope();
   const client = await db.client.findFirst({ where: { id: (await params).id, orgId: scope.orgId }, include: { rules: true, members: { include: { user: true } }, _count: { select: { calls: true } } } });
   if (!client) notFound();
+  const shareUrl = client.shareToken ? `${process.env.APP_URL || ""}/suivi/${client.shareToken}` : null;
   const lists = await db.call.groupBy({ by: ["provider", "listName"], where: { orgId: scope.orgId, clientId: null, NOT: { listName: "" } }, _count: true, orderBy: { _count: { listName: "desc" } }, take: 12 });
   return (
     <>
@@ -44,6 +46,25 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           </div>
         </div>
         <div className="stack">
+          <div className="card"><h2>Lien de suivi en direct</h2>
+            <p className="sub">Envoyez ce lien à {client.name} : ses appels, ses résumés et ses stats par jour, semaine, mois ou année, mis à jour en direct. Sans compte ni mot de passe, en lecture seule.</p>
+            {shareUrl ? (
+              <>
+                <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+                  <input className="input" readOnly value={shareUrl} style={{ flex: "1 1 260px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
+                  <CopyButton text={shareUrl} label="Copier le lien" />
+                  <a className="btn sm" href={shareUrl} target="_blank" rel="noopener noreferrer">Ouvrir</a>
+                </div>
+                <div className="row" style={{ gap: 8, marginTop: 12 }}>
+                  <form action={enableShareLink}><input type="hidden" name="clientId" value={client.id} /><button className="btn sm">Générer un nouveau lien</button></form>
+                  <form action={disableShareLink}><input type="hidden" name="clientId" value={client.id} /><button className="btn sm danger">Désactiver</button></form>
+                </div>
+                <p className="muted small" style={{ margin: "8px 0 0" }}>Toute personne qui a ce lien voit les appels de {client.name}. Un nouveau lien coupe l&apos;ancien.</p>
+              </>
+            ) : (
+              <form action={enableShareLink}><input type="hidden" name="clientId" value={client.id} /><button className="btn primary">Créer le lien de suivi</button></form>
+            )}
+          </div>
           <div className="card"><h2>Accès à son espace</h2><p className="sub">Chaque personne reçoit un lien de connexion par email. Elle ne voit que les appels de {client.name}.</p>
             {client.members.length > 0 && <div className="list" style={{ marginBottom: 14 }}>{client.members.map((m) => (
               <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}><span className="who">{m.user.email}</span>

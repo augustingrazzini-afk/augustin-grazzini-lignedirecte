@@ -4,9 +4,9 @@ import { db } from "@/lib/db";
 import { ago } from "@/lib/format";
 import { PageTop, Period } from "@/components/Shell";
 import { Dashboard } from "@/components/views/Dashboard";
+import { pickDays } from "@/lib/period";
 
 export const metadata = { title: "Pilotage" };
-const pickDays = (v?: string) => ([7, 30, 90].includes(Number(v)) ? Number(v) : 30);
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ days?: string; client?: string }> }) {
   const sp = await searchParams;

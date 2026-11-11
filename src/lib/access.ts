@@ -68,3 +68,16 @@ export async function apiScope(req: Request, opts: { clientId?: string | null } 
   const m = u.memberships[0];
   return m ? { kind: "org", orgId: m.orgId, userId: u.id, role: m.role } : null;
 }
+
+/**
+ * Lien de suivi en direct (/suivi/<jeton>) : lecture seule, sans compte.
+ * Le jeton est secret et propre à un client ; il donne exactement le même périmètre que son portail.
+ */
+export async function shareScope(token: string) {
+  if (!token || token.length < 20 || token.length > 100) notFound();
+  const { db } = await import("./db");
+  const client = await db.client.findUnique({ where: { shareToken: token }, include: { org: true } });
+  if (!client) notFound();
+  const scope: Scope & { kind: "client" } = { kind: "client", orgId: client.orgId, clientId: client.id, userId: `share:${client.id}` };
+  return { scope, client };
+}

@@ -8,9 +8,10 @@ import { ChannelOverview } from "./Channels";
 const DAYS = ["Lun", "Mar", "Mer", "Jeu", "Ven"];
 const HRS = Array.from({ length: 12 }, (_, i) => i + 8);
 
-export async function Dashboard({ scope, base, days, emptyHint }: { scope: Scope; base: string; days: number; emptyHint: React.ReactNode }) {
+/** `channels={false}` : téléphone seul (lien de suivi partagé), sans le résumé emails / LinkedIn. */
+export async function Dashboard({ scope, base, days, emptyHint, channels = true }: { scope: Scope; base: string; days: number; emptyHint: React.ReactNode; channels?: boolean }) {
   const calls = await windowCalls(scope, days);
-  const overview = <ChannelOverview scope={scope} days={days} base={base} />;
+  const overview = channels ? <ChannelOverview scope={scope} days={days} base={base} /> : null;
   if (!calls.length) return <>{overview}<div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div></>;
   const s = computeStats(calls, days);
   const perMeet = s.meetings ? Math.round(s.total / s.meetings) : null;

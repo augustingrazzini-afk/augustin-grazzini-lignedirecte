@@ -111,6 +111,22 @@ export async function inviteClientUser(_: FormState, f: FormData): Promise<FormS
   } catch (e) { return fail(e); }
 }
 
+/** Crée (ou renouvelle) le lien de suivi en direct d'un client. Renouveler coupe l'ancien lien. */
+export async function enableShareLink(f: FormData) {
+  const { scope } = await writableOrg();
+  const clientId = s(f, "clientId", 40);
+  await db.client.updateMany({ where: { id: clientId, orgId: scope.orgId }, data: { shareToken: randomToken(24) } });
+  revalidatePath(`/app/clients/${clientId}`);
+}
+
+/** Désactive le lien de suivi : il ne fonctionne plus du tout. */
+export async function disableShareLink(f: FormData) {
+  const { scope } = await writableOrg();
+  const clientId = s(f, "clientId", 40);
+  await db.client.updateMany({ where: { id: clientId, orgId: scope.orgId }, data: { shareToken: null } });
+  revalidatePath(`/app/clients/${clientId}`);
+}
+
 export async function removeClientUser(f: FormData) {
   const { scope } = await writableOrg();
   const clientId = s(f, "clientId", 40);
