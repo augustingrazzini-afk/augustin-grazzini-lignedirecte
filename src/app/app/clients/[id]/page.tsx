@@ -36,7 +36,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <div style={{ marginTop: 14 }}><ActionForm action={addRule} submit="Ajouter la règle" hidden={{ clientId: client.id }}>
               <label>Critère<select className="select" name="field">{Object.entries(FIELD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
               <label>Source<select className="select" name="provider"><option value="">Toutes</option>{Object.entries(SOURCE_LABEL).filter(([k]) => !["csv", "manual"].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
-              <label className="full">Valeur exacte<input className="input" name="value" required list="lists" placeholder="ex. Smoteo - Q1" /></label>
+              <label className="full">Valeur exacte<input className="input" name="value" required list="lists" placeholder="ex. Nova - Q1" /></label>
               <datalist id="lists">{lists.map((l) => <option key={l.provider + l.listName} value={l.listName} />)}</datalist>
             </ActionForm></div>
             {lists.length > 0 && <p className="muted small" style={{ margin: "10px 0 0" }}>Listes non rangées : {lists.map((l) => `${l.listName} (${l._count})`).join(", ")}</p>}

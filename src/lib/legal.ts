@@ -5,13 +5,13 @@ export const LEGAL = {
   brand: "Trustpipe",
   site: "trustpipe.fr",
   // Éditeur
-  company: "Augustin Grazzini", // raison sociale, ou « Prénom Nom, entrepreneur individuel » pour une micro-entreprise
-  legalForm: TODO, // SAS, SARL, EI (micro-entreprise)…
-  capital: TODO, // ex. « 1 000 € » (supprimer pour une EI)
-  siren: TODO,
-  rcs: TODO, // ex. « RCS Paris 123 456 789 » (ou « dispensé d'immatriculation » pour une micro-entreprise)
-  vat: TODO, // numéro de TVA intracommunautaire, ou « TVA non applicable, art. 293 B du CGI »
-  address: TODO,
+  company: "Augustin Grazzini (nom commercial LigneDirecte)", // raison sociale, ou « Prénom Nom, entrepreneur individuel » pour une micro-entreprise
+  legalForm: "entrepreneur individuel (EI)", // SAS, SARL, EI (micro-entreprise)…
+  capital: "", // ex. « 1 000 € » (supprimer pour une EI)
+  siren: "131 650 632 (SIRET 131 650 632 00014)",
+  rcs: "immatriculé au Registre national des entreprises (RNE)", // ex. « RCS Paris 123 456 789 » (ou « dispensé d'immatriculation » pour une micro-entreprise)
+  vat: "FR15131650632", // numéro de TVA intracommunautaire, ou « TVA non applicable, art. 293 B du CGI »
+  address: "93 boulevard Jeanne d'Arc, 13005 Marseille, France",
   publisher: "Augustin Grazzini", // directeur de la publication (personne physique)
   email: "augustingrazzini@gmail.com", // contact et exercice des droits RGPD
   // Hébergement et sous-traitants (connus)

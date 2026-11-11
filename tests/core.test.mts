@@ -11,14 +11,14 @@ const { seal, open } = await import("../src/lib/crypto");
 const { computeStats } = await import("../src/lib/stats");
 
 const tag = "test_" + Date.now().toString(36);
-let orgA: string, orgB: string, smoteo: string, other: string;
+let orgA: string, orgB: string, nova: string, other: string;
 
 before(async () => {
   const mk = (name: string) => db.organization.create({ data: { name: `${tag} ${name}`, trialEndsAt: new Date(Date.now() + 864e5) } });
   orgA = (await mk("A")).id; orgB = (await mk("B")).id;
-  smoteo = (await db.client.create({ data: { orgId: orgA, name: "Smoteo" } })).id;
+  nova = (await db.client.create({ data: { orgId: orgA, name: "Nova" } })).id;
   other = (await db.client.create({ data: { orgId: orgA, name: "Autre" } })).id;
-  await db.clientRule.create({ data: { orgId: orgA, clientId: smoteo, field: "list", value: "Smoteo Q1" } });
+  await db.clientRule.create({ data: { orgId: orgA, clientId: nova, field: "list", value: "Nova Q1" } });
 });
 after(async () => {
   await db.organization.deleteMany({ where: { name: { startsWith: tag } } });
@@ -36,17 +36,17 @@ test("les clés API sont chiffrées et relisibles", () => {
 });
 
 test("un appel est rangé chez le bon client par la règle de liste", async () => {
-  await upsertCalls({ orgId: orgA, provider: "minari" }, [call("c1", { listName: "Smoteo Q1" }), call("c2", { listName: "LEADS CHAUDS" }), call("c3", { listName: "smoteo q1" })]);
+  await upsertCalls({ orgId: orgA, provider: "minari" }, [call("c1", { listName: "Nova Q1" }), call("c2", { listName: "LEADS CHAUDS" }), call("c3", { listName: "nova q1" })]);
   const rows = await db.call.findMany({ where: { orgId: orgA }, orderBy: { externalId: "asc" } });
-  assert.equal(rows.find((r) => r.externalId === "c1")!.clientId, smoteo);
+  assert.equal(rows.find((r) => r.externalId === "c1")!.clientId, nova);
   assert.equal(rows.find((r) => r.externalId === "c2")!.clientId, null);
-  assert.equal(rows.find((r) => r.externalId === "c3")!.clientId, smoteo, "comparaison insensible à la casse");
+  assert.equal(rows.find((r) => r.externalId === "c3")!.clientId, nova, "comparaison insensible à la casse");
 });
 
 test("le portail d'un client ne voit QUE ses appels", async () => {
   await upsertCalls({ orgId: orgA, provider: "csv", clientId: other }, [call("o1")]);
-  await upsertCalls({ orgId: orgB, provider: "minari" }, [call("b1", { listName: "Smoteo Q1" })]);
-  const seen = await db.call.findMany({ where: callScope({ kind: "client", orgId: orgA, clientId: smoteo, userId: "u" }) });
+  await upsertCalls({ orgId: orgB, provider: "minari" }, [call("b1", { listName: "Nova Q1" })]);
+  const seen = await db.call.findMany({ where: callScope({ kind: "client", orgId: orgA, clientId: nova, userId: "u" }) });
   assert.deepEqual(seen.map((c) => c.externalId).sort(), ["c1", "c3"]);
   const orgSeen = await db.call.findMany({ where: callScope({ kind: "org", orgId: orgA, userId: "u", role: "owner" }) });
   assert.ok(!orgSeen.some((c) => c.orgId !== orgA), "aucun appel d'une autre organisation");
@@ -55,11 +55,11 @@ test("le portail d'un client ne voit QUE ses appels", async () => {
 });
 
 test("une intégration connectée par un client range tout chez lui, sans regarder les règles", () => {
-  assert.equal(routeClient(call("x", { listName: "Smoteo Q1" }) as never, "minari", [], other), other);
+  assert.equal(routeClient(call("x", { listName: "Nova Q1" }) as never, "minari", [], other), other);
 });
 
 test("réimporter le même appel met à jour sans doublon", async () => {
-  const r = await upsertCalls({ orgId: orgA, provider: "minari" }, [call("c1", { listName: "Smoteo Q1", summary: "- nouveau résumé" })]);
+  const r = await upsertCalls({ orgId: orgA, provider: "minari" }, [call("c1", { listName: "Nova Q1", summary: "- nouveau résumé" })]);
   assert.deepEqual(r, { created: 0, updated: 1 });
   assert.equal(await db.call.count({ where: { orgId: orgA, externalId: "c1" } }), 1);
 });

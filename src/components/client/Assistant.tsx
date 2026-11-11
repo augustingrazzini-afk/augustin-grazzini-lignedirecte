@@ -27,7 +27,7 @@ function Rich({ text }: { text: string }) {
   return <>{blocks}</>;
 }
 
-export function Assistant({ clientId, isClient, aiReady, compact = false }: { clientId: string | null; isClient: boolean; aiReady: boolean; compact?: boolean }) {
+export function Assistant({ clientId, isClient, aiReady, compact = false, shareToken }: { clientId: string | null; isClient: boolean; aiReady: boolean; compact?: boolean; shareToken?: string }) {
   const storeKey = `trustpipe-assistant-${clientId || "org"}`;
   const [turns, setTurns] = useState<Turn[]>([]);
   const [input, setInput] = useState("");
@@ -52,7 +52,7 @@ export function Assistant({ clientId, isClient, aiReady, compact = false }: { cl
     const next = [...turns, { role: "user" as const, content: q }].slice(-40);
     setTurns(next); setInput(""); setBusy(true); setErr(null); setSteps([]);
     try {
-      const r = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, messages: next }) });
+      const r = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, messages: next, ...(shareToken ? { shareToken } : {}) }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || "L'assistant n'a pas pu répondre.");
       setSteps(j.steps || []);

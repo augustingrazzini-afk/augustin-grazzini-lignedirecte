@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiScope, scopeClientId } from "@/lib/access";
+import { apiScope, scopeClientId, type Scope } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, aiEnabled } from "@/lib/ai";
@@ -8,8 +8,19 @@ import { askAssistant } from "@/lib/assistant";
 
 export const maxDuration = 120;
 
+const SHARE_DAILY_LIMIT = 30;
+
+/** Incrémente le compteur du jour (atomique) et renvoie la nouvelle valeur. */
+async function bumpUsage(key: string) {
+  const day = new Date().toISOString().slice(0, 10);
+  const r = await db.$queryRaw<{ count: number }[]>`INSERT INTO "AiUsage" ("key", "day", "count") VALUES (${key}, ${day}, 1)
+    ON CONFLICT ("key", "day") DO UPDATE SET "count" = "AiUsage"."count" + 1 RETURNING "count"`;
+  return Number(r[0]?.count ?? 0);
+}
+
 const Body = z.object({
   clientId: z.string().max(40).nullable().optional(),
+  shareToken: z.string().min(20).max(100).optional(),
   messages: z.array(z.object({ role: z.enum(["user", "assistant"]), content: z.string().min(1).max(8000) })).min(1).max(40),
 });
 
@@ -21,7 +32,13 @@ export async function POST(req: Request) {
   const msgs = b.data.messages;
   if (msgs[0].role !== "user" || msgs[msgs.length - 1].role !== "user") return jsonError("Requête invalide");
   if (!aiEnabled()) return jsonError("L'IA n'est pas encore activée sur ce serveur.", 503);
-  const scope = await apiScope(req, { clientId: b.data.clientId });
+  let scope: Scope | null;
+  if (b.data.shareToken) {
+    // Lien de suivi : le client de votre client, sans compte, limité à ses propres données.
+    const c = await db.client.findUnique({ where: { shareToken: b.data.shareToken }, select: { id: true, orgId: true } });
+    scope = c ? { kind: "client", orgId: c.orgId, clientId: c.id, userId: `share:${c.id}` } : null;
+    if (scope && (await bumpUsage(`share:${c!.id}`)) > SHARE_DAILY_LIMIT) return jsonError(`Limite de ${SHARE_DAILY_LIMIT} questions par jour atteinte pour ce lien. Revenez demain !`, 429);
+  } else scope = await apiScope(req, { clientId: b.data.clientId });
   if (!scope) return jsonError("Accès refusé", 403);
   const blocked = await assertActive(scope);
   if (blocked) return blocked;

@@ -22,12 +22,12 @@ async function main() {
   const owner = await db.user.upsert({ where: { email: "demo@exemple.fr" }, update: {}, create: { email: "demo@exemple.fr" } });
   const clientUser = await db.user.upsert({ where: { email: "client@exemple.fr" }, update: {}, create: { email: "client@exemple.fr" } });
   const org = await db.organization.create({ data: { name: "LigneDirecte (démo)", offer: "Prospection téléphonique externalisée pour les SaaS B2B.", trialEndsAt: new Date(Date.now() + 14 * 864e5), members: { create: { userId: owner.id, role: "owner" } } } });
-  const smoteo = await db.client.create({ data: { orgId: org.id, name: "Smoteo (démo)", offer: "Logiciel de gestion pour PME." } });
+  const nova = await db.client.create({ data: { orgId: org.id, name: "Nova (démo)", offer: "Logiciel de gestion pour PME." } });
   const acme = await db.client.create({ data: { orgId: org.id, name: "Acme (démo)" } });
-  await db.clientMember.create({ data: { clientId: smoteo.id, userId: clientUser.id } });
-  await db.clientRule.createMany({ data: [{ orgId: org.id, clientId: smoteo.id, field: "list", value: "Smoteo - Q4" }, { orgId: org.id, clientId: acme.id, field: "list", value: "Acme - outbound" }] });
+  await db.clientMember.create({ data: { clientId: nova.id, userId: clientUser.id } });
+  await db.clientRule.createMany({ data: [{ orgId: org.id, clientId: nova.id, field: "list", value: "Nova - Q4" }, { orgId: org.id, clientId: acme.id, field: "list", value: "Acme - outbound" }] });
 
-  const lists = [["Smoteo - Q4", smoteo.id], ["Acme - outbound", acme.id], ["LEADS CHAUDS", null]] as const;
+  const lists = [["Nova - Q4", nova.id], ["Acme - outbound", acme.id], ["LEADS CHAUDS", null]] as const;
   for (let i = 0; i < 260; i++) {
     const [listName, clientId] = lists[i % 3];
     const answered = Math.random() < 0.2;
@@ -55,7 +55,7 @@ async function main() {
   // Emails et LinkedIn (fictifs) via le même moteur que les vraies sources
   const { upsertActivities, afterCall } = await import("../src/lib/ingest");
   const REPLIES = [["positive", "Bonjour, oui ça m'intéresse, on peut en parler jeudi ?"], ["negative", "Merci mais pas intéressé."], ["ooo", "Je suis absent jusqu'au 25/11, je reviens vers vous à mon retour."], ["neutral", "Pouvez-vous m'envoyer une présentation ?"], ["objection", "Nous avons déjà un prestataire, recontactez-moi en mars."]];
-  for (const [camp, clientId] of [["Smoteo - Q4", smoteo.id], ["Acme - outbound", acme.id]] as const) {
+  for (const [camp, clientId] of [["Nova - Q4", nova.id], ["Acme - outbound", acme.id]] as const) {
     const acts = [];
     for (let i = 0; i < 70; i++) {
       const fn = FIRST[rnd(FIRST.length)], ln = LAST[rnd(LAST.length)], company = COMP[rnd(COMP.length)];
@@ -75,7 +75,7 @@ async function main() {
     await upsertActivities({ orgId: org.id, provider: "lemlist", clientId }, acts);
   }
   for (const c of await db.call.findMany({ where: { orgId: org.id } })) await afterCall(c);
-  console.log(`Démo prête : organisation ${org.id}, Smoteo ${smoteo.id}, Acme ${acme.id}`);
-  console.log("Comptes : demo@exemple.fr (SDR) · client@exemple.fr (portail Smoteo)");
+  console.log(`Démo prête : organisation ${org.id}, Nova ${nova.id}, Acme ${acme.id}`);
+  console.log("Comptes : demo@exemple.fr (SDR) · client@exemple.fr (portail Nova)");
 }
 main().finally(() => db.$disconnect());

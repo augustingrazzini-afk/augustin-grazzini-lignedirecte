@@ -125,7 +125,7 @@ model Integration {
   @@index([orgId])
 }
 
-// Range automatiquement un appel chez un client : ex. liste Minari "Smoteo" -> client Smoteo.
+// Range automatiquement un appel chez un client : ex. liste Minari "Nova" -> client Nova.
 model ClientRule {
   id        String       @id @default(cuid())
   orgId     String
@@ -287,4 +287,13 @@ model Feedback {
 
   @@index([createdAt])
   @@index([userId, createdAt])
+}
+
+/// Compteur journalier d'appels à l'IA (ex. questions posées au chatbot via un lien de suivi).
+model AiUsage {
+  key   String
+  day   String // AAAA-MM-JJ
+  count Int    @default(0)
+
+  @@id([key, day])
 }

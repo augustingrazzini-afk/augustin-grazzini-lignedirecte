@@ -15,7 +15,7 @@ export function FeedbackLink() {
 }
 
 /** Bulle flottante en bas à droite, présente sur toutes les pages : assistant IA + case « Votre avis ». */
-export function HelpWidget({ clientId, isClient, aiReady, chat = true }: { clientId: string | null; isClient: boolean; aiReady: boolean; chat?: boolean }) {
+export function HelpWidget({ clientId, isClient, aiReady, chat = true, shareToken }: { clientId: string | null; isClient: boolean; aiReady: boolean; chat?: boolean; shareToken?: string }) {
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState<Tab>(chat ? "chat" : "avis");
   const [hint, setHint] = useState(false);
@@ -46,14 +46,14 @@ export function HelpWidget({ clientId, isClient, aiReady, chat = true }: { clien
             <Mascot size={34} talking />
             <div className="hw-tabs" role="tablist">
               {chat && <button role="tab" aria-selected={tab === "chat"} onClick={() => setTab("chat")}>Assistant IA</button>}
-              <button role="tab" aria-selected={tab === "avis"} onClick={() => setTab("avis")}>Votre avis</button>
+              {!shareToken && <button role="tab" aria-selected={tab === "avis"} onClick={() => setTab("avis")}>Votre avis</button>}
             </div>
             <button className="hw-x" aria-label="Fermer" onClick={() => setOpen(false)}>×</button>
           </div>
           <div className="hw-body">
-            {tab === "chat" && chat ? (
+            {(tab === "chat" && chat) || shareToken ? (
               onCoach ? <p className="muted small hw-note">Vous êtes déjà sur la page de l&apos;assistant : posez votre question dans la fenêtre principale.</p>
-                : <Assistant compact clientId={clientId} isClient={isClient} aiReady={aiReady} />
+                : <Assistant compact clientId={clientId} isClient={isClient} aiReady={aiReady} shareToken={shareToken} />
             ) : <FeedbackForm />}
           </div>
         </div>

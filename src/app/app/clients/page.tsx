@@ -31,7 +31,7 @@ export default async function Page() {
         </div>
         <div className="card"><h2>Nouveau client</h2><p className="sub">Indiquez la liste ou la campagne utilisée pour lui : ses appels y seront rangés automatiquement.</p>
           <ActionForm action={createClient} submit="Créer le client">
-            <label className="full">Nom du client<input className="input" name="name" required placeholder="Smoteo" /></label>
+            <label className="full">Nom du client<input className="input" name="name" required placeholder="Ex. : Nova Logiciels" /></label>
             <label className="full">Liste ou campagne de ses appels (facultatif)<input className="input" name="list" placeholder="Nom exact de la liste dans votre outil" /></label>
           </ActionForm>
         </div>

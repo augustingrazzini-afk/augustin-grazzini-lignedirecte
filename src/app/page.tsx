@@ -4,14 +4,43 @@ import { PLANS, TRIAL_DAYS } from "@/lib/billing";
 import { Logo } from "@/components/Logo";
 import { BRAND_LOGOS } from "@/lib/brand-logos";
 import { LegalFooter } from "@/components/LegalPage";
+import { Mascot } from "@/components/client/Mascot";
 
 /** Les captures viennent de l'application elle-même, avec des données de démonstration fictives. */
 const SECTIONS = [
   {
+    img: "/screens/reporting-client.jpg",
+    tag: "Reporting client",
+    title: "Un reporting prêt pour chaque client, sans rien préparer",
+    text: "Chaque client a son tableau de bord : appels, campagnes email, LinkedIn et rendez-vous, rangés automatiquement selon la liste ou la campagne utilisée. Vous passez d'un client à l'autre en un clic.",
+    points: ["Un espace par client, rangé automatiquement", "Par jour, semaine, mois, trimestre ou année", "Rendez-vous, taux de décroché, entonnoir"],
+  },
+  {
+    img: "/screens/multicanal.jpg",
+    tag: "Reporting multicanal",
+    title: "Appels, emails et LinkedIn dans le même tableau",
+    text: "Vos appels (Minari, Aircall, Ringover…), vos campagnes email (lemlist, Instantly, Smartlead) et votre prospection LinkedIn réunis : vous voyez d'un coup d'œil d'où viennent les rendez-vous.",
+    points: ["Rendez-vous par canal", "Tous vos clients, ou un seul", "Synchronisation automatique"],
+  },
+  {
+    img: "/screens/emails.jpg",
+    tag: "Campagnes email · lemlist, Instantly, Smartlead",
+    title: "Vos campagnes email, enfin lisibles",
+    text: "Envois, ouvertures, réponses et rendez-vous remontent tout seuls. L'IA classe chaque réponse : positive, objection, absent.",
+    points: ["Entonnoir et taux de réponse par campagne", "Réponses classées par l'IA", "Rendez-vous pris par email"],
+  },
+  {
+    img: "/screens/linkedin.jpg",
+    tag: "LinkedIn · lemlist, La Growth Machine, Waalaxy",
+    title: "LinkedIn, à côté de vos appels et de vos emails",
+    text: "Invitations, acceptations, réponses et rendez-vous, client par client. Pas d'outil LinkedIn ? Importez simplement l'export de vos relations et de vos messages.",
+    points: ["Taux d'acceptation et de réponse", "Réponses classées par l'IA", "Relance créée quand une invitation est acceptée"],
+  },
+  {
     img: "/screens/fiche-appel.jpg",
     tag: "Analyse d'appel",
     title: "Chaque appel, résumé et décortiqué par l'IA",
-    text: "Dès qu'un appel arrive, l'IA écrit le résumé, repère les objections et vérifie si le commercial les a passées. La transcription complète est à côté, horodatée.",
+    text: "Dès qu'un appel arrive, l'IA écrit le résumé, repère les objections et vérifie si elles ont été passées. La transcription et l'enregistrement sont juste à côté.",
     points: ["Résumé en 3 à 5 points", "Objections classées : timing, budget, pas décideur…", "Transcription et enregistrement"],
   },
   {
@@ -19,51 +48,30 @@ const SECTIONS = [
     tag: "Objections et créneaux",
     title: "Sachez ce qui bloque, et quand appeler",
     text: "Les objections les plus fréquentes, la part réellement passée, et la carte des créneaux où vos prospects décrochent vraiment.",
-    points: ["Top des objections sur la période", "Part passée / non passée", "Meilleur créneau d'appel, heure de Paris"],
+    points: ["Top des objections sur la période", "Part passée et non passée", "Meilleur créneau d'appel, heure de Paris"],
     narrow: true,
-  },
-  {
-    img: "/screens/appels.jpg",
-    tag: "Tous les appels",
-    title: "Toutes vos conversations, au même endroit",
-    text: "Minari, Aircall, Ringover, HubSpot ou un simple CSV : tout arrive ici. Filtrez par RDV, par objection, ou cherchez un prospect en une seconde.",
-    points: ["Synchronisation automatique", "Filtres par résultat et par objection", "Recherche plein texte"],
-  },
-  {
-    img: "/screens/emails.jpg",
-    tag: "Campagnes email · lemlist, Instantly, Smartlead",
-    title: "Vos campagnes email, enfin lisibles",
-    text: "Connectez lemlist, Instantly ou Smartlead : envois, ouvertures, réponses et rendez-vous remontent tout seuls. L'IA classe chaque réponse : positive, objection, absent.",
-    points: ["Entonnoir et taux de réponse par campagne", "Réponses classées par l'IA", "Rendez-vous pris par email"],
-  },
-  {
-    img: "/screens/linkedin.jpg",
-    tag: "LinkedIn · lemlist, La Growth Machine, Waalaxy",
-    title: "LinkedIn, dans le même tableau de bord",
-    text: "Invitations, acceptations, réponses et rendez-vous : votre prospection LinkedIn à côté de vos appels et de vos emails, pour chaque client.",
-    points: ["Taux d'acceptation et de réponse", "Réponses classées par l'IA", "Relance créée quand une invitation est acceptée"],
-  },
-  {
-    img: "/screens/suivi-client.jpg",
-    tag: "Suivi en direct par le client",
-    title: "Un lien, et votre client suit votre prospection en live",
-    text: "Partagez un lien à votre client : il voit vos performances en direct, appels, campagnes email et LinkedIn, par jour, semaine, mois ou année. Sans compte, sans mot de passe. Fini les reportings du vendredi.",
-    points: ["Un lien secret par client, désactivable", "Appels, campagnes email et LinkedIn, par jour, semaine, mois, année", "Résumés, transcriptions et réponses en lecture seule"],
   },
   {
     img: "/screens/relances.jpg",
     tag: "Relances",
     title: "Plus aucun « rappelez-moi en mars » oublié",
-    text: "Les relances sont créées automatiquement à partir des appels, des réponses email et LinkedIn, avec une date. Chaque matin, la liste de ce qui est à faire.",
-    points: ["Relances datées automatiquement", "Récap chaque matin par email", "Fait, reporté ou ignoré en un clic"],
+    text: "Les relances sont créées automatiquement à partir des appels et des réponses email ou LinkedIn, avec une date. Chaque matin, la liste de ce qui est à faire.",
+    points: ["Relances datées automatiquement", "Récapitulatif chaque matin par email", "Fait, reporté ou ignoré en un clic"],
   },
   {
-    img: "/screens/equipe.jpg",
-    tag: "Équipe",
-    title: "La performance de chaque commercial",
-    text: "Vous êtes plusieurs ? Appels, taux de décroché, conversations et rendez-vous, commercial par commercial : vous voyez tout de suite qui a besoin d'aide.",
-    points: ["Comparatif par commercial", "Par jour, semaine, mois ou année", "Assistant IA : posez vos questions, préparez vos RDV"],
+    img: "/screens/appels.jpg",
+    tag: "Appels et équipe",
+    title: "Toutes vos conversations, et chaque commercial",
+    text: "Minari, Aircall, Ringover, HubSpot ou un simple CSV : tous les appels arrivent ici. Filtrez par rendez-vous, par objection ou par commercial, et cherchez un prospect en une seconde.",
+    points: ["Synchronisation automatique", "Performance par commercial", "Recherche plein texte"],
   },
+];
+
+/** Ce que voit le client du freelance : la promesse principale du produit. */
+const CLIENT_PERKS = [
+  { icon: "📈", title: "Ses stats en direct", text: "Appels, emails, LinkedIn et rendez-vous, par jour, semaine, mois ou année. Toujours à jour, sans que vous ayez rien à envoyer." },
+  { icon: "🎧", title: "Ses appels, écoutés et résumés", text: "Chaque appel mené pour lui : résumé par l'IA, transcription, enregistrement et objections." },
+  { icon: "✨", title: "Son assistant IA", text: "Il prépare ses rendez-vous et fait résumer ses appels en une question : « Prépare mon RDV de jeudi avec Talentis RH »." },
 ];
 
 export default async function Home() {
@@ -82,21 +90,42 @@ export default async function Home() {
       <section className="lp-hero">
         <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
         <h1>Votre reporting et vos stats, en un seul endroit, par client.</h1>
-        <p className="lead">Vos appels (Minari, Aircall, Ringover…), vos campagnes email (lemlist, Instantly, Smartlead…) et votre prospection LinkedIn réunis, et vos clients qui suivent en direct vos performances avec un simple lien. Chaque appel est résumé par l&apos;IA, les objections sont classées, les relances se créent toutes seules.</p>
+        <p className="lead">Vos clients suivent en direct vos appels, vos performances et leurs rendez-vous, et préparent leurs rendez-vous avec leur propre assistant IA. Vous, vous gérez tous vos clients au même endroit : appels, campagnes email et LinkedIn réunis. Fini les reportings du vendredi.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
-          <a className="btn lp-cta" href="#produit">Voir le produit</a>
+          <a className="btn lp-cta" href="#clients">Voir ce que voit votre client</a>
         </div>
-        <p className="lp-note">Aucun débit pendant 14 jours · Connectez vos outils en une minute</p>
+        <p className="lp-note">{TRIAL_DAYS} jours gratuits, aucun débit pendant l&apos;essai · Connectez vos outils en une minute</p>
         <figure className="lp-shot lp-shot-hero">
-          <img src="/screens/multicanal.jpg" alt="Tableau de pilotage : appels, emails et LinkedIn, rendez-vous pris, taux de décroché et entonnoir" width={2880} height={1800} />
+          <img src="/screens/suivi-chatbot.jpg" alt="Espace de suivi d'un client : ses appels, emails, LinkedIn et rendez-vous en direct, avec son assistant IA" width={2880} height={1800} />
         </figure>
       </section>
 
       <section className="lp-strip">
-        {[["Reporting", "par client, en un seul endroit"], ["Suivi live", "partagé par un simple lien"], ["Multicanal", "appels, campagnes email, LinkedIn"], ["Résumé IA", "de chaque appel transcrit"]].map(([a, b]) => (
+        {[["Reporting client", "un tableau de bord par client"], ["Suivi en direct", "partagé par un simple lien"], ["Assistant IA client", "il prépare ses rendez-vous"], ["Multicanal", "appels, campagnes email, LinkedIn"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
+      </section>
+
+      <section id="clients" className="lp-client">
+        <div className="lp-client-head">
+          <div className="lp-client-badge"><Mascot size={44} /><span>Pour vos clients</span></div>
+          <h2>Facilitez la vie de vos clients.<br />Renforcez votre relation.</h2>
+          <p>Partagez un lien à chaque client : il suit en direct les appels menés pour lui, ses stats et ses rendez-vous, sans compte et sans mot de passe. Il garde la main, vous gagnez sa confiance.</p>
+        </div>
+        <div className="lp-client-perks">
+          {CLIENT_PERKS.map((c) => <div key={c.title}><span className="lp-client-ico" aria-hidden="true">{c.icon}</span><b>{c.title}</b><p>{c.text}</p></div>)}
+        </div>
+        <div className="lp-client-shots">
+          <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels, emails, LinkedIn et rendez-vous en direct" loading="lazy" /><figcaption>Ses stats et ses appels, en direct</figcaption></figure>
+          <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>Son assistant IA prépare ses rendez-vous</figcaption></figure>
+        </div>
+        <ul className="lp-client-list">
+          <li>Un lien secret par client, désactivable à tout moment</li>
+          <li>Il ne voit que ses propres données, en lecture seule</li>
+          <li>Enregistrements, transcriptions et résumés de ses appels</li>
+        </ul>
+        <div className="lp-cta-row"><Link className="btn lp-cta lp-cta-light" href="/inscription">Offrir le suivi en direct à mes clients</Link></div>
       </section>
 
       <section id="video" className="lp-video">
@@ -161,7 +190,8 @@ export default async function Home() {
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                 <li>Appels, campagnes email (lemlist, Instantly, Smartlead…) et LinkedIn</li>
                 <li>Analyse IA de chaque appel</li>
-                <li>Relances, brief pré-meeting et assistant IA</li>
+                <li>Lien de suivi en direct et assistant IA pour vos clients</li>
+                <li>Relances et brief pré-meeting</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
               </ul>
               <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/inscription" style={{ marginTop: 8 }}>Commencer l&apos;essai</Link>
@@ -171,7 +201,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-final">
-        <h2 className="lp-h2">Votre reporting par client, et vos clients en live.</h2>
+        <h2 className="lp-h2">Votre reporting par client, et vos clients en direct.</h2>
         <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>

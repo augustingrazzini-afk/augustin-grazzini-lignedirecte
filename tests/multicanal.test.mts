@@ -13,13 +13,13 @@ const { taskScope } = await import("../src/lib/tasks");
 const { mapEventType } = await import("../src/lib/providers/types");
 
 const tag = "mc_" + Date.now().toString(36);
-let orgA: string, orgB: string, smoteo: string, acme: string;
+let orgA: string, orgB: string, nova: string, acme: string;
 before(async () => {
   const mk = (n: string) => db.organization.create({ data: { name: `${tag} ${n}`, trialEndsAt: new Date(Date.now() + 864e5) } });
   orgA = (await mk("A")).id; orgB = (await mk("B")).id;
-  smoteo = (await db.client.create({ data: { orgId: orgA, name: "Smoteo" } })).id;
+  nova = (await db.client.create({ data: { orgId: orgA, name: "Nova" } })).id;
   acme = (await db.client.create({ data: { orgId: orgA, name: "Acme" } })).id;
-  await db.clientRule.create({ data: { orgId: orgA, clientId: smoteo, field: "campaign", value: "Smoteo Q4" } });
+  await db.clientRule.create({ data: { orgId: orgA, clientId: nova, field: "campaign", value: "Nova Q4" } });
 });
 after(async () => { await db.organization.deleteMany({ where: { name: { startsWith: tag } } }); await db.$disconnect(); });
 
@@ -68,16 +68,16 @@ test("un même prospect est reconnu d'un canal à l'autre", () => {
 const act = (id: string, o: Record<string, unknown>) => ({ externalId: id, channel: "email" as const, type: "sent" as const, occurredAt: new Date(), firstName: "Léa", lastName: id, company: "Exemple", ...o });
 
 test("emails et LinkedIn : rangement par client et cloisonnement", async () => {
-  await upsertActivities({ orgId: orgA, provider: "lemlist" }, [act("e1", { campaign: "Smoteo Q4" }), act("e2", { campaign: "Autre" }), act("e3", { campaign: "smoteo q4", type: "replied", body: "Recontactez-moi en mars" })]);
+  await upsertActivities({ orgId: orgA, provider: "lemlist" }, [act("e1", { campaign: "Nova Q4" }), act("e2", { campaign: "Autre" }), act("e3", { campaign: "nova q4", type: "replied", body: "Recontactez-moi en mars" })]);
   await upsertActivities({ orgId: orgA, provider: "webhook", clientId: acme }, [act("a1", { channel: "linkedin", type: "invite_accepted" })]);
-  await upsertActivities({ orgId: orgB, provider: "lemlist" }, [act("b1", { campaign: "Smoteo Q4" })]);
-  const seen = await db.activity.findMany({ where: activityScope({ kind: "client", orgId: orgA, clientId: smoteo, userId: "u" }) });
+  await upsertActivities({ orgId: orgB, provider: "lemlist" }, [act("b1", { campaign: "Nova Q4" })]);
+  const seen = await db.activity.findMany({ where: activityScope({ kind: "client", orgId: orgA, clientId: nova, userId: "u" }) });
   assert.deepEqual(seen.map((a) => a.externalId).sort(), ["e1", "e3"]);
   assert.equal((await db.activity.findFirst({ where: { orgId: orgB } }))!.clientId, null);
-  const t = await db.task.findMany({ where: taskScope({ kind: "client", orgId: orgA, clientId: smoteo }) });
-  assert.equal(t.length, 1, "la réponse « en mars » crée une relance chez Smoteo");
+  const t = await db.task.findMany({ where: taskScope({ kind: "client", orgId: orgA, clientId: nova }) });
+  assert.equal(t.length, 1, "la réponse « en mars » crée une relance chez Nova");
   assert.equal(t[0].channel, "email");
-  assert.equal(await db.task.count({ where: taskScope({ kind: "client", orgId: orgA, clientId: acme }) }), 0, "Acme ne voit pas la relance de Smoteo");
+  assert.equal(await db.task.count({ where: taskScope({ kind: "client", orgId: orgA, clientId: acme }) }), 0, "Acme ne voit pas la relance de Nova");
 });
 
 test("un RDV ferme les relances ouvertes du prospect", async () => {

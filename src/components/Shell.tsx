@@ -16,7 +16,7 @@ export type ShellProps = {
   /** Lien de suivi partagé : lecture seule, pilotage et appels uniquement, pas de compte. */
   share?: boolean;
   /** Widget flottant en bas à droite (assistant IA + avis). */
-  widget?: { clientId: string | null; aiReady: boolean };
+  widget?: { clientId: string | null; aiReady: boolean; shareToken?: string };
   children: React.ReactNode;
 };
 
@@ -38,7 +38,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
-  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/emails`, `${base}/linkedin`].includes(it.href)) : all;
+  const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/emails`, `${base}/linkedin`, `${base}/coach`].includes(it.href)) : all;
   return (
     <>
       <header className="mtop">
@@ -56,7 +56,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
           <div className="side-foot">
             {share && <span>Lien de suivi en lecture seule</span>}
             {clientName && <span>Suivi par <b>{orgName}</b></span>}
-            {widget && <FeedbackLink />}
+            {widget && !share && <FeedbackLink />}
             {!share && <form action={logout}><button type="submit">Se déconnecter</button></form>}
           </div>
         </aside>
@@ -66,7 +66,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         </main>
       </div>
       <nav className="tabbar"><NavLinks items={items} variant="tab" /></nav>
-      {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} />}
+      {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} shareToken={widget.shareToken} />}
     </>
   );
 }
