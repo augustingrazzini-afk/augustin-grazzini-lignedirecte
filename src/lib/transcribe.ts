@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { presignRead } from "./storage";
+import { needsRelay, signedAudioPath } from "./audio";
 import { trimTranscript, type TranscriptLine } from "./providers/types";
 
 /**
@@ -75,10 +76,12 @@ export async function processTranscriptions(opts: { orgId?: string; waitMs?: num
       where: { ...scope, transcriptStatus: "none", durationSec: { gte: MIN_SEC }, transcript: { equals: [] }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] },
       orderBy: { startedAt: "desc" },
       take: MAX_SUBMIT,
-      select: { id: true, recordingUrl: true, recordingKey: true },
+      select: { id: true, provider: true, recordingUrl: true, recordingKey: true },
     });
     for (const c of todo) {
-      const url = c.recordingKey ? await presignRead(c.recordingKey, 6 * 3600) : c.recordingUrl;
+      const url = c.recordingKey ? await presignRead(c.recordingKey, 6 * 3600)
+        : c.recordingUrl && needsRelay(c.provider) ? (process.env.APP_URL || "").replace(/\/$/, "") + signedAudioPath(c.id, 6 * 3600)
+        : c.recordingUrl;
       if (!url) continue;
       const job = await submit(url).catch(() => null);
       await db.call.update({ where: { id: c.id }, data: job ? { transcriptStatus: "pending", transcriptJob: job } : { transcriptStatus: "failed" } });

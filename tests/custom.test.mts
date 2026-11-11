@@ -35,3 +35,18 @@ test("transcription automatique : interlocuteurs et horodatage", () => {
   assert.equal(lines[0].s, "Intervenant 1");
   assert.equal(lines[1].ts, "01:05");
 });
+
+test("skipcall : appels de séquence reconnus (doc officielle)", async () => {
+  const { mapSkipcall } = await import("../src/lib/providers/skipcall");
+  const seqs = new Map([["seq-1", "Hexalis - novembre"]]);
+  const a = mapSkipcall({ id: "c1", status: "COMPLETED", type: "outbound", startedAt: "2026-11-10T09:00:00.000Z", endedAt: "2026-11-10T09:04:30.000Z",
+    sequenceId: "seq-1", notes: "Rappeler jeudi", contact: { id: "k1", firstName: "Léa", lastName: "Martin" }, phoneNumber: { value: "+33612345678" }, caller: { firstName: "Alice", lastName: "Martin" } }, seqs)!;
+  assert.equal(a.durationSec, 270);
+  assert.equal(a.connected, true);
+  assert.equal(a.listName, "Hexalis - novembre");
+  assert.equal(a.repName, "Alice Martin");
+  assert.equal(a.summary, "Rappeler jeudi");
+  const b = mapSkipcall({ id: "c2", status: "NO_ANSWER", startedAt: "2026-11-10T09:10:00.000Z", endedAt: "2026-11-10T09:10:25.000Z" }, seqs)!;
+  assert.equal(b.connected, false);
+  assert.equal(b.listName, "Appels directs");
+});

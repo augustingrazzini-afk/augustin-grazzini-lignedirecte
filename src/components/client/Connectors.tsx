@@ -9,6 +9,7 @@ type Cat = "call" | "email" | "linkedin" | "other";
 /** Présentation de chaque outil dans le catalogue : couleur, monogramme, accroche, où trouver la clé. */
 const META: Record<string, { mono: string; color: string; tagline: string; cats: Cat[]; where?: string; url?: string }> = {
   minari: { mono: "Mi", color: "#5B4BFF", tagline: "Appels, résumés, objections et transcriptions", cats: ["call"], where: "Settings › API & webhook" },
+  skipcall: { mono: "Sk", color: "#FF5A1F", tagline: "Appels de vos séquences, transcriptions, résumés et enregistrements", cats: ["call"], where: "Paramètres › Clés API", url: "https://web.withallo.com/settings/api" },
   aircall: { mono: "Ai", color: "#00A87A", tagline: "Appels, tags, enregistrements et transcriptions", cats: ["call"], where: "Intégrations & API › Clés API", url: "https://dashboard.aircall.io" },
   ringover: { mono: "Ri", color: "#2C6BED", tagline: "Appels, notes, tags et enregistrements", cats: ["call"], where: "Développeur › Créer une clé API (lecture des appels)", url: "https://dashboard.ringover.com" },
   hubspot: { mono: "Hs", color: "#FF5C35", tagline: "Appels journalisés dans le CRM", cats: ["call"], where: "Paramètres › Intégrations › Applications privées", url: "https://app.hubspot.com" },

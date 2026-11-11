@@ -8,6 +8,7 @@ import { presignRead } from "@/lib/storage";
 import type { ObjDetail, TranscriptLine } from "@/lib/providers/types";
 import type { Debrief } from "@/lib/ai";
 import { transcribeEnabled } from "@/lib/transcribe";
+import { needsRelay, signedAudioPath } from "@/lib/audio";
 import { assignCall } from "@/app/actions";
 import { CallActions, CopyButton } from "../client/CallActions";
 
@@ -17,7 +18,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   if (!c) notFound();
   const tr = (c.transcript as unknown as TranscriptLine[]) || [];
   const det = (c.objDetails as unknown as ObjDetail[]) || [];
-  const audio = c.recordingKey ? await presignRead(c.recordingKey) : null;
+  const audio = c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : null;
   const clients = scope.kind === "org" ? await db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }) : [];
   const trText = tr.map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n");
   const clientParam = scope.kind === "client" ? scope.clientId : null;

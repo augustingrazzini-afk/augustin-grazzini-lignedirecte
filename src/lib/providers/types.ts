@@ -90,6 +90,8 @@ export type Provider = {
   listActivities?(creds: Record<string, string>, since: Date): AsyncGenerator<NormalizedActivity[]>;
   /** Complète un appel (transcription, objections). Optionnel. */
   details?(creds: Record<string, string>, externalId: string): Promise<Partial<NormalizedCall> | null>;
+  /** Lit un enregistrement protégé par la clé de l'outil (relayé par /api/calls/[id]/audio). */
+  fetchAudio?(creds: Record<string, string>, url: string, range?: string | null): Promise<Response | null>;
   /** Extrait l'id d'appel d'un webhook, s'il y en a un. */
   webhookCallId?(payload: unknown): string | null;
 };
