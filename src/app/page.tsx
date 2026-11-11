@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentUser } from "@/lib/session";
 import { PLANS, TRIAL_DAYS } from "@/lib/billing";
 import { Logo } from "@/components/Logo";
+import { LegalFooter } from "@/components/LegalPage";
 
 /** Les captures viennent de l'application elle-même, avec des données de démonstration fictives. */
 const SECTIONS = [
@@ -29,14 +30,14 @@ const SECTIONS = [
   },
   {
     img: "/screens/emails.jpg",
-    tag: "Cold email",
+    tag: "Campagnes email · lemlist, Instantly, Smartlead",
     title: "Vos campagnes email, enfin lisibles",
     text: "Connectez lemlist, Instantly ou Smartlead : envois, ouvertures, réponses et rendez-vous remontent tout seuls. L'IA classe chaque réponse : positive, objection, absent.",
     points: ["Entonnoir et taux de réponse par campagne", "Réponses classées par l'IA", "Rendez-vous pris par email"],
   },
   {
     img: "/screens/linkedin.jpg",
-    tag: "LinkedIn",
+    tag: "LinkedIn · lemlist, La Growth Machine, Waalaxy",
     title: "LinkedIn, dans le même tableau de bord",
     text: "Invitations, acceptations, réponses et rendez-vous : votre prospection LinkedIn à côté de vos appels et de vos emails, pour chaque client.",
     points: ["Taux d'acceptation et de réponse", "Réponses classées par l'IA", "Relance créée quand une invitation est acceptée"],
@@ -45,8 +46,8 @@ const SECTIONS = [
     img: "/screens/suivi-client.jpg",
     tag: "Suivi en direct par le client",
     title: "Un lien, et votre client suit votre prospection en live",
-    text: "Partagez un lien à votre client : il voit vos performances en direct, appels, emails et LinkedIn, par jour, semaine, mois ou année. Sans compte, sans mot de passe. Fini les reportings du vendredi.",
-    points: ["Un lien secret par client, désactivable", "Appels, emails et LinkedIn, par jour, semaine, mois, année", "Résumés, transcriptions et réponses en lecture seule"],
+    text: "Partagez un lien à votre client : il voit vos performances en direct, appels, campagnes email et LinkedIn, par jour, semaine, mois ou année. Sans compte, sans mot de passe. Fini les reportings du vendredi.",
+    points: ["Un lien secret par client, désactivable", "Appels, campagnes email et LinkedIn, par jour, semaine, mois, année", "Résumés, transcriptions et réponses en lecture seule"],
   },
   {
     img: "/screens/relances.jpg",
@@ -80,7 +81,7 @@ export default async function Home() {
       <section className="lp-hero">
         <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
         <h1>Votre reporting et vos stats, en un seul endroit, par client.</h1>
-        <p className="lead">Appels, cold email et LinkedIn réunis, et vos clients qui suivent en direct vos performances avec un simple lien. Chaque appel est résumé par l&apos;IA, les objections sont classées, les relances se créent toutes seules.</p>
+        <p className="lead">Vos appels (Minari, Aircall, Ringover…), vos campagnes email (lemlist, Instantly, Smartlead…) et votre prospection LinkedIn réunis, et vos clients qui suivent en direct vos performances avec un simple lien. Chaque appel est résumé par l&apos;IA, les objections sont classées, les relances se créent toutes seules.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/login">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#produit">Voir le produit</a>
@@ -92,7 +93,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-strip">
-        {[["Reporting", "par client, en un seul endroit"], ["Suivi live", "partagé par un simple lien"], ["Multicanal", "appels, cold email, LinkedIn"], ["Résumé IA", "de chaque appel transcrit"]].map(([a, b]) => (
+        {[["Reporting", "par client, en un seul endroit"], ["Suivi live", "partagé par un simple lien"], ["Multicanal", "appels, campagnes email, LinkedIn"], ["Résumé IA", "de chaque appel transcrit"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
       </section>
@@ -157,7 +158,7 @@ export default async function Home() {
               <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
               <ul>
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
-                <li>Appels, cold email et LinkedIn</li>
+                <li>Appels, campagnes email (lemlist, Instantly, Smartlead…) et LinkedIn</li>
                 <li>Analyse IA de chaque appel</li>
                 <li>Relances, brief pré-meeting et coach IA</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
@@ -173,6 +174,7 @@ export default async function Home() {
         <Link className="btn primary lp-cta" href="/login">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>
+      <LegalFooter />
     </div>
   );
 }

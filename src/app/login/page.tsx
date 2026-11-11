@@ -3,6 +3,7 @@ import { currentUser } from "@/lib/session";
 import { requestLogin } from "@/app/actions";
 import { ActionForm } from "@/components/client/ActionForm";
 import { Logo } from "@/components/Logo";
+import Link from "next/link";
 
 export const metadata = { title: "Connexion" };
 export default async function Page({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
@@ -18,6 +19,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
         <ActionForm action={requestLogin} submit="Recevoir mon lien" hidden={sp.next ? { next: sp.next } : undefined}>
           <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus /></label>
         </ActionForm>
+        <p className="muted small" style={{ margin: "16px 0 0" }}>En continuant, vous acceptez les <Link href="/cgv">conditions générales</Link> et la <Link href="/confidentialite">politique de confidentialité</Link>. Service réservé aux professionnels.</p>
       </div>
     </div>
   );
