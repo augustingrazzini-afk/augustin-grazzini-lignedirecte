@@ -19,8 +19,8 @@ const SECTIONS = [
     img: "/screens/fiche-appel.jpg",
     tag: "Analyse de chaque appel",
     title: "Chaque appel, résumé et décortiqué par l'IA",
-    text: "Dès qu'un appel arrive, l'IA écrit le résumé, repère les objections et vérifie si elles ont été passées. La transcription et l'enregistrement sont juste à côté.",
-    points: ["Résumé en 3 à 5 points", "Objections classées : timing, budget, pas décideur…", "Transcription et enregistrement"],
+    text: "Dès qu'un appel arrive, l'IA écrit le résumé, repère les objections et vérifie si elles ont été passées. La transcription est juste à côté, et l'enregistrement quand votre outil le fournit.",
+    points: ["Résumé en 3 à 5 points", "Objections classées : timing, budget, pas décideur…", "Transcription de chaque conversation"],
   },
   {
     img: "/screens/objections.jpg",
@@ -57,7 +57,7 @@ const INTEL = [
 /** Ce que le client du commercial peut faire, en direct : la promesse principale du produit. */
 const CLIENT_PERKS = [
   { icon: "🔴", title: "Il suit ses appels en live", text: "Chaque appel passé pour lui apparaît dans la minute. Il voit qui a été appelé, ce qui s'est dit et ce qui a été obtenu, sans rien vous demander." },
-  { icon: "🎧", title: "Il écoute et il lit", text: "L'enregistrement, la transcription et le résumé de chaque appel, avec les objections du prospect." },
+  { icon: "📝", title: "Il lit chaque appel", text: "La transcription et le résumé de chaque conversation, avec les objections du prospect. Et l'enregistrement audio quand votre outil le fournit." },
   { icon: "📅", title: "Il prépare ses rendez-vous", text: "Directement dans son espace, il écrit « Prépare mon RDV de jeudi avec Talentis RH » : l'assistant IA intégré lui dit ce que le prospect a dit, ce qui bloque et l'angle à prendre." },
   { icon: "🤝", title: "Il fait débriefer ses rendez-vous", text: "Il dépose la transcription de son rendez-vous : l'IA lui dit ce qui a marché, ce qui a manqué et la prochaine étape, en reprenant ce qui s'est dit au téléphone." },
   { icon: "📈", title: "Il voit ses résultats", text: "Appels, décrochés, conversations et rendez-vous, par jour, semaine ou mois. Toujours à jour." },
@@ -109,7 +109,7 @@ export default async function Home() {
         <span className="lp-tag lp-live"><i aria-hidden="true" />Accès en direct pour vos clients</span>
         <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
         <p className="lp-sub">Fini les reportings clients faits à la main.</p>
-        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, écoute les enregistrements, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
+        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, lit les transcriptions et les résumés, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
@@ -156,7 +156,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-strip">
-        {[["Accès client en direct", "appels, écoutes, résultats"], ["Assistant IA intégré", "il prépare ses rendez-vous"], ["Reporting automatique", "rien à remplir"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
+        {[["Accès client en direct", "appels, transcriptions, résultats"], ["Assistant IA intégré", "il prépare ses rendez-vous"], ["Reporting automatique", "rien à remplir"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
       </section>
