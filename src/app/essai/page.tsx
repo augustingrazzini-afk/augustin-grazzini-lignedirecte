@@ -34,7 +34,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
               <form key={id} action="/api/billing" method="post" className={`card price${id === "agency" ? " lp-best" : ""}`}>
                 <input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><input type="hidden" name="trial" value="1" />
                 <h2>{PLANS[id].name}</h2>
-                <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois après l&apos;essai</span></div>
+                <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0 }}> HT / mois après l&apos;essai</span></div>
                 <ul>
                   <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                   <li>Appels, campagnes email et LinkedIn</li>
