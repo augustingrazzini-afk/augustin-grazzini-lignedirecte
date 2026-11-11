@@ -8,6 +8,7 @@ import { presignRead } from "@/lib/storage";
 import type { ObjDetail, TranscriptLine } from "@/lib/providers/types";
 import type { Debrief } from "@/lib/ai";
 import { transcribeEnabled } from "@/lib/transcribe";
+import { aiEnabled } from "@/lib/ai-config";
 import { needsRelay, signedAudioPath } from "@/lib/audio";
 import { assignCall } from "@/app/actions";
 import { CallActions, CopyButton } from "../client/CallActions";
@@ -55,7 +56,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           </div>}
         </div>
         {debrief && <DebriefCard d={debrief} />}
-        {c.kind === "meeting" && !debrief && tr.length > 0 && <div className="card"><div className="sec"><h4>Débrief IA</h4><p className="muted" style={{ margin: 0 }}>Le débrief de ce rendez-vous est en préparation : il apparaît ici dans quelques instants.</p></div></div>}
+        {c.kind === "meeting" && !debrief && tr.length > 0 && <div className="card"><div className="sec"><h4>Débrief IA</h4><p className="muted" style={{ margin: 0 }}>{aiEnabled() ? "Le débrief de ce rendez-vous est en préparation : il apparaît ici dans quelques instants." : "Le débrief IA de ce rendez-vous sera disponible dès l'activation de l'IA. En attendant, la transcription est à droite."}</p></div></div>}
         {c.summary && <div className="card"><div className="sec"><h4>Résumé</h4><div className="sumbox">{c.summary.replace(/^-\s*/gm, "• ")}</div></div></div>}
         {det.length > 0 && (
           <div className="card"><div className="sec"><h4>Objections</h4><div className="stack" style={{ gap: 8 }}>{det.map((o, i) => (

@@ -6,7 +6,6 @@ import { isActive, PLANS, type PlanId } from "@/lib/billing";
 import { Shell } from "@/components/Shell";
 import { after } from "next/server";
 import { syncIfStale } from "@/lib/sync";
-import { aiEnabled } from "@/lib/ai";
 import { countDueTasks } from "@/components/views/Relances";
 import { redirect } from "next/navigation";
 import { stripeEnabled } from "@/lib/stripe";
@@ -25,5 +24,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   else if (org.subscriptionStatus === "past_due") banner = <div className="banner err"><div><b>Paiement en échec.</b> <Link href="/app/billing">Mettre à jour le moyen de paiement</Link>.</div></div>;
   else if (org.subscriptionStatus === "trialing" && days <= 5) banner = <div className="banner"><div><b>{PLANS[org.plan as PlanId]?.name || "Essai"} : plus que {days} jour(s).</b> <Link href="/app/billing">Choisir une formule</Link>.</div></div>;
   after(() => syncIfStale(scope.orgId));
-  return <Shell base="/app" orgName={org.name} isOrg email={user!.email} followUps={follow} banner={banner} widget={{ clientId: null, aiReady: aiEnabled() }}>{children}</Shell>;
+  return <Shell base="/app" orgName={org.name} isOrg email={user!.email} followUps={follow} banner={banner} widget={{ clientId: null, aiReady: true }}>{children}</Shell>;
 }

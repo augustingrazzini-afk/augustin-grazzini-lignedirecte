@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { dateFR, displayName } from "@/lib/format";
 import { storageEnabled } from "@/lib/storage";
 import type { Debrief } from "@/lib/ai";
+import { aiEnabled } from "@/lib/ai-config";
 import { MeetingAdd } from "../client/MeetingAdd";
 import { CsvImport } from "../client/CsvImport";
 
@@ -26,7 +27,7 @@ export async function Meetings({ scope, base, shareToken }: { scope: Scope; base
                   <span className={`av ${d && d.score >= 7 ? "win" : ""}`}>{d ? d.score : "…"}</span>
                   <span className="who">{displayName(m)}<span> · {m.company || "—"}</span></span>
                   <span className="meta">{dateFR(m.startedAt)}</span>
-                  <span className="sum">{d ? d.verdict : m.aiStatus === "pending" || m.transcriptStatus === "pending" ? "Débrief en préparation…" : "Transcription en attente : le débrief arrivera ensuite."}</span>
+                  <span className="sum">{d ? d.verdict : m.transcriptStatus === "pending" ? "Transcription en cours…" : !aiEnabled() ? "Transcription disponible · débrief IA à l'activation de l'IA" : "Débrief en préparation…"}</span>
                 </Link>
               );
             })}</div>

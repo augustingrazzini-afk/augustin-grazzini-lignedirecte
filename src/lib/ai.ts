@@ -11,7 +11,7 @@ let client: Anthropic | null = null;
 export const anthropic = () => (client ??= new Anthropic());
 export const AI_MODEL = MODEL;
 export { aiEnabled } from "./ai-config";
-import { aiEnabled } from "./ai-config";
+import { aiEnabled, markAiDown } from "./ai-config";
 
 export class AiError extends Error {}
 
@@ -31,7 +31,7 @@ async function json<T>(prompt: string, schema: Record<string, unknown>, effort: 
   } catch (e) {
     console.error("anthropic analyse", e instanceof Anthropic.APIError ? `${e.status} ${e.message}` : e);
     if (e instanceof Anthropic.RateLimitError) throw new AiError("L'IA est très sollicitée. Réessayez dans une minute.");
-    if (e instanceof Anthropic.AuthenticationError) throw new AiError("Clé API Claude invalide sur ce serveur.");
+    if (e instanceof Anthropic.AuthenticationError) { markAiDown(); throw new AiError("Clé API Claude invalide sur ce serveur."); }
     if (e instanceof Anthropic.APIError) throw new AiError(`L'IA a renvoyé une erreur (${e.status}).`);
     throw new AiError("L'IA ne répond pas. Réessayez.");
   }
@@ -246,8 +246,8 @@ export async function processPendingAi(opts: { orgId?: string; limit?: number; c
       analyzed++;
       if (c.kind === "meeting") await debriefMeeting(c.id).catch((e) => console.error("débrief", c.id, e));
     } catch (e) {
-      const busy = e instanceof AiError && /sollicitée/.test(e.message);
-      // Limite de débit : on remet l'appel en file au lieu de le marquer en échec, et on s'arrête là.
+      const busy = e instanceof AiError && /sollicitée|invalide|configurée/.test(e.message);
+      // Limite de débit ou clé refusée : on remet l'appel en file au lieu de le marquer en échec, et on s'arrête là.
       await db.call.update({ where: { id }, data: { aiStatus: busy ? "pending" : "failed" } });
       if (busy) return false;
     }

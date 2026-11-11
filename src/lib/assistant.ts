@@ -6,6 +6,7 @@ import type { Prisma } from "@prisma/client";
 import { callScope, scopeClientId, type Scope } from "./access";
 import { db } from "./db";
 import { AI_MODEL, AiError, anthropic } from "./ai";
+import { markAiDown } from "./ai-config";
 import { activityScope, channelOverview } from "./channels";
 import { OBJ_LABEL, displayName, fmtDuration, isConversation } from "./format";
 import { periodStart } from "./period";
@@ -58,6 +59,10 @@ const pickDays = (n: unknown) => ([1, 7, 30, 90, 365].includes(n as number) ? (n
 const like = (q: string) => ({ contains: q, mode: "insensitive" as const });
 const taskScope = (s: Scope): Prisma.TaskWhereInput => (s.kind === "client" ? { orgId: s.orgId, clientId: s.clientId } : { orgId: s.orgId, ...(scopeClientId(s) ? { clientId: scopeClientId(s) } : {}) });
 
+const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche"];
+/** « 2-13 » → « mercredi 13h ». */
+const slotLabel = (k: string) => { const [d, h] = k.split("-").map(Number); return `${JOURS[d] ?? "?"} ${h}h`; };
+
 export async function runTool(scope: Scope, name: string, input: Record<string, unknown>): Promise<unknown> {
   switch (name) {
     case "stats": {
@@ -69,7 +74,7 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
         periode: days === 1 ? "aujourd'hui" : `${days} derniers jours`,
         appels: { total: s.total, decroches: s.connected, conversations: s.conversations, rdv: s.meetings, taux_decroche: `${s.connectRate.toFixed(1)} %`, conversation_vers_rdv: `${s.convToMeeting.toFixed(1)} %`, duree_moyenne_conversation: fmtDuration(s.avgConvSec),
           objections: s.objections.map((o) => ({ objection: OBJ_LABEL[o.key] || o.key, nombre: o.count, part_passee: o.passedRate == null ? "inconnue" : `${o.passedRate.toFixed(0)} %` })),
-          meilleur_creneau: best ? { jour_heure: best.key, taux: `${best.rate.toFixed(0)} %`, appels: best.calls } : null,
+          meilleur_creneau: best ? { jour_heure: slotLabel(best.key), taux: `${best.rate.toFixed(0)} %`, appels: best.calls } : null,
           par_commercial: s.reps.map((r) => ({ commercial: r.name, appels: r.total, conversations: r.conversations, rdv: r.meetings })) },
         emails: ch.hasEmail ? { prospects: ch.email.contacts, reponses: ch.email.replied, taux_reponse: `${ch.email.replyRate.toFixed(1)} %`, positives: ch.email.positive, rdv: ch.email.meetings, campagnes: ch.email.campaigns.slice(0, 10) } : "aucune activité email",
         linkedin: ch.hasLinkedin ? { invitations: ch.linkedin.invites, acceptees: ch.linkedin.accepted, taux_acceptation: `${ch.linkedin.acceptRate.toFixed(1)} %`, reponses: ch.linkedin.replied, taux_reponse: `${ch.linkedin.replyRate.toFixed(1)} %`, positives: ch.linkedin.positive, rdv: ch.linkedin.meetings } : "aucune activité LinkedIn",
@@ -164,7 +169,7 @@ Règles :
     } catch (e) {
       console.error("anthropic assistant", e instanceof Anthropic.APIError ? `${e.status} ${e.message}` : e);
       if (e instanceof Anthropic.RateLimitError) throw new AiError("L'IA est très sollicitée. Réessayez dans une minute.");
-      if (e instanceof Anthropic.AuthenticationError) throw new AiError("Clé API Claude invalide sur ce serveur.");
+      if (e instanceof Anthropic.AuthenticationError) { markAiDown(); throw new AiError("Clé API Claude invalide sur ce serveur."); }
       if (e instanceof Anthropic.APIError) throw new AiError(`L'IA a renvoyé une erreur (${e.status}).`);
       throw new AiError("L'IA ne répond pas. Réessayez.");
     }

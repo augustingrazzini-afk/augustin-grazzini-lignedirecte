@@ -58,7 +58,7 @@ export function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<st
   return (
     <>
       <PageTop title="Assistant IA" subtitle={isClient ? "Posez vos questions sur votre prospection et préparez vos rendez-vous" : "Posez vos questions : stats, prospects, objections, relances, préparation de rendez-vous"} />
-      <Assistant clientId={clientOf(scope)} isClient={isClient} aiReady={aiEnabled()} />
+      <Assistant clientId={clientOf(scope)} isClient={isClient} aiReady />
     </>
   );
 }

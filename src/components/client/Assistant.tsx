@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 
-type Turn = { role: "user" | "assistant"; content: string };
+type Turn = { role: "user" | "assistant"; content: string; local?: boolean };
 
 const STEP_LABEL: Record<string, string> = {
   stats: "les statistiques", search_calls: "les appels", get_call: "un appel en détail", search_messages: "les emails et LinkedIn",
@@ -52,11 +52,11 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
     const next = [...turns, { role: "user" as const, content: q }].slice(-40);
     setTurns(next); setInput(""); setBusy(true); setErr(null); setSteps([]);
     try {
-      const r = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, messages: next, ...(shareToken ? { shareToken } : {}) }) });
+      const r = await fetch("/api/assistant", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ clientId, messages: next.map(({ role, content }) => ({ role, content })), ...(shareToken ? { shareToken } : {}) }) });
       const j = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(j.error || "L'assistant n'a pas pu répondre.");
       setSteps(j.steps || []);
-      setTurns([...next, { role: "assistant", content: j.text }]);
+      setTurns([...next, { role: "assistant", content: j.text, local: j.mode === "local" }]);
     } catch (e) {
       setErr(e instanceof Error ? e.message : "L'assistant n'a pas pu répondre.");
       setTurns(turns); setInput(q);
@@ -79,7 +79,7 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
         {turns.map((t, i) => (
           <div key={i} className={`as-msg ${t.role}`}>
             {t.role === "assistant" && <div className="as-avatar">✦</div>}
-            <div className="as-bubble">{t.role === "assistant" ? <Rich text={t.content} /> : t.content}</div>
+            <div className="as-bubble">{t.role === "assistant" ? <Rich text={t.content} /> : t.content}{t.local && <p className="as-mode">Mode essentiel : réponse tirée de vos données, sans IA.</p>}</div>
           </div>
         ))}
         {busy && <div className="as-msg assistant"><div className="as-avatar">✦</div><div className="as-bubble as-typing"><i /><i /><i /><span className="muted small">Je consulte vos données…</span></div></div>}

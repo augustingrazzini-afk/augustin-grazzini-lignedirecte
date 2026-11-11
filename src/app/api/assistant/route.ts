@@ -5,6 +5,7 @@ import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, aiEnabled } from "@/lib/ai";
 import { askAssistant } from "@/lib/assistant";
+import { askLocal } from "@/lib/assistant-local";
 import { bumpUsage } from "@/lib/usage";
 
 export const maxDuration = 120;
@@ -25,7 +26,6 @@ export async function POST(req: Request) {
   if (!b.success) return jsonError("Requête invalide");
   const msgs = b.data.messages;
   if (msgs[0].role !== "user" || msgs[msgs.length - 1].role !== "user") return jsonError("Requête invalide");
-  if (!aiEnabled()) return jsonError("L'IA n'est pas encore activée sur ce serveur.", 503);
   let scope: Scope | null;
   if (b.data.shareToken) {
     // Lien de suivi : le client de votre client, sans compte, limité à ses propres données.
@@ -41,14 +41,17 @@ export async function POST(req: Request) {
     db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }),
     clientId ? db.client.findUnique({ where: { id: clientId } }) : Promise.resolve(null),
   ]);
+  // Sans IA complète (clé absente ou refusée) : assistant « essentiel » qui répond à partir des données.
+  if (!aiEnabled()) return NextResponse.json({ ...(await askLocal(scope, msgs)), mode: "local" });
   try {
     const r = await askAssistant(scope, msgs, {
       who: client ? `${client.name} (suivi par ${org.name})` : org.name,
       offer: client?.offer || org.offer,
       isClient: scope.kind === "client",
     });
-    return NextResponse.json(r);
+    return NextResponse.json({ ...r, mode: "ia" });
   } catch (e) {
+    if (e instanceof AiError && /invalide|configurée/.test(e.message)) return NextResponse.json({ ...(await askLocal(scope, msgs)), mode: "local" });
     if (!(e instanceof AiError)) console.error("assistant", e);
     return jsonError(e instanceof AiError ? e.message : "L'assistant n'a pas pu répondre.", 502);
   }

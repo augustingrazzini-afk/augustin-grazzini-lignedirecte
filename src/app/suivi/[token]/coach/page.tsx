@@ -1,5 +1,4 @@
 import { shareScope } from "@/lib/access";
-import { aiEnabled } from "@/lib/ai";
 import { PageTop } from "@/components/Shell";
 import { Assistant } from "@/components/client/Assistant";
 
@@ -12,7 +11,7 @@ export default async function Page({ params }: { params: Promise<{ token: string
   return (
     <>
       <PageTop title="Assistant IA" subtitle="Préparez vos rendez-vous et faites résumer les appels menés pour vous" />
-      <Assistant clientId={client.id} isClient aiReady={aiEnabled()} shareToken={token} />
+      <Assistant clientId={client.id} isClient aiReady shareToken={token} />
     </>
   );
 }
