@@ -91,7 +91,7 @@ export default async function Home() {
         <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
         <h1>Fini les reportings clients faits à la main.</h1>
         <p className="lp-sub">Un reporting pour chaque client. Tous vos outils au même endroit.</p>
-        <p className="lead">Vos clients suivent en direct leurs appels, leurs stats et leurs rendez-vous, et préparent leurs meetings avec leur propre assistant IA. Vous, vous pilotez tous vos clients au même endroit : appels, campagnes email et LinkedIn.</p>
+        <p className="lead">Vos clients suivent en direct vos appels, vos stats et vos rendez-vous, et préparent leurs meetings avec leur propre assistant IA. Vous, vous pilotez tous vos clients au même endroit : appels, campagnes email et LinkedIn.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que voit votre client</a>
