@@ -2,8 +2,8 @@ import type { Organization } from "@prisma/client";
 
 export const PLANS = {
   trial: { name: "Essai gratuit", maxClients: 3, price: 0 },
-  solo: { name: "Solo", maxClients: 3, price: 49 },
-  agency: { name: "Agence", maxClients: Infinity, price: 129 },
+  solo: { name: "Solo", maxClients: 3, price: 25 },
+  agency: { name: "Agence", maxClients: Infinity, price: 50 },
 } as const;
 export type PlanId = keyof typeof PLANS;
 
