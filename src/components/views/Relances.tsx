@@ -62,7 +62,7 @@ export async function Relances({ scope, base }: { scope: Scope; base: string }) 
           <div key={label} className={`card kpi ${i === 0 && list.length ? "" : ""}`}><div className="lab"><i style={{ ["--c" as string]: i === 0 ? "var(--rose)" : i === 1 ? "var(--amber)" : "var(--blue)" }} />{label}</div><div className="val" style={i === 0 && list.length ? { color: "var(--rose)" } : undefined}>{list.length}</div></div>
         ))}
       </div>
-      {open.length === 0 && <div className="card"><div className="empty"><b>Aucune relance en attente</b>Elles sont créées automatiquement à partir des appels, des réponses email et de LinkedIn.</div></div>}
+      {open.length === 0 && <div className="card"><div className="empty"><b>Aucune relance en attente</b>Elles sont créées automatiquement à partir des appels, quand un prospect demande à être rappelé.</div></div>}
       {groups.filter(([, l]) => l.length).map(([label, list, sub]) => (
         <div key={label} className="card"><h2>{label} · {list.length}</h2><p className="sub">{sub}</p><div className="list">{list.map((t) => <TaskRow key={t.id} t={t} base={base} clientId={clientId} />)}</div></div>
       ))}

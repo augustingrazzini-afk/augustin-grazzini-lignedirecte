@@ -44,7 +44,7 @@ export async function Contact({ scope, base, contactKey }: { scope: Scope; base:
           <div><h2 style={{ fontSize: 24 }}>{displayName(who)}</h2><p className="muted" style={{ margin: "2px 0 0" }}>{[job, who.company].filter(Boolean).join(" · ")}</p></div>
           <span className="spacer" /><Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(who))}`}>Préparer le brief</Link>
         </div>
-        <p className="muted small" style={{ margin: "0 0 8px" }}>{calls.length} appel(s) · {acts.filter((a) => a.channel === "email" && a.type !== "opened").length} email(s) · {acts.filter((a) => a.channel === "linkedin").length} action(s) LinkedIn{opens ? ` · ${opens} ouverture(s)` : ""}</p>
+        <p className="muted small" style={{ margin: "0 0 8px" }}>{calls.length} appel(s)</p>
         <div className="list">{items.map((i) => <div key={i.key} style={{ display: "contents" }}>{i.node}</div>)}</div>
       </div>
       <div className="stack">
