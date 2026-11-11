@@ -34,7 +34,7 @@ const SECTIONS = [
     img: "/screens/appels.jpg",
     tag: "Appels et équipe",
     title: "Toutes vos conversations, et chaque commercial",
-    text: "Minari, Aircall, Ringover, HubSpot ou un simple CSV : tous les appels arrivent ici. Filtrez par rendez-vous, par objection ou par commercial, et cherchez un prospect en une seconde.",
+    text: "Minari, lemlist, Aircall, Ringover, JustCall, Allo, Close… ou un simple CSV : tous les appels arrivent ici. Filtrez par rendez-vous, par objection ou par commercial, et cherchez un prospect en une seconde.",
     points: ["Synchronisation automatique", "Performance par commercial", "Recherche plein texte"],
   },
   {
@@ -77,7 +77,7 @@ const FAQ: [string, string][] = [
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Faut-il une carte bancaire pour l'essai ?", "Oui, elle est enregistrée sur Stripe, qui gère le paiement : nous ne voyons jamais votre numéro de carte. Rien n'est débité pendant les 14 jours d'essai, et vous résiliez en un clic depuis la page Abonnement."],
-  ["Et si je n'utilise pas Minari ?", "Aircall, Ringover et HubSpot se connectent directement. Pour tout autre outil, collez simplement l'adresse de son API et votre clé : Trustpipe reconnaît vos appels automatiquement. Zapier, Make, n8n et l'import CSV marchent aussi."],
+  ["Et si je n'utilise pas Minari ?", "lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez simplement l'adresse de son API et votre clé : Trustpipe reconnaît vos appels automatiquement. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
 export default async function Home() {
@@ -109,7 +109,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-strip">
-        {[["Reporting d'appels", "par client, en direct"], ["Intelligence terrain", "l'IA analyse chaque appel"], ["Accès client", "ses stats et son assistant IA"], ["Tous vos outils", "Minari, Aircall, Ringover…"]].map(([a, b]) => (
+        {[["Reporting d'appels", "par client, en direct"], ["Intelligence terrain", "l'IA analyse chaque appel"], ["Accès client", "ses stats et son assistant IA"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
       </section>
@@ -177,7 +177,7 @@ export default async function Home() {
         <p className="lead" style={{ margin: "0 auto 32px", textAlign: "center" }}>Choisissez votre outil d&apos;appel, connectez votre compte, c&apos;est tout. Vos appels remontent automatiquement, client par client.</p>
         <div className="lp-tools-grid lp-tools-2">
           {[
-            ["Outils d'appel", ["Minari", "lemlist", "Skipcall", "Aircall", "Ringover", "HubSpot"]],
+            ["Outils d'appel", ["Minari", "lemlist", "Skipcall", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "HubSpot"]],
             ["Et le reste", ["Votre outil (clé API)", "Zapier", "Make", "n8n", "Import CSV"]],
           ].map(([ch, tools]) => (
             <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => { const l = BRAND_LOGOS[t.toLowerCase()]; return <span key={t}>{l && <svg viewBox="0 0 24 24" width="14" height="14" fill={l.hex} aria-hidden="true"><path d={l.path} /></svg>}{t}</span>; })}</div></div>
@@ -218,7 +218,7 @@ export default async function Home() {
               <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
               <ul>
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
-                <li>Minari, Aircall, Ringover, HubSpot ou CSV</li>
+                <li>Tous les dialers : Minari, lemlist, Aircall, Ringover… ou CSV</li>
                 <li>Analyse IA de chaque appel et intelligence terrain</li>
                 <li>Lien de suivi en direct et assistant IA pour vos clients</li>
                 <li>Relances et brief pré-meeting</li>

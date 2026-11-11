@@ -20,7 +20,7 @@ export default function Page() {
       <h2>6. Résiliation</h2>
       <p>L&apos;utilisateur résilie à tout moment depuis la page Abonnement ; la résiliation prend effet à la fin de la période payée, sans remboursement de la période en cours. L&apos;Éditeur peut suspendre ou résilier un compte en cas de manquement grave aux présentes conditions.</p>
       <h2>7. Outils connectés et données importées</h2>
-      <p>L&apos;utilisateur connecte ses propres outils (Minari, Aircall, Ringover, HubSpot, Zapier, Make, n8n…) avec ses identifiants, qui sont chiffrés. Il garantit disposer des droits nécessaires sur ces outils et sur les données qu&apos;ils contiennent, et respecter leurs conditions d&apos;utilisation. L&apos;Éditeur n&apos;est pas responsable de l&apos;indisponibilité ou des changements de ces outils tiers.</p>
+      <p>L&apos;utilisateur connecte ses propres outils (Minari, lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong, HubSpot, Zapier, Make, n8n…) avec ses identifiants, qui sont chiffrés. Il garantit disposer des droits nécessaires sur ces outils et sur les données qu&apos;ils contiennent, et respecter leurs conditions d&apos;utilisation. L&apos;Éditeur n&apos;est pas responsable de l&apos;indisponibilité ou des changements de ces outils tiers.</p>
       <h2>8. Intelligence artificielle</h2>
       <p>Les résumés, objections, relances, briefs et réponses du coach sont produits automatiquement et peuvent contenir des erreurs. Ils constituent une aide à la décision et doivent être vérifiés par l&apos;utilisateur.</p>
       <h2>9. Disponibilité et responsabilité</h2>
