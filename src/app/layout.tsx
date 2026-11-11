@@ -9,7 +9,7 @@ import "./globals.css";
 const APP = process.env.APP_NAME || "Trustpipe";
 export const metadata: Metadata = {
   title: { default: APP, template: `%s · ${APP}` },
-  description: "Le reporting d'appels de prospection en direct, pour les SDR freelances, les petites équipes commerciales et leurs clients.",
+  description: "Un reporting pour chaque client et tous vos outils au même endroit : appels, campagnes email et LinkedIn, suivis en direct par vos clients. Pour les SDR freelances et les petites équipes commerciales.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/trustpipe-mark.svg", apple: "/trustpipe-mark.svg" },
   appleWebApp: { capable: true, title: "Trustpipe", statusBarStyle: "black-translucent" },

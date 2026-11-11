@@ -89,7 +89,7 @@ export default async function Home() {
 
       <section className="lp-hero">
         <span className="lp-tag">Pour les SDR freelances et les petites équipes commerciales</span>
-        <h1>Votre reporting et vos stats, en un seul endroit, par client.</h1>
+        <h1>Un reporting pour chaque client. Tous vos outils au même endroit.</h1>
         <p className="lead">Vos clients suivent en direct vos appels, vos performances et leurs rendez-vous, et préparent leurs rendez-vous avec leur propre assistant IA. Vous, vous gérez tous vos clients au même endroit : appels, campagnes email et LinkedIn réunis. Fini les reportings du vendredi.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
@@ -201,7 +201,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-final">
-        <h2 className="lp-h2">Votre reporting par client, et vos clients en direct.</h2>
+        <h2 className="lp-h2">Un reporting pour chaque client, et tous vos outils au même endroit.</h2>
         <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>
