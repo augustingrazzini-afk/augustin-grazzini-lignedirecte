@@ -3,6 +3,7 @@ import { apiScope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { jsonError, sameOrigin } from "@/lib/api";
 import { PRICE_FOR, stripe, stripeEnabled } from "@/lib/stripe";
+import { TRIAL_DAYS } from "@/lib/billing";
 
 /** POST form : action=checkout (plan=solo|agency) ou action=portal. Réservé au propriétaire de l'espace. */
 export async function POST(req: Request) {
@@ -23,16 +24,21 @@ export async function POST(req: Request) {
   const plan = form.get("plan") === "agency" ? "agency" : "solo";
   const price = PRICE_FOR[plan]();
   if (!price) return jsonError("Prix Stripe non configuré pour ce plan.", 503);
+  // Premier abonnement d'un espace : l'essai gratuit démarre ici, carte enregistrée mais non débitée pendant l'essai.
+  const trialDays = !org.stripeSubscriptionId ? Math.min(TRIAL_DAYS, Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5)) : 0;
+  const startTrial = form.get("trial") === "1" && trialDays > 0;
   const session = await stripe().checkout.sessions.create({
     mode: "subscription",
     line_items: [{ price, quantity: 1 }],
+    payment_method_collection: "always",
+    ...(startTrial ? { subscription_data: { trial_period_days: trialDays, trial_settings: { end_behavior: { missing_payment_method: "cancel" } } } } : {}),
     client_reference_id: org.id,
     ...(org.stripeCustomerId ? { customer: org.stripeCustomerId } : { customer_email: user.email }),
     allow_promotion_codes: true,
     billing_address_collection: "required",
     tax_id_collection: { enabled: true },
-    success_url: `${app}/app/billing?ok=1`,
-    cancel_url: `${app}/app/billing`,
+    success_url: startTrial || !org.stripeSubscriptionId ? `${app}/essai/retour?session_id={CHECKOUT_SESSION_ID}` : `${app}/app/billing?ok=1`,
+    cancel_url: org.stripeSubscriptionId ? `${app}/app/billing` : `${app}/essai`,
   });
   return NextResponse.redirect(session.url!, 303);
 }

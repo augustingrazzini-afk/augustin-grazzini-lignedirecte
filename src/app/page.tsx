@@ -2,6 +2,7 @@ import Link from "next/link";
 import { currentUser } from "@/lib/session";
 import { PLANS, TRIAL_DAYS } from "@/lib/billing";
 import { Logo } from "@/components/Logo";
+import { BRAND_LOGOS } from "@/lib/brand-logos";
 import { LegalFooter } from "@/components/LegalPage";
 
 /** Les captures viennent de l'application elle-même, avec des données de démonstration fictives. */
@@ -86,7 +87,7 @@ export default async function Home() {
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#produit">Voir le produit</a>
         </div>
-        <p className="lp-note">Sans carte bancaire · Connectez vos outils en une minute</p>
+        <p className="lp-note">Aucun débit pendant 14 jours · Connectez vos outils en une minute</p>
         <figure className="lp-shot lp-shot-hero">
           <img src="/screens/multicanal.jpg" alt="Tableau de pilotage : appels, emails et LinkedIn, rendez-vous pris, taux de décroché et entonnoir" width={2880} height={1800} />
         </figure>
@@ -105,7 +106,7 @@ export default async function Home() {
             <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
           </video>
         </figure>
-        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Commencer l&apos;essai gratuit</Link><span className="lp-note">{TRIAL_DAYS} jours, sans carte bancaire</span></div>
+        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Commencer l&apos;essai gratuit</Link><span className="lp-note">{TRIAL_DAYS} jours gratuits, aucun débit pendant l&apos;essai</span></div>
       </section>
 
       <div id="produit">
@@ -136,7 +137,7 @@ export default async function Home() {
             ["LinkedIn", ["lemlist", "La Growth Machine*", "Waalaxy*"]],
             ["Et le reste", ["Zapier", "Make", "n8n", "Import CSV"]],
           ].map(([ch, tools]) => (
-            <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => <span key={t}>{t}</span>)}</div></div>
+            <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => { const l = BRAND_LOGOS[t.toLowerCase()]; return <span key={t}>{l && <svg viewBox="0 0 24 24" width="14" height="14" fill={l.hex} aria-hidden="true"><path d={l.path} /></svg>}{t}</span>; })}</div></div>
           ))}
         </div>
         <p className="lp-foot" style={{ marginTop: 14 }}>* via Zapier, Make ou n8n</p>

@@ -2,6 +2,7 @@
 import { useActionState, useEffect, useRef, useState } from "react";
 import { addIntegration, type FormState } from "@/app/actions";
 import type { ProviderInfo } from "./IntegrationForm";
+import { BrandLogo } from "../BrandLogo";
 
 type Cat = "call" | "email" | "linkedin" | "other";
 
@@ -34,7 +35,7 @@ export function Connectors({ providers, clientId, connected }: { providers: Prov
           const m = META[p.id], isOn = connected.includes(p.id);
           return (
             <div key={p.id} className="cx-tile">
-              <span className="cx-logo" style={{ background: m?.color || "#59628A" }}>{m?.mono || p.label[0]}</span>
+              <BrandLogo id={p.id === "webhook" ? "zapier" : p.id} mono={m?.mono} color={m?.color} />
               <div className="cx-body">
                 <div className="cx-name">{p.id === "webhook" ? "Zapier, Make, n8n" : p.label}{p.beta && <span className="pill mute">bêta</span>}</div>
                 <div className="cx-tag">{m?.tagline || p.help}</div>
@@ -59,7 +60,7 @@ function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: st
   return (
     <dialog ref={ref} className="cx-dialog" onClose={onClose} onClick={(e) => { if (e.target === ref.current) ref.current?.close(); }}>
       <div className="cx-dhead">
-        <span className="cx-logo" style={{ background: m?.color }}>{m?.mono}</span>
+        <BrandLogo id={p.id === "webhook" ? "zapier" : p.id} mono={m?.mono} color={m?.color} />
         <div><h2>Connecter {p.id === "webhook" ? "un autre outil" : p.label}</h2><p className="sub" style={{ margin: 0 }}>{m?.tagline}</p></div>
         <button type="button" className="cx-x" aria-label="Fermer" onClick={() => ref.current?.close()}>×</button>
       </div>

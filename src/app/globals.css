@@ -230,7 +230,7 @@ tr:last-child td { border-bottom: 0; }
 .lp-tools { margin: 112px 0 0; text-align: center; }
 .lp-tools-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 16px; text-align: left; }
 .lp-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.lp-chips span { font-size: 14px; font-weight: 500; padding: 6px 11px; border-radius: 9px; background: var(--panel); border: 1px solid var(--stroke); }
+.lp-chips span { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 500; padding: 6px 11px; border-radius: 9px; background: var(--panel); border: 1px solid var(--stroke); }
 .lp-steps { list-style: none; padding: 0; margin: 32px auto 0; display: flex; justify-content: center; gap: 28px; flex-wrap: wrap; font-weight: 600; }
 .lp-steps li { display: inline-flex; align-items: center; gap: 10px; }
 .lp-steps b { display: inline-grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff; font-family: var(--f-display); }
@@ -278,6 +278,9 @@ tr:last-child td { border-bottom: 0; }
 .as-reset { align-self: center; margin: 0 0 12px; border: 0; background: none; color: var(--muted); font-size: 12.5px; cursor: pointer; text-decoration: underline; }
 .auth-back { position: absolute; top: max(20px, env(safe-area-inset-top, 0px)); left: max(20px, env(safe-area-inset-left, 0px)); font-size: 14px; font-weight: 600; color: var(--muted); text-decoration: none; padding: 8px 12px; border-radius: 10px; }
 .auth-back:hover { background: var(--panel); color: var(--ink); }
+.trial-box { width: min(760px, 100%); text-align: center; }
+.trial-box h1 { font-family: var(--f-display); font-size: clamp(26px, 4vw, 36px); letter-spacing: -.03em; margin: 22px 0 8px; }
+.trial-box .price { text-align: left; }
 .auth-foot { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--stroke); font-size: 13.5px; color: var(--muted); text-align: center; }
 .auth-alt { margin-top: 18px; }
 .auth-alt summary { cursor: pointer; font-size: 13px; color: var(--muted); text-align: center; list-style: none; }
@@ -291,6 +294,7 @@ mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 
 .cx-tile { display: grid; grid-template-columns: 44px minmax(0,1fr); grid-template-rows: 1fr auto; align-items: start; gap: 12px; padding: 16px; border: 1px solid var(--stroke); border-radius: 14px; background: #fff; transition: border-color .2s var(--ease), box-shadow .2s var(--ease); }
 .cx-tile:hover { border-color: rgba(46,91,255,.35); box-shadow: 0 10px 30px -20px rgba(11,18,47,.4); }
 .cx-logo { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; color: #fff; font-family: var(--f-display); font-weight: 700; font-size: 16px; letter-spacing: -.02em; flex: none; }
+.brand-logo { display: grid; place-items: center; border-radius: 12px; background: #fff; border: 1px solid var(--stroke); flex: none; }
 .cx-name { font-family: var(--f-display); font-weight: 600; font-size: 16px; display: flex; align-items: center; gap: 8px; }
 .cx-tag { color: var(--muted); font-size: 13px; margin-top: 2px; }
 .cx-ch { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }

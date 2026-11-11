@@ -12,7 +12,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ n
   if (await currentUser()) redirect("/app");
   const q = sp.next ? `?next=${encodeURIComponent(sp.next)}` : "";
   return (
-    <AuthCard title="Créer votre compte" subtitle={`${TRIAL_DAYS} jours d'essai gratuit, sans carte bancaire.`}
+    <AuthCard title="Créer votre compte" subtitle={`${TRIAL_DAYS} jours d'essai gratuit, aucun débit avant la fin de l'essai.`}
       footer={<>Déjà un compte ? <Link href={`/login${q}`}><b>Se connecter</b></Link></>}>
       <ActionForm action={signup} submit="Créer mon compte">
         <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus /></label>
