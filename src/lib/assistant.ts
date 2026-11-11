@@ -177,6 +177,7 @@ Règles :
         messages,
       });
     } catch (e) {
+      console.error("anthropic assistant", e instanceof Anthropic.APIError ? `${e.status} ${e.message}` : e);
       if (e instanceof Anthropic.RateLimitError) throw new AiError("L'IA est très sollicitée. Réessayez dans une minute.");
       if (e instanceof Anthropic.AuthenticationError) throw new AiError("Clé API Claude invalide sur ce serveur.");
       if (e instanceof Anthropic.APIError) throw new AiError(`L'IA a renvoyé une erreur (${e.status}).`);
