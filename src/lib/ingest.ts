@@ -72,7 +72,7 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{
     if (existing) {
       await db.call.update({
         where: { id: existing.id },
-        data: { ...data, clientId: clientId ?? existing.clientId, ...(hasTr && existing.aiStatus !== "done" ? { aiStatus: needsAi } : {}) },
+        data: { ...data, clientId: clientId ?? existing.clientId, ...(hasTr && existing.aiStatus !== "done" && existing.aiStatus !== "processing" ? { aiStatus: needsAi } : {}) },
       });
       updated++;
     } else {

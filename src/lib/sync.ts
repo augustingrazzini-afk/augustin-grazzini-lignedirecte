@@ -3,6 +3,8 @@ import { open } from "./crypto";
 import { upsertCalls } from "./ingest";
 import { getProvider } from "./providers";
 import { ProviderError } from "./providers/types";
+import { processPendingAi } from "./ai";
+import { runPool } from "./pool";
 
 const DETAIL_BUDGET = 40;
 
@@ -58,21 +60,42 @@ async function fillDetails(integrationId: string, orgId: string, provider: strin
   }
 }
 
-/** Synchronise toutes les intégrations actives (appelé par la tâche planifiée). */
-export async function syncAll(limit = 50) {
+/** Synchronise une intégration puis analyse aussitôt ses nouveaux appels (webhook, première connexion). */
+export async function syncAndAnalyze(integrationId: string, opts: { full?: boolean } = {}) {
+  const r = await syncIntegration(integrationId, opts);
+  if (!r.skipped) await analyzeOrg(integrationId);
+  return r;
+}
+
+/** Analyse IA des appels en attente de l'organisation propriétaire de l'intégration. Ne lève jamais d'erreur. */
+export async function analyzeOrg(integrationId: string) {
+  try {
+    const integ = await db.integration.findUnique({ where: { id: integrationId }, select: { orgId: true } });
+    if (integ) await processPendingAi({ orgId: integ.orgId, limit: 40 });
+  } catch (e) {
+    console.error("analyse IA", integrationId, e);
+  }
+}
+
+/**
+ * Synchronise les intégrations actives (tâche planifiée), les plus anciennement synchronisées d'abord,
+ * plusieurs en parallèle, jusqu'à `deadline`. Celles qui ne passent pas cette fois passent en tête la fois suivante.
+ */
+export async function syncAll(opts: { limit?: number; concurrency?: number; deadline?: number } = {}) {
+  const { limit = 1000, concurrency = 6, deadline } = opts;
   // On ne synchronise que les espaces dont l'essai ou l'abonnement est en cours.
   const list = await db.integration.findMany({
     where: { status: { not: "paused" }, org: { OR: [{ subscriptionStatus: { in: ["active", "past_due"] } }, { subscriptionStatus: "trialing", trialEndsAt: { gt: new Date() } }] } },
     orderBy: { lastSyncAt: { sort: "asc", nulls: "first" } }, take: limit, select: { id: true },
   });
-  const results: Record<string, string> = {};
-  for (const i of list) {
+  let ok = 0, failed = 0;
+  await runPool(list, concurrency, async (i) => {
     try {
-      const r = await syncIntegration(i.id);
-      results[i.id] = `+${r.created} / ~${r.updated}`;
-    } catch (e) {
-      results[i.id] = e instanceof Error ? e.message : "erreur";
+      await syncIntegration(i.id);
+      ok++;
+    } catch {
+      failed++; // l'erreur est enregistrée sur l'intégration
     }
-  }
-  return results;
+  }, deadline);
+  return { total: list.length, ok, failed, remaining: list.length - ok - failed };
 }

@@ -32,7 +32,7 @@ npm test               # tests d'isolation et de calcul (base locale requise)
 
 1. **Base de données** : créer une base Postgres (Supabase ou Neon), copier l'URL dans `DATABASE_URL`, puis `npx prisma db push`.
 2. **Hébergement** : importer le dépôt sur Vercel, renseigner toutes les variables de `.env.example`. `APP_URL` = l'adresse finale (ex. `https://app.lignedirecte.io`).
-3. **Synchro automatique** : `vercel.json` déclare un appel à `/api/cron/sync` une fois par jour (5h17 UTC, limite de l’offre Hobby ; repassez à `*/10 * * * *` en offre Pro). Vercel envoie `CRON_SECRET` automatiquement.
+3. **Synchro automatique** : les appels sont synchronisés et analysés par l'IA dès leur arrivée (webhook de l'outil, connexion d'un outil, bouton « Synchroniser », import CSV). En filet de sécurité, `vercel.json` déclare un appel à `/api/cron/sync` une fois par jour (5h17 UTC, limite de l’offre Hobby ; repassez à `*/10 * * * *` en offre Pro) : il synchronise les outils les plus anciennement à jour, 6 en parallèle, pendant ~3 min, puis rattrape les analyses IA en attente. Vercel envoie `CRON_SECRET` automatiquement.
 4. **Emails** : créer un compte Resend, vérifier le domaine d'envoi, renseigner `RESEND_API_KEY` et `EMAIL_FROM`.
 5. **Stripe** : créer deux prix mensuels (Solo, Agence) → `STRIPE_PRICE_SOLO`, `STRIPE_PRICE_AGENCY`. Ajouter un webhook vers `https://<APP_URL>/api/stripe/webhook` (événements `checkout.session.completed`, `customer.subscription.*`) → `STRIPE_WEBHOOK_SECRET`. Activer le portail client Stripe.
 6. **IA** : `ANTHROPIC_API_KEY`. Modèle par défaut : `claude-opus-5-5` (modifiable via `AI_MODEL`).

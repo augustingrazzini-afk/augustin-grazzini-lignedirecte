@@ -11,7 +11,7 @@ import { TRIAL_DAYS, isActive, maxClients } from "@/lib/billing";
 import { randomToken, seal } from "@/lib/crypto";
 import { getProvider } from "@/lib/providers";
 import { ProviderError } from "@/lib/providers/types";
-import { syncIntegration } from "@/lib/sync";
+import { analyzeOrg, syncAndAnalyze, syncIntegration } from "@/lib/sync";
 import { reapplyRules } from "@/lib/ingest";
 
 export type FormState = { ok?: string; error?: string } | null;
@@ -201,7 +201,7 @@ export async function addIntegration(_: FormState, f: FormData): Promise<FormSta
     id = integ.id;
   } catch (e) { return fail(e); }
   // première synchro après la réponse : l'utilisateur n'attend pas la fin
-  after(() => syncIntegration(id, { full: true }).catch(() => {}));
+  after(() => syncAndAnalyze(id, { full: true }).catch(() => {}));
   revalidatePath("/app/sources");
   return { ok: "Connecté. La première synchronisation (90 derniers jours) est en cours." };
 }
@@ -219,6 +219,8 @@ async function ownedIntegration(f: FormData) {
 export async function syncNow(f: FormData) {
   const integ = await ownedIntegration(f);
   try { await syncIntegration(integ.id); } catch { /* l'erreur est enregistrée sur l'intégration */ }
+  // L'analyse IA des nouveaux appels continue après la réponse : l'utilisateur n'attend pas.
+  after(() => analyzeOrg(integ.id));
   revalidatePath("/", "layout");
 }
 

@@ -1,10 +1,14 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
+import { processPendingAi } from "@/lib/ai";
 import { apiScope, scopeClientId } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { upsertCalls } from "@/lib/ingest";
 import { OBJECTION_KEYS, trimTranscript } from "@/lib/providers/types";
+
+// La synchro / l'analyse IA continuent après la réponse (after) : on laisse le temps de finir.
+export const maxDuration = 300;
 
 const Line = z.object({ s: z.string().max(80), t: z.string().max(5000), ts: z.string().max(12) });
 const Row = z.object({
@@ -57,5 +61,8 @@ export async function POST(req: Request) {
   for (const r of rows.filter((x) => x.recordingKey)) {
     await db.call.updateMany({ where: { orgId: scope.orgId, provider: source, externalId: r.externalId }, data: { recordingKey: r.recordingKey } });
   }
+  // Analyse IA des appels importés juste après la réponse.
+  const orgId = scope.orgId;
+  after(() => processPendingAi({ orgId, limit: 100 }).catch((e) => console.error("analyse IA import", e)));
   return NextResponse.json(res);
 }

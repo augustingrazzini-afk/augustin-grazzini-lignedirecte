@@ -3,6 +3,7 @@ import type { Call, Prisma } from "@prisma/client";
 import { db } from "./db";
 import { OBJECTION_KEYS, type TranscriptLine } from "./providers/types";
 import { OBJ_LABEL, fmtDuration, isConversation, displayName } from "./format";
+import { runPool } from "./pool";
 
 const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 let client: Anthropic | null = null;
@@ -79,21 +80,49 @@ ${transcriptText(tr)}`,
   });
 }
 
-/** Traite les appels en attente d'analyse (tâche planifiée). */
-export async function processPendingAi(limit = 15) {
+/** Un appel réservé (« processing ») depuis plus longtemps que ça est considéré comme abandonné. */
+const STALE_PROCESSING_MS = 15 * 60e3;
+
+/** Remet en file les analyses abandonnées (fonction coupée en cours de route). */
+export async function requeueStaleAi() {
+  const r = await db.call.updateMany({
+    where: { aiStatus: "processing", updatedAt: { lt: new Date(Date.now() - STALE_PROCESSING_MS) } },
+    data: { aiStatus: "pending" },
+  });
+  return r.count;
+}
+
+/**
+ * Analyse les appels en attente. Appelé juste après chaque arrivée d'appels (synchro, webhook, import)
+ * pour l'organisation concernée, et par la tâche planifiée en filet de sécurité pour tout le monde.
+ * Chaque appel est réservé avant analyse : deux traitements simultanés ne l'analysent jamais deux fois.
+ */
+export async function processPendingAi(opts: { orgId?: string; limit?: number; concurrency?: number; deadline?: number } = {}) {
   if (!aiEnabled()) return 0;
-  const todo = await db.call.findMany({ where: { aiStatus: "pending" }, orderBy: { startedAt: "desc" }, take: limit, select: { id: true, kind: true, transcript: true, summary: true } });
-  let n = 0;
-  for (const c of todo) {
+  const { orgId, limit = 15, concurrency = 4, deadline } = opts;
+  const todo = await db.call.findMany({
+    where: { aiStatus: "pending", ...(orgId ? { orgId } : {}) },
+    orderBy: { startedAt: "desc" },
+    take: limit,
+    select: { id: true },
+  });
+  let analyzed = 0;
+  await runPool(todo, concurrency, async ({ id }) => {
+    const claim = await db.call.updateMany({ where: { id, aiStatus: "pending" }, data: { aiStatus: "processing" } });
+    if (claim.count !== 1) return; // déjà pris par un autre traitement
+    const c = await db.call.findUnique({ where: { id }, select: { id: true, kind: true, transcript: true, summary: true } });
+    if (!c) return;
     try {
       await analyzeCall(c);
-      n++;
+      analyzed++;
     } catch (e) {
-      await db.call.update({ where: { id: c.id }, data: { aiStatus: "failed" } });
-      if (e instanceof AiError && /sollicitée/.test(e.message)) break;
+      const busy = e instanceof AiError && /sollicitée/.test(e.message);
+      // Limite de débit : on remet l'appel en file au lieu de le marquer en échec, et on s'arrête là.
+      await db.call.update({ where: { id }, data: { aiStatus: busy ? "pending" : "failed" } });
+      if (busy) return false;
     }
-  }
-  return n;
+  }, deadline);
+  return analyzed;
 }
 
 /* ---------- 2. Brief pré-meeting ---------- */

@@ -1,6 +1,9 @@
 import { NextResponse, after } from "next/server";
 import { db } from "@/lib/db";
-import { syncIntegration } from "@/lib/sync";
+import { syncAndAnalyze } from "@/lib/sync";
+
+// La synchro / l'analyse IA continuent après la réponse (after) : on laisse le temps de finir.
+export const maxDuration = 300;
 
 /**
  * Webhook d'un outil d'appel (Minari, Aircall, Ringover…). L'URL contient un jeton secret propre
@@ -13,6 +16,6 @@ export async function POST(_req: Request, { params }: { params: Promise<{ token:
   const integ = await db.integration.findUnique({ where: { webhookToken: token }, select: { id: true, lastSyncAt: true, status: true } });
   if (!integ || integ.status === "paused") return NextResponse.json({ ok: false }, { status: 404 });
   const fresh = integ.lastSyncAt && Date.now() - integ.lastSyncAt.getTime() < 20_000;
-  if (!fresh) after(() => syncIntegration(integ.id).catch(() => {}));
+  if (!fresh) after(() => syncAndAnalyze(integ.id).catch(() => {}));
   return NextResponse.json({ ok: true });
 }
