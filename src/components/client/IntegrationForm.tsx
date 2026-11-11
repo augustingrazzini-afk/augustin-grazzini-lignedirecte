@@ -3,8 +3,7 @@ import { useActionState, useState } from "react";
 import { addIntegration, type FormState } from "@/app/actions";
 
 export type ProviderInfo = { id: string; label: string; beta?: boolean; help: string; channels: string[]; fields: { key: string; label: string; type?: string; help?: string; optional?: boolean }[] };
-const COLORS: Record<string, string> = { minari: "linear-gradient(135deg,#6E5BFF,#2E5BFF)", aircall: "linear-gradient(135deg,#00B388,#00875F)", ringover: "linear-gradient(135deg,#2C6BED,#1A4FC2)", hubspot: "linear-gradient(135deg,#FF7A45,#FF5C35)", lemlist: "linear-gradient(135deg,#FF7A59,#F04E8C)" };
-export const providerColor = (id: string) => COLORS[id] || "linear-gradient(135deg,#59628A,#2A3157)";
+export { providerColor } from "@/lib/provider-colors";
 
 export function IntegrationForm({ providers, clientId }: { providers: ProviderInfo[]; clientId: string | null }) {
   const [pid, setPid] = useState(providers[0]?.id);
