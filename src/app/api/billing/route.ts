@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { apiScope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { jsonError, sameOrigin } from "@/lib/api";
-import { PRICE_FOR, stripe, stripeEnabled } from "@/lib/stripe";
+import { ensureWebhook, portalSession, priceFor, stripe, stripeEnabled } from "@/lib/stripe";
 import { TRIAL_DAYS } from "@/lib/billing";
 
 /** POST form : action=checkout (plan=solo|agency) ou action=portal. Réservé au propriétaire de l'espace. */
@@ -18,12 +18,18 @@ export async function POST(req: Request) {
 
   if (form.get("action") === "portal") {
     if (!org.stripeCustomerId) return NextResponse.redirect(new URL("/app/billing", app), 303);
-    const p = await stripe().billingPortal.sessions.create({ customer: org.stripeCustomerId, return_url: `${app}/app/billing` });
+    const p = await portalSession(org.stripeCustomerId, `${app}/app/billing`);
     return NextResponse.redirect(p.url, 303);
   }
   const plan = form.get("plan") === "agency" ? "agency" : "solo";
-  const price = PRICE_FOR[plan]();
-  if (!price) return jsonError("Prix Stripe non configuré pour ce plan.", 503);
+  let price: string;
+  try {
+    price = await priceFor(plan);
+    await ensureWebhook(app).catch((e) => console.error("webhook stripe", e));
+  } catch (e) {
+    console.error("stripe prix", e);
+    return NextResponse.redirect(new URL(org.stripeSubscriptionId ? "/app/billing?erreur=1" : "/essai?erreur=1", app), 303);
+  }
   // Premier abonnement d'un espace : l'essai gratuit démarre ici, carte enregistrée mais non débitée pendant l'essai.
   const trialDays = !org.stripeSubscriptionId ? Math.min(TRIAL_DAYS, Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5)) : 0;
   const startTrial = form.get("trial") === "1" && trialDays > 0;

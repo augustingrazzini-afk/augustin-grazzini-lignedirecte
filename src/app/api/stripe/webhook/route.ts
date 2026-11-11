@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { db } from "@/lib/db";
-import { applySubscription, stripe, stripeEnabled } from "@/lib/stripe";
+import { applySubscription, stripe, stripeEnabled, webhookSecrets } from "@/lib/stripe";
 
 export async function POST(req: Request) {
-  if (!stripeEnabled() || !process.env.STRIPE_WEBHOOK_SECRET) return NextResponse.json({ error: "stripe off" }, { status: 503 });
+  if (!stripeEnabled()) return NextResponse.json({ error: "stripe off" }, { status: 503 });
   const sig = req.headers.get("stripe-signature") || "";
-  let event: Stripe.Event;
-  try {
-    event = stripe().webhooks.constructEvent(await req.text(), sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch {
-    return NextResponse.json({ error: "signature invalide" }, { status: 400 });
+  const body = await req.text();
+  let event: Stripe.Event | null = null;
+  for (const secret of await webhookSecrets()) {
+    try { event = stripe().webhooks.constructEvent(body, sig, secret); break; } catch { /* secret suivant */ }
   }
+  if (!event) return NextResponse.json({ error: "signature invalide" }, { status: 400 });
   if (event.type === "checkout.session.completed") {
     const s = event.data.object as Stripe.Checkout.Session;
     if (s.client_reference_id && s.customer) {

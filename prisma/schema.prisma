@@ -309,3 +309,10 @@ model OAuthClient {
 
   @@unique([issuer, redirectUri])
 }
+
+/// Réglages techniques chiffrés créés automatiquement (ex. secret du webhook Stripe, propre à chaque compte Stripe).
+model AppSecret {
+  key       String   @id
+  value     String // chiffré (AES-256-GCM)
+  updatedAt DateTime @updatedAt
+}
