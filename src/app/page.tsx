@@ -58,10 +58,10 @@ const INTEL = [
 const CLIENT_PERKS = [
   { icon: "🔴", title: "Il suit ses appels en live", text: "Chaque appel passé pour lui apparaît dans la minute. Il voit qui a été appelé, ce qui s'est dit et ce qui a été obtenu, sans rien vous demander." },
   { icon: "🎧", title: "Il écoute et il lit", text: "L'enregistrement, la transcription et le résumé de chaque appel, avec les objections du prospect." },
-  { icon: "📅", title: "Il prépare ses rendez-vous", text: "« Prépare mon RDV de jeudi avec Talentis RH » : son assistant IA lui dit ce que le prospect a dit, ce qui bloque et l'angle à prendre." },
+  { icon: "📅", title: "Il prépare ses rendez-vous", text: "Directement dans son espace, il écrit « Prépare mon RDV de jeudi avec Talentis RH » : l'assistant IA intégré lui dit ce que le prospect a dit, ce qui bloque et l'angle à prendre." },
   { icon: "🤝", title: "Il fait débriefer ses rendez-vous", text: "Il dépose la transcription de son rendez-vous : l'IA lui dit ce qui a marché, ce qui a manqué et la prochaine étape, en reprenant ce qui s'est dit au téléphone." },
   { icon: "📈", title: "Il voit ses résultats", text: "Appels, décrochés, conversations et rendez-vous, par jour, semaine ou mois. Toujours à jour." },
-  { icon: "✨", title: "Il comprend son marché", text: "Ce qui bloque, ce que disent les prospects, quand ils décrochent : il pose la question, son assistant relit les appels pour lui." },
+  { icon: "✨", title: "Il comprend son marché", text: "Ce qui bloque, ce que disent les prospects, quand ils décrochent : il pose la question à l'assistant intégré, qui relit ses appels pour lui." },
 ];
 
 /** Pourquoi le commercial y gagne : ce qui le démarque. */
@@ -109,7 +109,7 @@ export default async function Home() {
         <span className="lp-tag lp-live"><i aria-hidden="true" />Accès en direct pour vos clients</span>
         <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
         <p className="lp-sub">Fini les reportings clients faits à la main.</p>
-        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, écoute les enregistrements, voit ses résultats et <b>prépare ses rendez-vous avec son assistant IA</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
+        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, écoute les enregistrements, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer. Vous, vous vous démarquez : vous êtes le commercial qui montre tout.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
           <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
@@ -123,15 +123,15 @@ export default async function Home() {
       <section id="clients" className="lp-client lp-client-top">
         <div className="lp-client-head">
           <div className="lp-client-badge"><Mascot size={44} /><span>Ce que votre client peut faire</span></div>
-          <h2>Votre client suit tout en direct.<br />Et son IA prépare ses rendez-vous.</h2>
-          <p>Un lien, et c&apos;est tout : pas de compte, pas de mot de passe, rien à installer. Il ouvre la page et voit ses appels, ses résultats et ses rendez-vous, mis à jour en continu.</p>
+          <h2>Votre client suit tout en direct.<br />Et l&apos;IA intégrée prépare ses rendez-vous.</h2>
+          <p>Un lien, et c&apos;est tout : pas de compte, pas de mot de passe, rien à installer. Il ouvre la page et voit ses appels, ses résultats et ses rendez-vous, mis à jour en continu. L&apos;assistant IA est intégré, juste à côté : pas d&apos;autre outil à ouvrir.</p>
         </div>
         <div className="lp-client-perks">
           {CLIENT_PERKS.map((c) => <div key={c.title}><span className="lp-client-ico" aria-hidden="true">{c.icon}</span><b>{c.title}</b><p>{c.text}</p></div>)}
         </div>
         <div className="lp-client-shots">
           <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels et rendez-vous en direct" loading="lazy" /><figcaption>Ses appels et ses résultats, en direct</figcaption></figure>
-          <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>Son assistant IA prépare ses rendez-vous</figcaption></figure>
+          <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>L&apos;assistant IA, intégré à son espace, prépare ses rendez-vous</figcaption></figure>
         </div>
         <ol className="lp-easy">
           <li><b>1</b><span>Vous connectez votre outil d&apos;appel</span></li>
@@ -156,7 +156,7 @@ export default async function Home() {
       </section>
 
       <section className="lp-strip">
-        {[["Accès client en direct", "appels, écoutes, résultats"], ["Assistant IA du client", "il prépare ses rendez-vous"], ["Reporting automatique", "rien à remplir"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
+        {[["Accès client en direct", "appels, écoutes, résultats"], ["Assistant IA intégré", "il prépare ses rendez-vous"], ["Reporting automatique", "rien à remplir"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
           <div key={a}><b>{a}</b><span>{b}</span></div>
         ))}
       </section>
@@ -247,7 +247,7 @@ export default async function Home() {
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                 <li>Tous les dialers : Minari, lemlist, Aircall, Ringover… ou CSV</li>
                 <li>Analyse IA de chaque appel et intelligence terrain</li>
-                <li>Lien de suivi en direct et assistant IA pour vos clients</li>
+                <li>Lien de suivi en direct et assistant IA intégré pour vos clients</li>
                 <li>Relances et brief pré-meeting</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
               </ul>
