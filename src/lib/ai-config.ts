@@ -1,7 +1,7 @@
 // Séparé de ai.ts pour éviter les imports circulaires (ingest ↔ ai).
 
-/** Une vraie clé d'API Claude commence par « sk-ant-api » (les jetons de compte « sk-ant-oat/usr » ne marchent pas). */
-const keyLooksValid = () => /^sk-ant-api/.test((process.env.ANTHROPIC_API_KEY || "").trim());
+/** Clé d'API Claude présente (formats « sk-ant-… »). Une clé refusée par l'API bascule en mode essentiel (voir markAiDown). */
+const keyLooksValid = () => /^sk-ant-/.test((process.env.ANTHROPIC_API_KEY || "").trim());
 
 let downSince = 0;
 /** Clé refusée par l'API (401) : on bascule en mode « sans IA » pendant 10 minutes, puis on réessaie. */
