@@ -48,6 +48,7 @@ model Organization {
   stripeSubscriptionId String?       @unique
   offer                String        @default("")
   slackWebhook         String? // alertes de relance dans Slack
+  cancelRequestedAt    DateTime? // résiliation demandée en un clic (paiement par liens Stripe)
   createdAt            DateTime      @default(now())
   members              Membership[]
   clients              Client[]

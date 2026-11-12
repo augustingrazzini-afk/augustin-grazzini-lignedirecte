@@ -58,7 +58,7 @@ export default async function Page() {
                   <td>{d(o.createdAt)}</td>
                   <td>{o.members[0]?.user.email || "?"}</td>
                   <td>{o.name}</td>
-                  <td>{!o.stripeSubscriptionId ? "Sans carte" : STATUS[o.subscriptionStatus] || o.subscriptionStatus}{o.subscriptionStatus === "trialing" && o.stripeSubscriptionId ? ` (fin ${o.trialEndsAt.toLocaleDateString("fr-FR")})` : ""}</td>
+                  <td>{!o.stripeSubscriptionId ? "Sans carte" : STATUS[o.subscriptionStatus] || o.subscriptionStatus}{o.subscriptionStatus === "trialing" && o.stripeSubscriptionId ? ` (fin ${o.trialEndsAt.toLocaleDateString("fr-FR")})` : ""}{o.cancelRequestedAt && o.subscriptionStatus !== "canceled" ? <> · <b style={{ color: "#c0392b" }}>résiliation demandée</b>{o.stripeSubscriptionId?.startsWith("sub_") && <> (<a href={`https://dashboard.stripe.com/subscriptions/${o.stripeSubscriptionId}`} target="_blank" rel="noopener noreferrer">résilier dans Stripe</a>)</>}</> : null}</td>
                   <td>{o.integrations.map((i) => SOURCE_LABEL[i.provider] || i.provider).join(", ") || "-"}</td>
                   <td>{o._count.clients}</td>
                   <td>{o._count.calls}</td>

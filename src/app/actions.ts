@@ -382,3 +382,29 @@ export async function adminSetSubscription(f: FormData) {
   }
   revalidatePath("/app/inscriptions");
 }
+
+/* ---------- Résiliation en un clic (paiement par liens Stripe, sans clé secrète) ---------- */
+export async function requestCancel(f: FormData) {
+  const scope = await requireOrgScope();
+  if (scope.role !== "owner") return;
+  const undo = f.get("undo") === "1";
+  const org = await db.organization.update({ where: { id: scope.orgId }, data: { cancelRequestedAt: undo ? null : new Date() } });
+  const me = await db.user.findUnique({ where: { id: scope.userId }, select: { email: true } });
+  const { sendEmail } = await import("@/lib/email");
+  const until = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" });
+  const stripeUrl = org.stripeSubscriptionId?.startsWith("sub_") ? `https://dashboard.stripe.com/subscriptions/${org.stripeSubscriptionId}` : "https://dashboard.stripe.com/subscriptions";
+  const admin = process.env.FEEDBACK_EMAIL;
+  try {
+    if (admin) {
+      const subject = undo ? `Résiliation annulée : ${org.name}` : `Résiliation demandée : ${org.name}`;
+      const text = `${org.name} (${me?.email || "?"}) ${undo ? "a annulé sa demande de résiliation" : "demande à résilier son abonnement"}.\n${undo ? "" : `À faire : résilier dans Stripe avant le prochain prélèvement (${org.subscriptionStatus === "trialing" ? `fin d'essai le ${until}` : "fin du mois en cours"}).\n`}${stripeUrl}`;
+      await sendEmail(admin, subject, text.replace(/\n/g, "<br>").replace(stripeUrl, `<a href="${stripeUrl}">${stripeUrl}</a>`), text);
+    }
+    if (me?.email && !undo) {
+      const t = `Bonjour,\n\nVotre demande de résiliation de Trustpipe est bien enregistrée. Aucun autre prélèvement ne sera effectué. ${org.subscriptionStatus === "trialing" ? `Vous gardez l'accès jusqu'au ${until}.` : "Vous gardez l'accès jusqu'à la fin du mois en cours."}\n\nVous avez changé d'avis ? Annulez la résiliation depuis la page Abonnement.\n\nL'équipe Trustpipe`;
+      await sendEmail(me.email, "Trustpipe : résiliation enregistrée", t.replace(/\n/g, "<br>"), t);
+    }
+  } catch (e) { console.error("email résiliation", e); }
+  revalidatePath("/app/billing");
+  redirect(undo ? "/app/billing?resumed=1" : "/app/billing?cancelled=1");
+}
