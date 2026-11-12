@@ -150,6 +150,8 @@ export async function applySubscription(sub: Stripe.Subscription) {
   await db.organization.update({
     where: { id: org.id },
     data: { stripeSubscriptionId: sub.id, stripeCustomerId: customerId, subscriptionStatus: status, ...(plan ? { plan } : {}),
+      // Résiliation programmée chez Stripe (portail, tableau de bord) : affichée dans Trustpipe, annulée si le client se ravise.
+      cancelRequestedAt: sub.cancel_at || sub.cancel_at_period_end ? new Date((sub.canceled_at || Math.floor(Date.now() / 1000)) * 1000) : null,
       ...(sub.status === "trialing" && sub.trial_end ? { trialEndsAt: new Date(sub.trial_end * 1000) } : {}) },
   });
 }
