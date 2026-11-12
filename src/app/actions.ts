@@ -349,3 +349,22 @@ export async function saveAlerts(_: FormState, f: FormData): Promise<FormState> 
     return { ok: "Alertes enregistrées." };
   } catch (e) { return fail(e); }
 }
+
+/* ---------- Éditeur : activation manuelle d'un abonnement (paiement par lien Stripe) ---------- */
+export async function adminSetSubscription(f: FormData) {
+  const scope = await requireOrgScope();
+  const { isAdminOrg } = await import("@/lib/admin");
+  if (!isAdminOrg(scope.orgId)) return;
+  const orgId = s(f, "orgId", 40);
+  const what = s(f, "what", 20);
+  const org = await db.organization.findUnique({ where: { id: orgId } });
+  if (!org || isAdminOrg(org.id)) return;
+  if (what === "solo" || what === "agency") {
+    await db.organization.update({ where: { id: org.id }, data: { plan: what, subscriptionStatus: "active", ...(org.stripeSubscriptionId ? {} : { stripeSubscriptionId: `manuel_${org.id}` }) } });
+  } else if (what === "canceled") {
+    await db.organization.update({ where: { id: org.id }, data: { subscriptionStatus: "canceled" } });
+  } else if (what === "trial") {
+    await db.organization.update({ where: { id: org.id }, data: { subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 864e5) } });
+  }
+  revalidatePath("/app/inscriptions");
+}

@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import { isAdminOrg } from "@/lib/admin";
 import { SOURCE_LABEL } from "@/lib/providers";
 import { PageTop } from "@/components/Shell";
+import { adminSetSubscription } from "@/app/actions";
 
 export const metadata = { title: "Inscriptions" };
 export const dynamic = "force-dynamic";
@@ -51,7 +52,7 @@ export default async function Page() {
         {!real.length ? <p className="muted">Personne pour l&apos;instant. Ça arrive !</p> : (
           <div style={{ overflowX: "auto" }}>
             <table className="table">
-              <thead><tr><th>Date</th><th>Email</th><th>Espace</th><th>Statut</th><th>Outils</th><th>Clients</th><th>Appels</th></tr></thead>
+              <thead><tr><th>Date</th><th>Email</th><th>Espace</th><th>Statut</th><th>Outils</th><th>Clients</th><th>Appels</th><th>Abonnement</th></tr></thead>
               <tbody>{real.map((o) => (
                 <tr key={o.id}>
                   <td>{d(o.createdAt)}</td>
@@ -61,6 +62,19 @@ export default async function Page() {
                   <td>{o.integrations.map((i) => SOURCE_LABEL[i.provider] || i.provider).join(", ") || "-"}</td>
                   <td>{o._count.clients}</td>
                   <td>{o._count.calls}</td>
+                  <td>
+                    <form action={adminSetSubscription} style={{ display: "flex", gap: 6, justifyContent: "flex-end" }}>
+                      <input type="hidden" name="orgId" value={o.id} />
+                      <select name="what" className="input" defaultValue="" style={{ height: 32, padding: "0 8px" }} aria-label="Changer l'abonnement">
+                        <option value="" disabled>Changer…</option>
+                        <option value="solo">Payant Solo</option>
+                        <option value="agency">Payant Équipe</option>
+                        <option value="trial">Prolonger l&apos;essai 14 j</option>
+                        <option value="canceled">Résilié</option>
+                      </select>
+                      <button className="btn sm">OK</button>
+                    </form>
+                  </td>
                 </tr>
               ))}</tbody>
             </table>
@@ -76,6 +90,7 @@ export default async function Page() {
           </div>
         ))}
       </div>
+      <p className="muted small mt">Paiement par lien Stripe : quand Stripe vous envoie l&apos;email d&apos;un nouvel abonnement, retrouvez l&apos;email du client ci-dessus et choisissez « Payant Solo » ou « Payant Équipe ». Pour une résiliation, choisissez « Résilié ».</p>
       <p className="muted small mt">Les visites du site (pages vues, provenance LinkedIn…) sont dans Vercel › projet › Analytics.</p>
     </>
   );

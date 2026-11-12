@@ -1,7 +1,8 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { PLANS, isActive, type PlanId } from "@/lib/billing";
-import { stripe, stripeEnabled } from "@/lib/stripe";
+import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
+import { currentUser } from "@/lib/session";
 import { PageTop } from "@/components/Shell";
 
 export const metadata = { title: "Abonnement" };
@@ -19,6 +20,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const endTs = live ? (live.cancel_at || (live.status === "trialing" ? live.trial_end : (live.items.data[0] as any)?.current_period_end || (live as any).current_period_end)) : null;
   const endDate = endTs ? new Date(endTs * 1000).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
   const owner = scope.role === "owner";
+  const me = await currentUser();
+  const links = !stripeEnabled() ? { solo: paymentLink("solo", me?.email || "", org.id), agency: paymentLink("agency", me?.email || "", org.id) } : null;
+  const portal = portalLink();
   const plan = PLANS[org.plan as PlanId] || PLANS.trial;
   return (
     <>
@@ -27,7 +31,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
       {sp.cancelled && <div className="banner ok">C&apos;est noté : votre abonnement est résilié{endDate ? ` et prendra fin le ${endDate}` : ""}. Aucun autre prélèvement ne sera fait. Vous gardez l&apos;accès jusque-là.</div>}
       {sp.resumed && <div className="banner ok">Votre abonnement continue normalement.</div>}
       {sp.err && <div className="banner err">La demande n&apos;a pas abouti. Réessayez ou écrivez-nous.</div>}
-      {!stripeEnabled() && <div className="banner">Le paiement en ligne n&apos;est pas encore activé sur ce serveur.</div>}
+      {!stripeEnabled() && !links?.solo && <div className="banner">Le paiement en ligne n&apos;est pas encore activé sur ce serveur.</div>}
+      {links?.solo && org.subscriptionStatus !== "active" && <div className="banner">Le paiement se fait sur la page sécurisée de Stripe. Votre abonnement est activé dans les heures qui suivent (vous recevez un email de confirmation de Stripe).</div>}
       <div className="grid g-2e">
         {(["solo", "agency"] as const).map((id) => {
           const p = PLANS[id];
@@ -42,7 +47,10 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
                 <li>Transcriptions, briefs IA, coach, relances</li>
                 {id === "agency" && <li>Plusieurs commerciaux dans l&apos;équipe</li>}
               </ul>
-              {owner && (current
+              {owner && (links ? (current
+                ? (portal ? <a className="btn" href={portal} target="_blank" rel="noopener noreferrer">Gérer ou résilier mon abonnement</a> : <span className="pill win">Formule actuelle</span>)
+                : links[id] ? <a className="btn primary" href={links[id]!} target="_blank" rel="noopener noreferrer">Choisir {p.name}</a> : <button className="btn primary" disabled>Choisir {p.name}</button>)
+              : current
                 ? <form action="/api/billing" method="post"><input type="hidden" name="action" value="portal" /><button className="btn">Gérer mon abonnement</button></form>
                 : <form action="/api/billing" method="post"><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><button className="btn primary" disabled={!stripeEnabled()}>Choisir {p.name}</button></form>)}
             </div>

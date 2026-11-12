@@ -15,6 +15,21 @@ export const stripeEnabled = () => {
   if (process.env.NODE_ENV !== "production" || process.env.STRIPE_ALLOW_TEST === "1") return true;
   return /^(sk|rk)_live_/.test(k);
 };
+/**
+ * Liens de paiement Stripe (créés dans le tableau de bord, sans clé secrète) : solution de repli tant que
+ * la clé live n'est pas configurée. Le client paie sur Stripe ; l'éditeur active ensuite le compte depuis « Inscriptions ».
+ */
+const isStripeLink = (u?: string) => !!u && /^https:\/\/(buy|billing)\.stripe\.com\//.test(u);
+export function paymentLink(plan: "solo" | "agency", email: string, orgId: string): string | null {
+  const base = plan === "agency" ? process.env.STRIPE_LINK_AGENCY : process.env.STRIPE_LINK_SOLO;
+  if (!isStripeLink(base)) return null;
+  const u = new URL(base!);
+  u.searchParams.set("prefilled_email", email);
+  u.searchParams.set("client_reference_id", orgId);
+  return u.toString();
+}
+export const portalLink = () => (isStripeLink(process.env.STRIPE_PORTAL_LINK) ? process.env.STRIPE_PORTAL_LINK! : null);
+
 let s: Stripe | null = null;
 export const stripe = () => (s ??= new Stripe(process.env.STRIPE_SECRET_KEY!));
 
