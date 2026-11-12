@@ -5,11 +5,12 @@ import "@fontsource-variable/inter";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
 import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 
 const APP = process.env.APP_NAME || "Trustpipe";
 export const metadata: Metadata = {
   title: { default: APP, template: `%s · ${APP}` },
-  description: "Le reporting d'appels pour chaque client : vos appels Minari, Aircall ou Ringover analysés par l'IA et suivis en direct par vos clients. Pour les SDR freelances et les petites équipes commerciales.",
+  description: "Le reporting d'appels pour chaque client : vos clients suivent vos appels en direct (Minari, lemlist, Aircall, Ringover…) et l'assistant IA intégré prépare leurs rendez-vous. Pour les SDR freelances et les petites équipes commerciales.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/trustpipe-mark.svg", apple: "/trustpipe-mark.svg" },
   appleWebApp: { capable: true, title: "Trustpipe", statusBarStyle: "black-translucent" },
@@ -19,7 +20,7 @@ export const viewport: Viewport = { themeColor: "#0B122F", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}</body>
+      <body>{children}<Analytics /></body>
     </html>
   );
 }

@@ -16,12 +16,14 @@ export type ShellProps = {
   banner?: React.ReactNode;
   /** Lien de suivi partagé : lecture seule, pilotage et appels uniquement, pas de compte. */
   share?: boolean;
+  /** Espace de l'éditeur : page « Inscriptions » (statistiques de lancement). */
+  admin?: boolean;
   /** Widget flottant en bas à droite (assistant IA + avis). */
   widget?: { clientId: string | null; aiReady: boolean; shareToken?: string };
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, widget, children }: ShellProps) {
+export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, admin = false, widget, children }: ShellProps) {
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
@@ -35,6 +37,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
           { href: `${base}/clients`, label: "Clients", icon: "clients" },
           { href: `${base}/settings`, label: "Réglages", icon: "settings" },
           { href: `${base}/billing`, label: "Abonnement", icon: "billing" },
+          ...(admin ? [{ href: `${base}/inscriptions`, label: "Inscriptions", icon: "clients" }] : []),
         ]
       : []),
   ];

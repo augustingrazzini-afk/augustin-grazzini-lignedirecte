@@ -9,6 +9,7 @@ import { syncIfStale } from "@/lib/sync";
 import { countDueTasks } from "@/components/views/Relances";
 import { redirect } from "next/navigation";
 import { stripeEnabled } from "@/lib/stripe";
+import { isAdminOrg } from "@/lib/admin";
 
 // La synchro « en direct » continue après l'affichage (after) : on lui laisse le temps de finir.
 export const maxDuration = 300;
@@ -24,5 +25,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   else if (org.subscriptionStatus === "past_due") banner = <div className="banner err"><div><b>Paiement en échec.</b> <Link href="/app/billing">Mettre à jour le moyen de paiement</Link>.</div></div>;
   else if (org.subscriptionStatus === "trialing" && days <= 5) banner = <div className="banner"><div><b>{PLANS[org.plan as PlanId]?.name || "Essai"} : plus que {days} jour(s).</b> <Link href="/app/billing">Choisir une formule</Link>.</div></div>;
   after(() => syncIfStale(scope.orgId));
-  return <Shell base="/app" orgName={org.name} isOrg email={user!.email} followUps={follow} banner={banner} widget={{ clientId: null, aiReady: true }}>{children}</Shell>;
+  return <Shell base="/app" orgName={org.name} isOrg admin={isAdminOrg(org.id)} email={user!.email} followUps={follow} banner={banner} widget={{ clientId: null, aiReady: true }}>{children}</Shell>;
 }

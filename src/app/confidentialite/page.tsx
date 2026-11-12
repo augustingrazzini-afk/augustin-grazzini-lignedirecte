@@ -58,6 +58,8 @@ export default function Page() {
       <h2>9. Cookies</h2>
       <p>{L.brand} n&apos;utilise <b>qu&apos;un seul cookie</b> : <code>cockpit_session</code>, qui vous garde connecté (30 jours, sécurisé, inaccessible au JavaScript). Il est strictement nécessaire au service et, à ce titre, dispensé de consentement (article 82 de la loi Informatique et Libertés). Nous n&apos;utilisons aucun cookie de mesure d&apos;audience, de publicité ou de réseau social, et les polices sont hébergées sur nos serveurs : aucun bandeau de consentement n&apos;est donc nécessaire.</p>
 
+      <p>La fréquentation du site est mesurée avec Vercel Web Analytics, <b>sans cookie</b> et sans identifiant persistant : les visites sont comptées de façon agrégée (pages vues, pays, site de provenance), sans suivre une personne d&apos;une visite à l&apos;autre.</p>
+
       <h2>10. Modifications</h2>
       <p>Cette politique peut évoluer ; la date de mise à jour figure en haut de la page. En cas de changement important, les utilisateurs sont prévenus par email.</p>
     </LegalPage>
