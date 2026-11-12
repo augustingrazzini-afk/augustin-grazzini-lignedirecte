@@ -33,11 +33,25 @@ export async function requestLogin(_: FormState, f: FormData): Promise<FormState
 
 const nextPath = (v: string) => (v.startsWith("/") && !v.startsWith("//") ? v : "/app");
 
+/** Fautes de frappe fréquentes sur les domaines d'email (gmai.com, hotmial.fr…). */
+const DOMAIN_FIX: Record<string, string> = {
+  "gmai.com": "gmail.com", "gmial.com": "gmail.com", "gmal.com": "gmail.com", "gmail.co": "gmail.com", "gmail.fr": "gmail.com", "gamil.com": "gmail.com", "gnail.com": "gmail.com", "gmaill.com": "gmail.com", "gmail.cm": "gmail.com",
+  "hotmial.fr": "hotmail.fr", "hotmal.fr": "hotmail.fr", "hotmai.fr": "hotmail.fr", "hotmial.com": "hotmail.com", "hotmai.com": "hotmail.com",
+  "outlok.fr": "outlook.fr", "outlook.fe": "outlook.fr", "outlok.com": "outlook.com", "yahoo.fe": "yahoo.fr", "yaho.fr": "yahoo.fr", "wanadoo.fe": "wanadoo.fr", "orange.fe": "orange.fr",
+};
+function emailTypo(email: string): string | null {
+  const [local, domain] = email.split("@");
+  const fix = DOMAIN_FIX[domain || ""];
+  return fix ? `${local}@${fix}` : null;
+}
+
 /** Inscription : le mot de passe n'est enregistré qu'au clic sur le lien de confirmation envoyé par email. */
 export async function signup(_: FormState, f: FormData): Promise<FormState> {
   const email = normEmail(s(f, "email", 254));
   const pw = String(f.get("password") ?? "");
   if (!isEmail(email)) return { error: "Adresse email invalide." };
+  const typo = emailTypo(email);
+  if (typo) return { error: `Vérifiez votre adresse : vouliez-vous dire ${typo} ?` };
   if (f.get("accept") !== "on") return { error: "Acceptez les conditions générales pour continuer." };
   const problem = passwordProblem(pw, email);
   if (problem) return { error: problem };
