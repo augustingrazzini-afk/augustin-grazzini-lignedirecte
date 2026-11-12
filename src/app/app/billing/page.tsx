@@ -67,7 +67,14 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
                 <form action="/api/billing" method="post"><input type="hidden" name="action" value="cancel" /><button className="btn danger">Résilier mon abonnement</button></form></>}
         </div>
       )}
-      {owner && org.stripeCustomerId && <form action="/api/billing" method="post" className="mt"><input type="hidden" name="action" value="portal" /><button className="btn">Factures et moyen de paiement</button></form>}
+      {owner && links && portal && org.stripeSubscriptionId?.startsWith("sub_") && org.subscriptionStatus !== "canceled" && (
+        <div className="card mt">
+          <h2>Gérer ou résilier mon abonnement</h2>
+          <p className="muted">{org.subscriptionStatus === "trialing" ? `Vous êtes en essai gratuit jusqu'au ${org.trialEndsAt.toLocaleDateString("fr-FR")} : si vous résiliez avant, rien ne sera prélevé.` : "Sans engagement : la résiliation prend effet à la fin du mois en cours, sans autre prélèvement."} Sur la page Stripe, saisissez votre adresse email : Stripe vous envoie un code pour accéder à votre abonnement (changer de carte, de formule, voir les factures ou résilier).</p>
+          <a className="btn" href={portal} target="_blank" rel="noopener noreferrer">Gérer ou résilier mon abonnement</a>
+        </div>
+      )}
+      {owner && !links && org.stripeCustomerId && <form action="/api/billing" method="post" className="mt"><input type="hidden" name="action" value="portal" /><button className="btn">Factures et moyen de paiement</button></form>}
     </>
   );
 }
