@@ -8,7 +8,7 @@ import { after } from "next/server";
 import { syncIfStale } from "@/lib/sync";
 import { countDueTasks } from "@/components/views/Relances";
 import { redirect } from "next/navigation";
-import { stripeEnabled } from "@/lib/stripe";
+import { cardRequired } from "@/lib/stripe";
 import { isAdminOrg } from "@/lib/admin";
 
 // La synchro « en direct » continue après l'affichage (after) : on lui laisse le temps de finir.
@@ -18,7 +18,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const scope = await requireOrgScope();
   const [user, org, follow] = await Promise.all([currentUser(), db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }), countDueTasks(scope)]);
   // L'essai gratuit démarre avec une carte enregistrée sur Stripe : pas d'accès avant.
-  if (!org.stripeSubscriptionId && stripeEnabled()) redirect("/essai");
+  if (!org.stripeSubscriptionId && cardRequired()) redirect("/essai");
   const days = Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5);
   let banner: React.ReactNode = null;
   if (!isActive(org)) banner = <div className="banner err"><div><b>Votre essai est terminé.</b> Vos données restent consultables. <Link href="/app/billing">Choisir une formule</Link> pour continuer à synchroniser et utiliser l&apos;IA.</div></div>;

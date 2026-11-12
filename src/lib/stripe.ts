@@ -28,6 +28,8 @@ export function paymentLink(plan: "solo" | "agency", email: string, orgId: strin
   u.searchParams.set("client_reference_id", orgId);
   return u.toString();
 }
+/** Carte obligatoire pour démarrer l'essai : clé live, ou liens de paiement + notifications Stripe configurés. */
+export const cardRequired = () => stripeEnabled() || (isStripeLink(process.env.STRIPE_LINK_SOLO) && isStripeLink(process.env.STRIPE_LINK_AGENCY) && !!process.env.STRIPE_LINK_WEBHOOK_SECRET);
 export const portalLink = () => (isStripeLink(process.env.STRIPE_PORTAL_LINK) ? process.env.STRIPE_PORTAL_LINK! : null);
 
 let s: Stripe | null = null;
