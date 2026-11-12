@@ -4,7 +4,17 @@ import { db } from "./db";
 import { open, seal } from "./crypto";
 import { PLANS } from "./billing";
 
-export const stripeEnabled = () => !!process.env.STRIPE_SECRET_KEY;
+/**
+ * Paiement actif. En production, une clé de TEST ne sert à rien aux vrais clients (leur carte serait refusée) :
+ * tant qu'aucune clé live n'est configurée, le paiement est désactivé et l'essai démarre sans carte
+ * (sauf STRIPE_ALLOW_TEST=1, pour une démonstration).
+ */
+export const stripeEnabled = () => {
+  const k = process.env.STRIPE_SECRET_KEY || "";
+  if (!k) return false;
+  if (process.env.NODE_ENV !== "production" || process.env.STRIPE_ALLOW_TEST === "1") return true;
+  return /^(sk|rk)_live_/.test(k);
+};
 let s: Stripe | null = null;
 export const stripe = () => (s ??= new Stripe(process.env.STRIPE_SECRET_KEY!));
 
