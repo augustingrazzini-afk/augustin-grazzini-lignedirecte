@@ -1,6 +1,6 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PLANS, isActive, type PlanId } from "@/lib/billing";
+import { PLANS, type PlanId } from "@/lib/billing";
 import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
 import { currentUser } from "@/lib/session";
 import { PageTop } from "@/components/Shell";
@@ -24,57 +24,73 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const links = !stripeEnabled() ? { solo: paymentLink("solo", me?.email || "", org.id), agency: paymentLink("agency", me?.email || "", org.id) } : null;
   const portal = portalLink();
   const plan = PLANS[org.plan as PlanId] || PLANS.trial;
+  const subId = org.stripeSubscriptionId || "";
+  const offered = !!subId && !subId.startsWith("sub_"); // accès offert ou activé à la main
+  const subscribed = !!subId && org.subscriptionStatus !== "canceled";
+  const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  const statusLine = offered ? "Accès offert"
+    : org.subscriptionStatus === "trialing" ? `Essai gratuit jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${plan.price} € HT le ${trialEnd}` : ""}`
+    : org.subscriptionStatus === "active" ? `Actif · ${plan.price} € HT par mois, sans engagement`
+    : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
+    : "Résilié";
+  const features = (id: "solo" | "agency") => [
+    Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités",
+    "Accès en direct pour vos clients, avec assistant IA intégré",
+    "Tous les dialers : Minari, lemlist, Aircall, Ringover… ou CSV",
+    "Transcriptions, résumés et analyse IA de chaque appel",
+    id === "agency" ? "Toute l'équipe commerciale" : "Pour un commercial",
+  ];
   return (
     <>
-      <PageTop title="Abonnement" subtitle={`${plan.name} · ${STATUS[org.subscriptionStatus] || org.subscriptionStatus}${org.subscriptionStatus === "trialing" ? ` jusqu'au ${org.trialEndsAt.toLocaleDateString("fr-FR")}` : ""}`} />
-      {ok && <div className="banner ok">Merci ! Votre abonnement est en cours d&apos;activation, cela prend quelques secondes.</div>}
+      <PageTop title="Abonnement" subtitle={subscribed ? `${plan.name} · ${STATUS[org.subscriptionStatus] || ""}` : "Choisissez votre formule"} />
+      {(ok || (sp as any).paye) && <div className="banner ok">Merci ! Votre carte est enregistrée et votre abonnement est actif.</div>}
       {sp.cancelled && <div className="banner ok">C&apos;est noté : votre abonnement est résilié{endDate ? ` et prendra fin le ${endDate}` : ""}. Aucun autre prélèvement ne sera fait. Vous gardez l&apos;accès jusque-là.</div>}
       {sp.resumed && <div className="banner ok">Votre abonnement continue normalement.</div>}
       {sp.err && <div className="banner err">La demande n&apos;a pas abouti. Réessayez ou écrivez-nous.</div>}
-      {!stripeEnabled() && !links?.solo && <div className="banner">Le paiement en ligne n&apos;est pas encore activé sur ce serveur.</div>}
-      {links?.solo && org.subscriptionStatus !== "active" && <div className="banner">Le paiement se fait sur la page sécurisée de Stripe. Votre abonnement est activé dans les heures qui suivent (vous recevez un email de confirmation de Stripe).</div>}
-      <div className="grid g-2e">
-        {(["solo", "agency"] as const).map((id) => {
-          const p = PLANS[id];
-          const current = org.plan === id && isActive(org) && org.subscriptionStatus !== "trialing";
-          return (
-            <div key={id} className="card price">
-              <h2>{p.name}</h2>
-              <div className="amt">{p.price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
-              <ul>
-                <li>{Number.isFinite(p.maxClients) ? `${p.maxClients} espaces clients` : "Espaces clients illimités"}</li>
-                <li>Tous les dialers : Minari, lemlist, Skipcall, Aircall, Ringover… et CSV</li>
-                <li>Transcriptions, briefs IA, coach, relances</li>
-                {id === "agency" && <li>Plusieurs commerciaux dans l&apos;équipe</li>}
-              </ul>
-              {owner && (links ? (current
-                ? (portal ? <a className="btn" href={portal} target="_blank" rel="noopener noreferrer">Gérer ou résilier mon abonnement</a> : <span className="pill win">Formule actuelle</span>)
-                : links[id] ? <a className="btn primary" href={links[id]!} target="_blank" rel="noopener noreferrer">Choisir {p.name}</a> : <button className="btn primary" disabled>Choisir {p.name}</button>)
-              : current
-                ? <form action="/api/billing" method="post"><input type="hidden" name="action" value="portal" /><button className="btn">Gérer mon abonnement</button></form>
-                : <form action="/api/billing" method="post"><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><button className="btn primary" disabled={!stripeEnabled()}>Choisir {p.name}</button></form>)}
-            </div>
-          );
-        })}
-      </div>
-      {owner && live && (
-        <div className="card mt">
-          <h2>Résilier l&apos;abonnement</h2>
-          {live.cancel_at_period_end || live.cancel_at
-            ? <><p className="muted">Résiliation programmée : votre accès prend fin le <b>{endDate}</b>, sans autre prélèvement.</p>
-                <form action="/api/billing" method="post"><input type="hidden" name="action" value="resume" /><button className="btn primary">Annuler la résiliation</button></form></>
-            : <><p className="muted">{live.status === "trialing" ? `Vous êtes en essai gratuit : si vous résiliez maintenant, rien ne sera prélevé et l'accès s'arrête le ${endDate}.` : `Sans engagement : la résiliation prend effet à la fin de la période en cours (${endDate}), sans autre prélèvement. Vos données restent exportables jusque-là.`}</p>
-                <form action="/api/billing" method="post"><input type="hidden" name="action" value="cancel" /><button className="btn danger">Résilier mon abonnement</button></form></>}
+      {!stripeEnabled() && !links?.solo && !subscribed && <div className="banner">Le paiement en ligne n&apos;est pas encore activé.</div>}
+
+      {subscribed && (
+        <div className="card">
+          <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
+          <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
+            {features(org.plan === "agency" ? "agency" : "solo").map((f) => <li key={f}>{f}</li>)}
+          </ul>
+          {owner && !offered && (links ? (
+            portal ? <>
+              <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Gérer mon abonnement</a>
+              <p className="muted small" style={{ marginTop: 10 }}>Changer de carte ou de formule, voir vos factures ou résilier{org.subscriptionStatus === "trialing" ? " (rien n'est prélevé si vous résiliez avant la fin de l'essai)" : ""}. Stripe vous demande votre adresse email puis vous envoie un code de connexion.</p>
+            </> : null
+          ) : live ? (
+            live.cancel_at_period_end || live.cancel_at
+              ? <><p className="muted">Résiliation programmée : votre accès prend fin le <b>{endDate}</b>, sans autre prélèvement.</p>
+                  <form action="/api/billing" method="post"><input type="hidden" name="action" value="resume" /><button className="btn primary">Annuler la résiliation</button></form></>
+              : <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+                  <form action="/api/billing" method="post"><input type="hidden" name="action" value="portal" /><button className="btn primary">Gérer mon abonnement</button></form>
+                  <form action="/api/billing" method="post"><input type="hidden" name="action" value="cancel" /><button className="btn danger">Résilier</button></form>
+                </div>
+          ) : null)}
         </div>
       )}
-      {owner && links && portal && org.stripeSubscriptionId?.startsWith("sub_") && org.subscriptionStatus !== "canceled" && (
-        <div className="card mt">
-          <h2>Gérer ou résilier mon abonnement</h2>
-          <p className="muted">{org.subscriptionStatus === "trialing" ? `Vous êtes en essai gratuit jusqu'au ${org.trialEndsAt.toLocaleDateString("fr-FR")} : si vous résiliez avant, rien ne sera prélevé.` : "Sans engagement : la résiliation prend effet à la fin du mois en cours, sans autre prélèvement."} Sur la page Stripe, saisissez votre adresse email : Stripe vous envoie un code pour accéder à votre abonnement (changer de carte, de formule, voir les factures ou résilier).</p>
-          <a className="btn" href={portal} target="_blank" rel="noopener noreferrer">Gérer ou résilier mon abonnement</a>
+
+      {!subscribed && (
+        <div className="grid g-2e">
+          {(["solo", "agency"] as const).map((id) => {
+            const p = PLANS[id];
+            return (
+              <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
+                <h2>{p.name}</h2>
+                <div className="amt">{p.price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
+                <ul>{features(id).map((f) => <li key={f}>{f}</li>)}</ul>
+                {owner && (links
+                  ? (links[id] ? <a className={`btn${id === "agency" ? " primary" : ""}`} href={links[id]!}>Choisir {p.name}</a> : <button className="btn" disabled>Choisir {p.name}</button>)
+                  : <form action="/api/billing" method="post"><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><button className={`btn${id === "agency" ? " primary" : ""}`} disabled={!stripeEnabled()}>Choisir {p.name}</button></form>)}
+              </div>
+            );
+          })}
         </div>
       )}
-      {owner && !links && org.stripeCustomerId && <form action="/api/billing" method="post" className="mt"><input type="hidden" name="action" value="portal" /><button className="btn">Factures et moyen de paiement</button></form>}
+      {!subscribed && <p className="muted small mt">🔒 Paiement sécurisé par Stripe, sans engagement : résiliable à tout moment depuis cette page.</p>}
+      {!owner && <p className="muted small mt">Seul le propriétaire de l&apos;espace peut gérer l&apos;abonnement.</p>}
     </>
   );
 }
