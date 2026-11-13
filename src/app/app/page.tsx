@@ -5,6 +5,7 @@ import { ago } from "@/lib/format";
 import { PageTop, Period } from "@/components/Shell";
 import { Dashboard } from "@/components/views/Dashboard";
 import { pickDays } from "@/lib/period";
+import { GettingStarted } from "@/components/views/GettingStarted";
 
 export const metadata = { title: "Pilotage" };
 
@@ -33,6 +34,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
         )}
         <Period days={days} href={(d) => href({ days: d })} />
       </PageTop>
+      {!scope.clientFilter && <GettingStarted orgId={scope.orgId} userId={scope.userId} />}
       <Dashboard scope={scope} base="/app" days={days} emptyHint={<><Link href="/app/sources">Connectez votre outil d&apos;appel ou importez un CSV</Link> pour commencer.</>} />
     </>
   );

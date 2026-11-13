@@ -518,3 +518,27 @@ mark.todo { background: #FFF1C2; color: #8A5A00; padding: 0 5px; border-radius: 
 .tp-name { display: inline-flex; flex-direction: column; gap: .16em; }
 .tp-by { font-family: var(--f-body); font-weight: 500; font-size: max(10px, .42em); letter-spacing: .01em; line-height: 1; }
 .as-mode { margin: 8px 0 0 !important; font-size: 11.5px; color: var(--dim); }
+
+/* Premiers pas (mini-tutoriel) */
+.gs { margin-bottom: 18px; border: 1px solid rgba(46,91,255,.18); background: linear-gradient(180deg, #F5F8FF 0%, #fff 60%); }
+.gs-close { position: absolute; top: 10px; right: 12px; border: 0; background: none; font-size: 20px; line-height: 1; color: var(--dim); cursor: pointer; padding: 4px 6px; }
+.gs-close:hover { color: var(--ink); }
+.gs-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; padding-right: 28px; }
+.gs-head h2 { margin: 0; }
+.gs-count { font-family: var(--f-display); font-weight: 700; color: var(--blue); }
+.gs-bar { height: 6px; border-radius: 3px; background: rgba(46,91,255,.12); margin: 12px 0 6px; overflow: hidden; }
+.gs-bar i { display: block; height: 100%; background: var(--blue); border-radius: 3px; transition: width .4s; }
+.gs-steps { list-style: none; padding: 0; margin: 6px 0 0; display: grid; gap: 4px; }
+.gs-steps li { display: flex; align-items: center; gap: 12px; padding: 10px 8px; border-radius: 10px; }
+.gs-steps li.next { background: rgba(46,91,255,.06); }
+.gs-steps li.done .gs-body b { color: var(--muted); text-decoration: line-through; text-decoration-color: rgba(89,98,138,.4); }
+.gs-dot { flex: none; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(46,91,255,.3); color: var(--blue); font-weight: 700; font-size: 13px; }
+.gs-steps li.done .gs-dot { background: var(--mint); border-color: var(--mint); color: #fff; }
+.gs-body { flex: 1; display: grid; gap: 2px; min-width: 0; }
+.gs-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; }
+.gs-tile { display: grid; gap: 4px; padding: 12px; border-radius: 12px; border: 1px solid var(--stroke); background: #fff; color: inherit; text-decoration: none; }
+.gs-tile:hover { border-color: rgba(46,91,255,.35); }
+.gs-tile > span:first-child { font-size: 20px; }
+.gs-client { padding-right: 36px; }
+@media (max-width: 900px) { .gs-grid { grid-template-columns: repeat(2, minmax(0,1fr)); } }
+@media (max-width: 600px) { .gs-steps li { flex-wrap: wrap; } .gs-steps li .btn { margin-left: 40px; } .gs-grid { grid-template-columns: 1fr; } }

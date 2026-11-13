@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PLANS, TRIAL_DAYS } from "@/lib/billing";
+import { PLANS, TRIAL_DAYS, euros } from "@/lib/billing";
 import { cardRequired, paymentLink, stripeEnabled } from "@/lib/stripe";
 import { logout } from "@/app/actions";
 import { Logo } from "@/components/Logo";
@@ -44,7 +44,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
                 {links ? Array.from(new URL(links[id]!).searchParams).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)
                   : <><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><input type="hidden" name="trial" value="1" /></>}
                 <h2>{PLANS[id].name}</h2>
-                <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0 }}> HT / mois après l&apos;essai</span></div>
+                <div className="amt">{euros(PLANS[id].price)} €<span className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0 }}> HT / mois après l&apos;essai</span></div>
                 <ul>
                   <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                   <li>Appels analysés et résumés par l&apos;IA</li>

@@ -1,6 +1,6 @@
 import { LegalPage, V } from "@/components/LegalPage";
 import { LEGAL } from "@/lib/legal";
-import { PLANS, TRIAL_DAYS } from "@/lib/billing";
+import { PLANS, TRIAL_DAYS, euros } from "@/lib/billing";
 
 export const metadata = { title: "Conditions générales" };
 export default function Page() {
@@ -16,7 +16,7 @@ export default function Page() {
       <h2>4. Essai gratuit</h2>
       <p>Tout nouvel espace bénéficie d&apos;un essai gratuit de {TRIAL_DAYS} jours. L&apos;essai démarre avec l&apos;enregistrement d&apos;une carte bancaire sur Stripe, qui n&apos;est pas débitée pendant l&apos;essai. Sauf résiliation avant la fin de l&apos;essai (en un clic depuis la page Abonnement), l&apos;abonnement choisi démarre automatiquement et la carte est débitée du premier mois. Un même professionnel ne bénéficie que d&apos;un seul essai gratuit.</p>
       <h2>5. Prix et paiement</h2>
-      <p>Formules : {PLANS.solo.name} à {PLANS.solo.price} € HT par mois ({PLANS.solo.maxClients} clients suivis) et {PLANS.agency.name} à {PLANS.agency.price} € HT par mois (clients illimités). Les prix applicables sont ceux affichés au moment de la souscription. Le paiement est mensuel, par carte, via Stripe ; l&apos;abonnement se renouvelle tacitement chaque mois. En cas d&apos;échec de paiement, l&apos;accès peut être suspendu après relance. Toute modification de prix est annoncée au moins 30 jours à l&apos;avance et s&apos;applique au renouvellement suivant.</p>
+      <p>Formules : {PLANS.solo.name} à {euros(PLANS.solo.price)} € HT par mois ({PLANS.solo.maxClients} clients suivis) et {PLANS.agency.name} à {euros(PLANS.agency.price)} € HT par mois (clients illimités). Les prix applicables sont ceux affichés au moment de la souscription. Le paiement est mensuel, par carte, via Stripe ; l&apos;abonnement se renouvelle tacitement chaque mois. En cas d&apos;échec de paiement, l&apos;accès peut être suspendu après relance. Toute modification de prix est annoncée au moins 30 jours à l&apos;avance et s&apos;applique au renouvellement suivant.</p>
       <h2>6. Résiliation</h2>
       <p>L&apos;utilisateur résilie à tout moment depuis la page Abonnement ; la résiliation prend effet à la fin de la période payée, sans remboursement de la période en cours. L&apos;Éditeur peut suspendre ou résilier un compte en cas de manquement grave aux présentes conditions.</p>
       <h2>7. Outils connectés et données importées</h2>

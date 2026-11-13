@@ -72,7 +72,7 @@ export async function priceFor(plan: Plan): Promise<string> {
     metadata: { app: "trustpipe", plan },
   });
   const price = await st.prices.create({
-    product: product.id, currency: "eur", unit_amount: info.price * 100, recurring: { interval: "month" },
+    product: product.id, currency: "eur", unit_amount: Math.round(info.price * 100), recurring: { interval: "month" },
     tax_behavior: "exclusive", lookup_key: LOOKUP[plan], transfer_lookup_key: true, metadata: { app: "trustpipe", plan },
   });
   cache.set(plan, price.id);

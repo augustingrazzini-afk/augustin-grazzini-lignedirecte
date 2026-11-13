@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/session";
-import { PLANS, TRIAL_DAYS } from "@/lib/billing";
+import { PLANS, TRIAL_DAYS, euros } from "@/lib/billing";
 import { Logo } from "@/components/Logo";
 import { BRAND_LOGOS } from "@/lib/brand-logos";
 import { LegalFooter } from "@/components/LegalPage";
@@ -243,7 +243,7 @@ export default async function Home() {
           {(["solo", "agency"] as const).map((id) => (
             <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
               <h2>{PLANS[id].name}</h2>
-              <div className="amt">{PLANS[id].price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
+              <div className="amt">{euros(PLANS[id].price)} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
               <ul>
                 <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                 <li>Tous les dialers : Minari, lemlist, Aircall, Ringover… ou CSV</li>

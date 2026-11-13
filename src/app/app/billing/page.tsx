@@ -1,6 +1,6 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PLANS, type PlanId } from "@/lib/billing";
+import { PLANS, type PlanId, euros } from "@/lib/billing";
 import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
 import { currentUser } from "@/lib/session";
 import { PageTop } from "@/components/Shell";
@@ -30,8 +30,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const subscribed = !!subId && org.subscriptionStatus !== "canceled";
   const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   const statusLine = offered ? "Accès offert"
-    : org.subscriptionStatus === "trialing" ? `Essai gratuit jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${plan.price} € HT le ${trialEnd}` : ""}`
-    : org.subscriptionStatus === "active" ? `Actif · ${plan.price} € HT par mois, sans engagement`
+    : org.subscriptionStatus === "trialing" ? `Essai gratuit jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
+    : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price)} € HT par mois, sans engagement`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
   const features = (id: "solo" | "agency") => [
@@ -84,7 +84,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
             return (
               <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
                 <h2>{p.name}</h2>
-                <div className="amt">{p.price} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
+                <div className="amt">{euros(p.price)} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
                 <ul>{features(id).map((f) => <li key={f}>{f}</li>)}</ul>
                 {owner && (links
                   ? (links[id] ? <a className={`btn${id === "agency" ? " primary" : ""}`} href={links[id]!}>Choisir {p.name}</a> : <button className="btn" disabled>Choisir {p.name}</button>)

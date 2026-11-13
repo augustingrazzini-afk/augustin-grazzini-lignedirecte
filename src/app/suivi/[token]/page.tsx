@@ -4,6 +4,7 @@ import { ago } from "@/lib/format";
 import { pickDays } from "@/lib/period";
 import { PageTop, Period } from "@/components/Shell";
 import { Dashboard } from "@/components/views/Dashboard";
+import { ClientWelcome } from "@/components/views/GettingStarted";
 
 export const metadata = { title: "Suivi en direct" };
 export default async function Page({ params, searchParams }: { params: Promise<{ token: string }>; searchParams: Promise<{ days?: string }> }) {
@@ -17,6 +18,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
       <PageTop title={`Prospection ${client.name}`} subtitle={`Appels, conversations et rendez-vous, suivis en direct par ${client.org.name}`} live={last ? `En direct · mis à jour ${ago(last.updatedAt)}` : null}>
         <Period days={days} href={(d) => `${base}?days=${d}`} />
       </PageTop>
+      <ClientWelcome storeKey={`tp-welcome-${client.id}`} base={base} by={client.org.name} />
       <Dashboard scope={scope} base={base} days={days} emptyHint={<>Les appels apparaîtront ici dès qu&apos;ils seront passés.</>} />
     </>
   );
