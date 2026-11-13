@@ -3,7 +3,7 @@ import type { Organization } from "@prisma/client";
 export const PLANS = {
   trial: { name: "Essai gratuit", maxClients: 3, price: 0 },
   solo: { name: "Solo", maxClients: 3, price: 24.99 },
-  agency: { name: "Équipe", maxClients: Infinity, price: 50 },
+  agency: { name: "Équipe", maxClients: Infinity, price: 49.99 },
 } as const;
 export type PlanId = keyof typeof PLANS;
 
