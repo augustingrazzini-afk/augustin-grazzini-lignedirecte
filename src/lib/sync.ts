@@ -130,13 +130,14 @@ export async function syncAll(opts: { limit?: number; concurrency?: number; dead
 
 /**
  * Synchro « en direct » : quand quelqu'un ouvre son espace ou un lien de suivi, les outils de l'organisation
- * sont resynchronisés s'ils ne l'ont pas été depuis 10 minutes (une seule fois par tranche de 10 minutes).
+ * sont resynchronisés s'ils ne l'ont pas été depuis une minute (une seule fois par minute, même avec plusieurs visiteurs).
+ * La page se recharge elle-même toutes les 60 s (LiveRefresh) : les nouveaux appels arrivent donc en 1 à 2 minutes.
  */
 export async function syncIfStale(orgId: string) {
   try {
-    const cutoff = new Date(Date.now() - 10 * 60e3);
+    const cutoff = new Date(Date.now() - 55e3); // 55 s : le rechargement suivant (60 s) relance bien la synchro
     const stale = await db.integration.findMany({ where: { orgId, status: { not: "paused" }, provider: { not: "webhook" }, OR: [{ lastSyncAt: null }, { lastSyncAt: { lt: cutoff } }] }, select: { id: true } });
-    const slot = Math.floor(Date.now() / 600e3);
+    const slot = Math.floor(Date.now() / 60e3);
     for (const i of stale) {
       if ((await bumpUsage(`autosync:${i.id}:${slot}`)) !== 1) continue; // déjà lancée par un autre visiteur
       await syncAndAnalyze(i.id).catch(() => {});
