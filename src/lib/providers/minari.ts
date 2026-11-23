@@ -64,6 +64,10 @@ export const minari: Provider = {
       const rows: MinariCall[] = res.data || res.calls || [];
       yield rows.filter((r) => !lists.length || lists.includes(str(r.list?.list_id))).map(map);
       if (!res.has_more || !res.next_cursor) break;
+      // Minari renvoie les appels du plus récent au plus ancien et ne filtre qu'au jour près :
+      // dès qu'une page atteint des appels antérieurs à `since`, la suite est déjà connue (évite la limite de requêtes).
+      const oldest = rows.length ? new Date(str(rows[rows.length - 1]?.started_at)).getTime() : NaN;
+      if (Number.isFinite(oldest) && oldest < since.getTime()) break;
       cursor = res.next_cursor;
     }
   },
