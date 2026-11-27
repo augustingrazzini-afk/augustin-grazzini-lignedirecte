@@ -27,7 +27,7 @@ export const LEGAL = {
     { name: "Anthropic PBC", role: "Analyse IA des appels et des réponses (résumés, objections, briefs)", where: "États-Unis" },
     { name: "Gladia SAS", role: "Transcription des enregistrements d'appels", where: "UE (France)" },
   ],
-  updatedAt: "11 novembre 2026",
+  updatedAt: "27 novembre 2026",
 };
 
 export const isTodo = (v: string) => v === TODO;

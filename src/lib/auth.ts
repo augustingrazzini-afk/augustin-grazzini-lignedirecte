@@ -1,3 +1,4 @@
+import { LEGAL } from "./legal";
 import { db } from "./db";
 import { randomToken, sha256 } from "./crypto";
 import { sendLoginEmail, type LinkPurpose } from "./email";
@@ -39,7 +40,8 @@ export async function consumeToken(token: string) {
   if (!row || row.usedAt || row.expiresAt < new Date() || row.purpose === "reset") return null;
   const upd = await db.loginToken.updateMany({ where: { id: row.id, usedAt: null }, data: { usedAt: new Date() } });
   if (upd.count !== 1) return null;
-  const confirm = { emailVerifiedAt: new Date(), ...(row.purpose === "verify" && row.payload ? { passwordHash: row.payload, failedLogins: 0, lockedUntil: null } : {}) };
+  // Inscription : la case « J'accepte les conditions générales » est obligatoire pour recevoir ce lien ; on garde la date et la version.
+  const confirm = { emailVerifiedAt: new Date(), ...(row.purpose === "verify" && row.payload ? { passwordHash: row.payload, failedLogins: 0, lockedUntil: null, termsAcceptedAt: row.createdAt, termsVersion: LEGAL.updatedAt } : {}) };
   const user = await db.user.upsert({ where: { email: row.email }, update: confirm, create: { email: row.email, ...confirm } });
   return { user, redirect: row.redirect ?? (row.purpose === "verify" ? "/onboarding" : null) };
 }

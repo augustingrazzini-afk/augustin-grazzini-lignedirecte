@@ -29,7 +29,7 @@ export function paymentLink(plan: Plan, email: string, orgId: string): string | 
   return u.toString();
 }
 /** Carte obligatoire pour démarrer l'essai : clé live, ou liens de paiement + notifications Stripe configurés. */
-export const cardRequired = () => stripeEnabled() || (isStripeLink(process.env.STRIPE_LINK_SOLO) && isStripeLink(process.env.STRIPE_LINK_AGENCY) && !!process.env.STRIPE_LINK_WEBHOOK_SECRET);
+export const cardRequired = () => stripeEnabled() || (isStripeLink(process.env.STRIPE_LINK_AGENCY) && !!process.env.STRIPE_LINK_WEBHOOK_SECRET);
 export const portalLink = () => (isStripeLink(process.env.STRIPE_PORTAL_LINK) ? process.env.STRIPE_PORTAL_LINK! : null);
 
 let s: Stripe | null = null;
@@ -153,6 +153,8 @@ export async function applySubscription(sub: Stripe.Subscription) {
   await db.organization.update({
     where: { id: org.id },
     data: { stripeSubscriptionId: sub.id, stripeCustomerId: customerId, subscriptionStatus: status, ...(plan ? { plan } : {}),
+      // Fin de contrat : point de départ du délai de 30 jours avant suppression des données (remis à zéro si l'abonnement reprend).
+      endedAt: status === "canceled" ? (org.endedAt ?? new Date()) : null,
       // Formule Équipe : nombre de commerciaux payés (quantité de l'abonnement).
       seats: Math.max(1, sub.items.data.reduce((n, it) => n + (it.quantity || 0), 0)),
       // Résiliation programmée chez Stripe (portail, tableau de bord) : affichée dans Trustpipe, annulée si le client se ravise.

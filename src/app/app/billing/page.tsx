@@ -60,12 +60,15 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>
-              <div className="banner" style={{ margin: "0 0 12px" }}>Résiliation enregistrée le {org.cancelRequestedAt.toLocaleDateString("fr-FR")} : aucun autre prélèvement ne sera fait. {org.subscriptionStatus === "trialing" ? `Accès jusqu'au ${trialEnd}.` : "Accès jusqu'à la fin du mois en cours."}</div>
-              <form action={requestCancel}><input type="hidden" name="undo" value="1" /><button className="btn primary">Annuler la résiliation</button></form>
+              <div className="banner" style={{ margin: "0 0 12px" }}>Résiliation enregistrée le {org.cancelRequestedAt.toLocaleDateString("fr-FR")}. Vous gardez l&apos;accès jusqu&apos;à la fin de la période payée.</div>
+              {portal ? <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Reprendre mon abonnement sur Stripe</a>
+                : <form action={requestCancel}><input type="hidden" name="undo" value="1" /><button className="btn primary">Annuler la résiliation</button></form>}
             </> : <div className="row" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}>
               {portal && <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Gérer mon abonnement</a>}
-              <form action={requestCancel}><button className="btn danger">Résilier mon abonnement</button></form>
-              <p className="muted small" style={{ width: "100%", margin: "4px 0 0" }}>Résiliation en un clic, sans engagement{org.subscriptionStatus === "trialing" ? " : rien n'est prélevé si vous résiliez avant la fin de l'essai" : ""}. « Gérer mon abonnement » ouvre Stripe pour changer de carte ou de formule et voir vos factures.</p>
+              {portal
+                ? <a className="btn danger" href={portal} target="_blank" rel="noopener noreferrer">Résilier mon abonnement</a>
+                : <form action={requestCancel}><button className="btn danger">Résilier mon abonnement</button></form>}
+              <p className="muted small" style={{ width: "100%", margin: "4px 0 0" }}>Sans engagement. {portal ? "La résiliation se fait sur Stripe, notre prestataire de paiement : connectez-vous avec l'email de votre abonnement, cliquez sur « Annuler l'abonnement », et c'est effectif tout de suite, sans intervention de notre part. Vous gardez l'accès jusqu'à la fin de la période payée. " : ""}« Gérer mon abonnement » ouvre aussi Stripe pour changer de carte, de formule ou de nombre de commerciaux, et voir vos factures.</p>
             </div>
           ) : live ? (
             live.cancel_at_period_end || live.cancel_at

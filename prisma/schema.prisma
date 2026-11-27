@@ -19,6 +19,8 @@ model User {
   emailVerifiedAt DateTime? // adresse confirmée (lien cliqué)
   failedLogins    Int       @default(0)
   lockedUntil     DateTime? // blocage temporaire après trop d'essais ratés
+  termsAcceptedAt DateTime? // acceptation des conditions générales à l'inscription
+  termsVersion    String? // version acceptée (date de mise à jour des conditions)
   sessionVersion  Int       @default(0) // augmente à chaque déconnexion ou changement de mot de passe : révoque les sessions
   createdAt    DateTime       @default(now())
   memberships  Membership[]
@@ -51,6 +53,8 @@ model Organization {
   offer                String        @default("")
   slackWebhook         String? // alertes de relance dans Slack
   cancelRequestedAt    DateTime? // résiliation demandée en un clic (paiement par liens Stripe)
+  endedAt              DateTime? // fin de contrat (abonnement résilié) : les données sont supprimées 30 jours après
+  purgedAt             DateTime? // données de prospection supprimées (fin de contrat + 30 jours)
   createdAt            DateTime      @default(now())
   members              Membership[]
   clients              Client[]
