@@ -1,272 +1,281 @@
 import Link from "next/link";
+import "@fontsource-variable/unbounded";
+import "@fontsource/ibm-plex-mono/400.css";
+import "@fontsource/ibm-plex-mono/500.css";
+import "./studio.css";
 import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { currentUser } from "@/lib/session";
 import { PLANS, euros } from "@/lib/billing";
-import { Logo } from "@/components/Logo";
-import { BRAND_LOGOS } from "@/lib/brand-logos";
-import { LegalFooter } from "@/components/LegalPage";
-import { Mascot } from "@/components/client/Mascot";
+import { LEGAL } from "@/lib/legal";
 
-/** Les captures viennent de l'application elle-même, avec des données de démonstration fictives. */
-const SECTIONS = [
-  {
-    img: "/screens/reporting-client.jpg",
-    tag: "Reporting automatique",
-    title: "Le reporting se fait tout seul",
-    text: "Plus de tableau Excel le vendredi soir, plus de capture d'écran à envoyer. Chaque client a son tableau de bord : appels, décrochés, conversations et rendez-vous, rangés automatiquement selon ses listes d'appels. Vous passez d'un client à l'autre en un clic.",
-    points: ["Un espace par client, une ou plusieurs listes", "Par jour, semaine, mois, trimestre ou année", "Rendez-vous, taux de décroché, entonnoir"],
-  },
-  {
-    img: "/screens/fiche-appel.jpg",
-    tag: "Analyse de chaque appel",
-    title: "Chaque appel, résumé et décortiqué par l'IA",
-    text: "Dès qu'un appel arrive, l'IA écrit le résumé, repère les objections et vérifie si elles ont été passées. La transcription est juste à côté, et l'enregistrement quand votre outil le fournit.",
-    points: ["Résumé en 3 à 5 points", "Objections classées : timing, budget, pas décideur…", "Transcription de chaque conversation"],
-  },
-  {
-    img: "/screens/objections.jpg",
-    tag: "Intelligence terrain",
-    title: "Ce que vos appels disent du marché",
-    text: "Les objections qui reviennent, la part réellement passée, les créneaux où les prospects décrochent : vos appels deviennent des données que vous et votre client pouvez exploiter.",
-    points: ["Top des objections sur la période", "Part passée et non passée", "Meilleur créneau d'appel, heure de Paris"],
-    narrow: true,
-  },
-  {
-    img: "/screens/appels.jpg",
-    tag: "Appels et équipe",
-    title: "Toutes vos conversations, et chaque commercial",
-    text: "Minari, lemlist, Aircall, Ringover, JustCall, Allo, Close… ou un simple CSV : tous les appels arrivent ici. Filtrez par rendez-vous, par objection ou par commercial, et cherchez un prospect en une seconde.",
-    points: ["Synchronisation automatique", "Performance par commercial", "Recherche plein texte"],
-  },
-  {
-    img: "/screens/relances.jpg",
-    tag: "Relances",
-    title: "Plus aucun « rappelez-moi en mars » oublié",
-    text: "Quand un prospect demande à être rappelé, la relance est créée automatiquement avec la bonne date. Chaque matin, la liste de ce qui est à faire.",
-    points: ["Relances datées automatiquement", "Récapitulatif chaque matin par email", "Fait, reporté ou ignoré en un clic"],
-  },
-];
+/**
+ * Page d'accueil « Studio / On Air » : la journée de prospection présentée comme une session d'enregistrement.
+ * Chaque appel est une piste, chaque rendez-vous s'allume. Les chiffres et noms affichés sont des exemples fictifs.
+ */
 
-/** L'intelligence terrain : ce que l'IA tire des appels, pour vous et pour votre client. */
-const INTEL = [
-  { icon: "🧱", title: "Ce qui bloque", text: "Les objections classées et comptées : timing, budget, pas décideur, déjà équipé… et la part réellement passée au téléphone." },
-  { icon: "🎯", title: "Ce que dit le marché", text: "Besoins exprimés, projets en cours, concurrents cités : posez la question à l'assistant, il relit les appels pour vous répondre." },
-  { icon: "⏰", title: "Quand appeler", text: "La carte des créneaux où vos prospects décrochent vraiment, par jour et par heure." },
-  { icon: "🤝", title: "Ce qui fait signer", text: "Les appels qui finissent en rendez-vous, résumés : ce qui a été dit, l'angle qui a marché, la prochaine étape." },
-];
+/** Générateur pseudo-aléatoire déterministe : le rendu serveur et le rendu client restent identiques. */
+function rng(seed: number) {
+  return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
+}
 
-/** Ce que le client du commercial peut faire, en direct : la promesse principale du produit. */
-const CLIENT_PERKS = [
-  { icon: "🔴", title: "Il suit ses appels en live", text: "Chaque appel passé pour lui apparaît dans la minute. Il voit qui a été appelé, ce qui s'est dit et ce qui a été obtenu, sans rien vous demander." },
-  { icon: "📝", title: "Il lit chaque appel", text: "La transcription et le résumé de chaque conversation, avec les objections du prospect. Et l'enregistrement audio quand votre outil le fournit." },
-  { icon: "📅", title: "Il prépare ses rendez-vous", text: "Directement dans son espace, il écrit « Prépare mon RDV de jeudi avec Talentis RH » : l'assistant IA intégré lui dit ce que le prospect a dit, ce qui bloque et l'angle à prendre." },
-  { icon: "🤝", title: "Il fait débriefer ses rendez-vous", text: "Il dépose la transcription de son rendez-vous : l'IA lui dit ce qui a marché, ce qui a manqué et la prochaine étape, en reprenant ce qui s'est dit au téléphone." },
-  { icon: "📈", title: "Il voit ses résultats", text: "Appels, décrochés, conversations et rendez-vous, par jour, semaine ou mois. Toujours à jour." },
-  { icon: "✨", title: "Il comprend son marché", text: "Ce qui bloque, ce que disent les prospects, quand ils décrochent : il pose la question à l'assistant intégré, qui relit ses appels pour lui." },
-];
+/** Onde sonore d'un appel : orange pour la partie déjà « jouée », gris pour la suite. */
+function Wave() {
+  const r = rng(11), W = 1180, H = 300, n = 236, bw = W / n;
+  const bars = Array.from({ length: n }, (_, i) => {
+    let env = 0.25 + 0.75 * Math.abs(Math.sin(i / 9)) * (0.6 + 0.4 * Math.sin(i / 31));
+    if (i % 47 < 6) env *= 0.15;
+    const h = Math.max(3, env * (0.55 + r() * 0.45) * 230);
+    return { x: i * bw + 1, y: H / 2 - h / 2, h };
+  });
+  const rects = (fill: string) => bars.map((b, i) => <rect key={i} x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={(bw - 2).toFixed(1)} height={b.h.toFixed(1)} rx="1.5" fill={fill} />);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs><clipPath id="st-played"><rect x="0" y="0" height={H} width="0"><animate attributeName="width" values={`0;${W}`} dur="14s" repeatCount="indefinite" /></rect></clipPath></defs>
+      <g>{rects("#3A3731")}</g>
+      <g clipPath="url(#st-played)">{rects("#FF5A1F")}</g>
+      <line x1="0" x2="0" y1="0" y2={H} stroke="#FF5A1F" strokeWidth="2" vectorEffect="non-scaling-stroke">
+        <animate attributeName="x1" values={`0;${W}`} dur="14s" repeatCount="indefinite" />
+        <animate attributeName="x2" values={`0;${W}`} dur="14s" repeatCount="indefinite" />
+      </line>
+    </svg>
+  );
+}
 
-/** Pourquoi le commercial y gagne : ce qui le démarque. */
-const STANDOUT = [
-  { icon: "🏆", title: "Vous montrez tout", text: "Peu de commerciaux donnent un accès en direct à leurs appels. Vous, vous ouvrez tout, appel par appel." },
-  { icon: "🤝", title: "Vos clients vous font confiance", text: "Plus besoin de prouver votre travail : il est sous leurs yeux. Des clients rassurés restent plus longtemps." },
-  { icon: "💬", title: "Un argument pour signer", text: "En rendez-vous, dites-le : « vous suivrez chaque appel en direct, et votre IA préparera vos rendez-vous ». Ça fait la différence." },
-  { icon: "⏱️", title: "Zéro reporting à faire", text: "Plus de tableau à remplir le vendredi soir. Le suivi se fait tout seul, en direct." },
+const WORDS = ["Bonjour", "je vous appelle au sujet de vos coûts d'énergie", "on en parle souvent avec les artisans", "si vous pouvez me montrer ça"];
+const NOW = "jeudi, je vous donne un quart d'heure";
+const AFTER = ["parfait, 15 h 30 ?", "ça me va", "je vous envoie l'invitation"];
+
+type Clip = { left: number; width: number; kind: "c" | "v" | "k" | "r"; label?: string };
+const LANES: { name: string; sub: string }[] = [
+  { name: "Énergie · artisans", sub: "412 contacts" },
+  { name: "Énergie · PME", sub: "280 contacts" },
+  { name: "Rappels", sub: "du jour" },
+  { name: "Nouveaux", sub: "import du matin" },
 ];
+/** Pistes de la journée : chaque case est un appel (exemple fictif). */
+function laneClips(i: number): Clip[] {
+  const r = rng(101 + i * 17), out: Clip[] = [];
+  let x = r() * 3;
+  while (x < 60) {
+    const t = r();
+    let w = 1.2 + r() * 3.3, kind: Clip["kind"] = "c", label: string | undefined;
+    if (t > 0.72) { kind = "v"; w = 4 + r() * 4; label = `conv. ${1 + Math.floor(r() * 3)}:${String(10 + Math.floor(r() * 49))}`; }
+    if (t > 0.93) { kind = "k"; w = 5; label = "rappel"; }
+    out.push({ left: x, width: w, kind, label });
+    x += w + 0.6 + r() * 1.6;
+  }
+  const rdv: Clip | null = i === 0 ? { left: 46, width: 12, kind: "r", label: "RDV · Atelier Morel" } : i === 1 ? { left: 12, width: 12, kind: "r", label: "RDV · Nova Habitat" } : null;
+  if (!rdv) return out;
+  // Le rendez-vous prend sa place : on retire les appels qui le chevaucheraient.
+  return [...out.filter((c) => c.left + c.width < rdv.left - 0.6 || c.left > rdv.left + rdv.width + 0.6), rdv];
+}
+
+const CLIENT = [
+  ["Il suit ses appels en direct", "Chaque appel passé pour lui apparaît dans la minute : qui a été appelé, ce qui s'est dit, ce qui a été obtenu."],
+  ["Il lit chaque conversation", "Le résumé, la transcription et les objections du prospect. Et l'enregistrement quand votre outil le fournit."],
+  ["Il prépare ses rendez-vous", "L'assistant IA intégré lui dit ce que le prospect a dit, ce qui bloque et l'angle à prendre."],
+  ["Il fait débriefer ses rendez-vous", "Il dépose la transcription de sa visio : l'IA lui dit ce qui a marché, ce qui a manqué et la suite."],
+  ["Il voit ses résultats", "Appels, décrochés, conversations, rendez-vous : par jour, semaine ou mois, toujours à jour."],
+  ["Il comprend son marché", "Ce qui bloque, quand les prospects décrochent, ce qu'ils disent : il pose la question, l'assistant répond."],
+] as const;
+
+const DIALERS = ["Minari", "lemlist", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "HubSpot", "Skipcall"];
 
 /** Arguments de confiance : uniquement ce qui est réellement en place. */
 const SECURITY = [
-  { icon: "🇫🇷", title: "Hébergé en France", text: "La base de données est à Paris, l'application tourne à Paris. Vos données ne quittent pas l'Union européenne, sauf pour l'analyse IA des appels." },
-  { icon: "🔐", title: "Connexions chiffrées", text: "Les accès à vos outils (Minari, Aircall…) sont chiffrés en AES-256 et ne sont jamais affichés, même à vous." },
-  { icon: "🧱", title: "Cloisonnement par client", text: "Chaque client ne voit que ses propres appels. Ce cloisonnement est vérifié par des tests automatiques à chaque mise à jour." },
-  { icon: "👁️", title: "Lecture seule", text: "Trustpipe lit vos outils mais n'écrit rien, n'appelle personne et n'envoie aucun email en votre nom." },
-  { icon: "📵", title: "Moins de données personnelles", text: "Les numéros de téléphone des prospects ne sont pas conservés : seuls les 4 derniers chiffres sont gardés." },
-  { icon: "🔗", title: "Vous gardez la main", text: "Les liens de suivi sont secrets et désactivables en un clic. Vous déconnectez un outil quand vous voulez." },
-];
+  ["Hébergé en France", "Base de données et application à Paris. Vos données ne quittent pas l'Union européenne, sauf pour l'analyse IA des appels."],
+  ["Connexions chiffrées", "Les accès à vos outils sont chiffrés en AES-256 et ne sont jamais affichés, même à vous."],
+  ["Cloisonnement par client", "Chaque client ne voit que ses propres appels, vérifié par des tests automatiques à chaque mise à jour."],
+  ["Lecture seule", "Trustpipe lit vos outils mais n'écrit rien, n'appelle personne et n'envoie aucun email en votre nom."],
+  ["Moins de données personnelles", "Les numéros des prospects ne sont pas conservés : seuls les 4 derniers chiffres sont gardés."],
+  ["Vous gardez la main", "Liens de suivi secrets et désactivables en un clic. Vous déconnectez un outil quand vous voulez."],
+] as const;
 
 const FAQ: [string, string][] = [
-  ["Qui peut voir mes données ?", "Vous et les membres que vous invitez dans votre espace. Vos clients ne voient que ce qui les concerne, via leur lien de suivi ou leur accès client, en lecture seule."],
   ["Est-ce compliqué à mettre en place ?", "Non. Vous connectez votre outil d'appel (une clé à coller, ou un clic pour Minari), vous créez votre client, vous lui envoyez son lien. Comptez 2 minutes. Votre client, lui, n'a rien à faire : il ouvre le lien."],
   ["Mon client voit-il tout ce que je fais ?", "Non. Il ne voit que les appels rangés chez lui, c'est-à-dire ceux de ses listes d'appels. Vos autres clients et vos réglages restent invisibles."],
+  ["Qui peut voir mes données ?", "Vous et les membres que vous invitez. Vos clients ne voient que ce qui les concerne, via leur lien de suivi ou leur accès client, en lecture seule."],
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Comment se passe le paiement ?", "Par carte, chaque mois, via Stripe : nous ne voyons jamais votre numéro de carte. Sans engagement : vous résiliez en un clic depuis la page Abonnement, et aucun autre prélèvement n'est fait."],
-  ["Et si je n'utilise pas Minari ?", "lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez simplement l'adresse de son API et votre clé : Trustpipe reconnaît vos appels automatiquement. Zapier, Make, n8n et l'import CSV marchent aussi."],
+  ["Et si je n'utilise pas Minari ?", "lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez l'adresse de son API et votre clé. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
 export default async function Home() {
   const u = await currentUser();
+  const start = u ? "/app" : "/inscription";
+  const startLabel = u ? "OUVRIR MON ESPACE" : "COMMENCER";
   return (
-    <div className="landing">
+    <div className="studio">
       <VisitBeacon page="/" />
-      <header className="lp-nav">
-        <Logo size={24} />
-        <div className="row" style={{ gap: 8 }}>
-          <a className="btn lp-hide-sm" href="#tarifs">Tarifs</a>
-          <Link className="btn lp-hide-sm" href={u ? "/app" : "/login"}>{u ? "Ouvrir mon espace" : "Connexion"}</Link>
-          {!u && <Link className="btn primary" href="/inscription">Commencer</Link>}
-        </div>
+
+      <header className="st-rail">
+        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><span className="st-dot" aria-hidden="true" />TRUSTPIPE</Link>
+        <nav className="st-links" aria-label="Sections">
+          <a href="#session">Vue client</a>
+          <a href="#assistant">Assistant</a>
+          <a href="#demo">Démo</a>
+          <a href="#integrations">Intégrations</a>
+          <a href="#tarifs">Tarifs</a>
+          {!u && <Link className="st-push st-keep" href="/login">Connexion</Link>}
+        </nav>
+        <Link className="st-go" href={start}>{startLabel} <span aria-hidden="true">→</span></Link>
       </header>
 
-      <section className="lp-hero">
-        <span className="lp-tag lp-live"><i aria-hidden="true" />Accès en direct pour vos clients</span>
-        <h1>Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h1>
-        <p className="lp-sub">Fini les reportings clients faits à la main.</p>
-        <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, lit les transcriptions et les résumés, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer.</p>
-        <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
-          <Link className="btn primary lp-cta" href="/inscription">Commencer maintenant</Link>
-          <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
-        </div>
-        <p className="lp-note">Prêt en 2 minutes : connectez votre outil d&apos;appel, envoyez le lien. Rien à installer, rien à préparer.</p>
-        <p className="lp-note">🔒 Données hébergées en France, chiffrées et cloisonnées client par client. Conforme RGPD.</p>
-        <figure className="lp-shot lp-shot-hero">
-          <img src="/screens/suivi-chatbot.jpg" alt="Espace de suivi d'un client : ses appels et rendez-vous en direct, avec son assistant IA" width={2880} height={1800} />
-        </figure>
-      </section>
-
-      <section id="clients" className="lp-client lp-client-top">
-        <div className="lp-client-head">
-          <div className="lp-client-badge"><Mascot size={44} /><span>Ce que votre client peut faire</span></div>
-          <h2>Votre client suit tout en direct.<br />Et l&apos;IA intégrée prépare ses rendez-vous.</h2>
-          <p>Un lien, et c&apos;est tout : pas de compte, pas de mot de passe, rien à installer. Il ouvre la page et voit ses appels, ses résultats et ses rendez-vous, mis à jour en continu. L&apos;assistant IA est intégré, juste à côté : pas d&apos;autre outil à ouvrir.</p>
-        </div>
-        <div className="lp-client-perks">
-          {CLIENT_PERKS.map((c) => <div key={c.title}><span className="lp-client-ico" aria-hidden="true">{c.icon}</span><b>{c.title}</b><p>{c.text}</p></div>)}
-        </div>
-        <div className="lp-client-shots">
-          <figure className="lp-shot"><img src="/screens/suivi-client.jpg" alt="Le client suit ses appels et rendez-vous en direct" loading="lazy" /><figcaption>Ses appels et ses résultats, en direct</figcaption></figure>
-          <figure className="lp-shot"><img src="/screens/client-assistant.jpg" alt="Le client prépare son rendez-vous avec l'assistant IA" loading="lazy" /><figcaption>L&apos;assistant IA, intégré à son espace, prépare ses rendez-vous</figcaption></figure>
-        </div>
-        <ol className="lp-easy">
-          <li><b>1</b><span>Vous connectez votre outil d&apos;appel</span></li>
-          <li><b>2</b><span>Vous envoyez le lien à votre client</span></li>
-          <li><b>3</b><span>Il suit tout en direct. C&apos;est tout.</span></li>
-        </ol>
-        <ul className="lp-client-list">
-          <li>Un lien secret par client, désactivable à tout moment</li>
-          <li>Il ne voit que ses propres appels</li>
-          <li>Rien à installer, aucun compte à créer</li>
-        </ul>
-        <div className="lp-cta-row"><Link className="btn lp-cta lp-cta-light" href="/inscription">Offrir l&apos;accès en direct à mes clients</Link></div>
-      </section>
-
-      <section id="demarquez-vous" className="lp-intel">
-        <span className="lp-tag">Pour vous, commercial</span>
-        <h2 className="lp-h2">Donner un accès en direct, ça vous démarque</h2>
-        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Vos clients ne reçoivent plus un rapport en fin de mois : ils voient votre travail au moment où il se fait.</p>
-        <div className="lp-intel-grid">
-          {STANDOUT.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
-        </div>
-      </section>
-
-      <section className="lp-strip">
-        {[["Accès client en direct", "appels, transcriptions, résultats"], ["Assistant IA intégré", "il prépare ses rendez-vous"], ["Reporting automatique", "rien à remplir"], ["Tous vos dialers", "Minari, lemlist, Aircall, JustCall…"]].map(([a, b]) => (
-          <div key={a}><b>{a}</b><span>{b}</span></div>
-        ))}
-      </section>
-
-      <section id="intelligence" className="lp-intel">
-        <span className="lp-tag">Intelligence terrain</span>
-        <h2 className="lp-h2">Et l&apos;IA analyse chaque appel</h2>
-        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Ce qu&apos;un manager mettrait des heures à repérer, tiré automatiquement de vos appels. Pour vous, et pour votre client.</p>
-        <div className="lp-intel-grid">
-          {INTEL.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
-        </div>
-      </section>
-
-
-      <section id="video" className="lp-video">
-        <h2 className="lp-h2">Trustpipe en 1 minute</h2>
-        <figure className="lp-shot">
-          <video controls playsInline preload="none" poster="/video/trustpipe-poster.jpg" width={1920} height={1080}>
-            <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
-          </video>
-        </figure>
-        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Commencer maintenant</Link><span className="lp-note">Sans engagement, résiliable en un clic</span></div>
-      </section>
-
-      <div id="produit">
-        {SECTIONS.map((s, i) => (
-          <section key={s.img} className={`lp-feature${i % 2 ? " rev" : ""}`}>
-            <div className="lp-copy">
-              <span className="lp-tag">{s.tag}</span>
-              <h2>{s.title}</h2>
-              <p>{s.text}</p>
-              <ul>{s.points.map((p) => <li key={p}>{p}</li>)}</ul>
-              <Link className="btn primary lp-cta-inline" href="/inscription">Commencer maintenant</Link>
+      <section className="st-hero">
+        <div className="st-vert" aria-hidden="true"><span className="st-rec"><span className="st-dot" />REC · EN DIRECT</span><span className="big">ON AIR</span></div>
+        <div>
+          <div className="st-hc">
+            <h1 className="st-h1">Chaque appel.<br /><span className="st-thin">Chez votre client.</span><br /><span className="st-o">À la seconde.</span></h1>
+            <div className="st-hrow">
+              <div>
+                <p>Votre client ouvre un lien et suit sa prospection en direct : <b>chaque appel, chaque résumé, chaque rendez-vous</b>, au moment où vous raccrochez. Et l&apos;assistant IA intégré prépare ses rendez-vous. Le reporting ne s&apos;écrit plus : il se regarde.</p>
+                <p className="st-note">SANS ENGAGEMENT · PRÊT EN 2 MINUTES · DONNÉES EN FRANCE</p>
+              </div>
+              <div className="st-btns">
+                <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "CRÉER MON PREMIER LIEN"} <span aria-hidden="true">→</span></Link>
+                <a className="st-btn g" href="#session">VOIR CE QUE VOIT LE CLIENT <span aria-hidden="true">↓</span></a>
+              </div>
             </div>
-            <figure className={`lp-shot${s.narrow ? " narrow" : ""}`}>
-              <img src={s.img} alt={s.title} loading="lazy" />
-            </figure>
-          </section>
-        ))}
-      </div>
-
-      <section id="connecteurs" className="lp-tools">
-        <span className="lp-tag">Connecteurs</span>
-        <h2 className="lp-h2">Connectez vos outils, les stats arrivent toutes seules</h2>
-        <p className="lead" style={{ margin: "0 auto 32px", textAlign: "center" }}>Choisissez votre outil d&apos;appel, connectez votre compte, c&apos;est tout. Vos appels remontent automatiquement, client par client.</p>
-        <div className="lp-tools-grid lp-tools-2">
-          {[
-            ["Outils d'appel", ["Minari", "lemlist", "Skipcall", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "HubSpot"]],
-            ["Et le reste", ["Votre outil (clé API)", "Zapier", "Make", "n8n", "Import CSV"]],
-          ].map(([ch, tools]) => (
-            <div key={ch as string} className="card"><h2>{ch}</h2><div className="lp-chips">{(tools as string[]).map((t) => { const l = BRAND_LOGOS[t.toLowerCase()]; return <span key={t}>{l && <svg viewBox="0 0 24 24" width="14" height="14" fill={l.hex} aria-hidden="true"><path d={l.path} /></svg>}{t}</span>; })}</div></div>
-          ))}
-        </div>
-        <ol className="lp-steps">
-          <li><b>1</b>Choisissez votre outil</li>
-          <li><b>2</b>Connectez votre compte</li>
-          <li><b>3</b>Vos stats arrivent, en direct</li>
-        </ol>
-        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Connecter mon premier outil</Link></div>
-      </section>
-
-      <section id="securite" className="lp-sec">
-        <span className="lp-tag">Sécurité et RGPD</span>
-        <h2 className="lp-h2">Vos données et celles de vos clients sont protégées</h2>
-        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Trustpipe lit vos outils, rien de plus. Vos données restent en France, chiffrées et cloisonnées client par client.</p>
-        <div className="lp-sec-badges"><span>🇫🇷 Hébergé en France</span><span>🔒 Chiffrement AES-256</span><span>🇪🇺 Conforme RGPD</span></div>
-        <div className="lp-sec-grid">
-          {SECURITY.map((x) => <div key={x.title} className="card"><span className="lp-sec-ico" aria-hidden="true">{x.icon}</span><b>{x.title}</b><p>{x.text}</p></div>)}
+          </div>
+          <div className="st-wave">
+            <span className="st-who">PISTE 289 · <b>ATELIER MOREL</b> · 02:14</span>
+            <Wave />
+            <div className="st-words" aria-hidden="true"><div>
+              {[0, 1].map((k) => (
+                <span key={k} style={{ display: "contents" }}>
+                  {WORDS.map((w) => <span key={w + k}>{w}</span>)}
+                  <span className="now">{NOW}</span>
+                  {AFTER.map((w) => <span key={w + k}>{w}</span>)}
+                </span>
+              ))}
+            </div></div>
+          </div>
         </div>
       </section>
 
-      <section id="faq" className="lp-faq">
-        <h2 className="lp-h2">Questions fréquentes</h2>
-        <div className="lp-faq-list">
-          {FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}
+      <section className="st-cnt" aria-label="Exemple de suivi en direct">
+        <div className="lab"><span>Exemple · Client mystère</span><span className="st-mono" style={{ fontSize: 11, color: "var(--o)", letterSpacing: ".14em" }}>● AUJOURD&apos;HUI</span></div>
+        <div><small>Appels</small><b>289</b></div>
+        <div><small>Décroché</small><b>11,1%</b></div>
+        <div><small>Conversations</small><b>32</b></div>
+        <div><small>Rendez-vous</small><b className="st-o">02</b></div>
+      </section>
+
+      <section id="session" className="st-sec">
+        <div className="st-side"><div className="st-n">01</div><small>La session<br />de votre client</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Sa journée de prospection, <span className="st-thin">piste par piste.</span></h2>
+          <p className="st-lead">Chaque appel est une piste. Les conversations ressortent, les rendez-vous s&apos;allument. Votre client voit en un coup d&apos;œil le travail fait pour lui.</p>
+          <div className="st-daw" aria-hidden="true">
+            <div className="st-ruler"><span>Listes</span><div className="st-ticks">{Array.from({ length: 10 }, (_, h) => <span key={h}>{8 + h} h</span>)}</div></div>
+            {LANES.map((l, i) => (
+              <div key={l.name} className="st-lane">
+                <div className="st-ln">{l.name}<small>{l.sub}</small></div>
+                <div className="st-tr">{laneClips(i).map((c, j) => <div key={j} className={`st-clip ${c.kind}`} style={{ left: `${c.left.toFixed(1)}%`, width: `${c.width.toFixed(1)}%` }}>{c.label}<i /></div>)}</div>
+              </div>
+            ))}
+            <div className="st-playh" />
+          </div>
+          <div className="st-legend"><span><i style={{ background: "#2A2824", border: "1px solid #3A3731" }} />Pas de réponse</span><span><i style={{ background: "rgba(237,233,225,.25)" }} />Conversation</span><span><i style={{ background: "rgba(198,255,61,.35)" }} />À rappeler</span><span><i style={{ background: "var(--o)" }} />Rendez-vous</span></div>
+          <div className="st-trio">
+            <div><div className="st-big">1</div><h4>Un lien.<br />Aucun compte.</h4><p>Votre client clique et suit tout. Rien à installer, désactivable en un clic.</p></div>
+            <div><div className="st-big">IA</div><h4>Chaque appel résumé et transcrit.</h4><p>Le résumé, les objections et la prochaine étape, écrits dès que vous raccrochez.</p></div>
+            <div><div className="st-big st-o">0</div><h4>Reporting à rédiger.</h4><p>Plus de tableau le vendredi soir. Votre client voit le travail, il reste.</p></div>
+          </div>
+          <div className="st-list">
+            {CLIENT.map(([t, d], i) => <div key={t}><span>{String(i + 1).padStart(2, "0")}</span><div><b>{t}</b><p>{d}</p></div></div>)}
+          </div>
         </div>
       </section>
 
-      <section id="tarifs" className="lp-pricing">
-        <h2 className="lp-h2">Un prix simple</h2>
-        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Sans engagement, résiliable en un clic.</p>
-        <div className="grid g-2e">
-          {(["solo", "agency"] as const).map((id) => (
-            <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
-              <h2>{PLANS[id].name}</h2>
-              <div className="amt">{euros(PLANS[id].price)} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois</span></div>
-              <ul>
-                <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
-                <li>Tous les dialers : Minari, lemlist, Aircall, Ringover… ou CSV</li>
-                <li>Analyse IA de chaque appel et intelligence terrain</li>
-                <li>Lien de suivi en direct et assistant IA intégré pour vos clients</li>
-                <li>Relances et brief pré-meeting</li>
-                {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
-              </ul>
-              <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/inscription" style={{ marginTop: 8 }}>Choisir {PLANS[id].name}</Link>
-            </div>
-          ))}
+      <section id="assistant" className="st-sec">
+        <div className="st-side"><div className="st-n">02</div><small>L&apos;assistant<br />intégré</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Il a écouté toutes les pistes. <span className="st-thin">Votre client lui parle.</span></h2>
+          <p className="st-lead">L&apos;assistant est intégré à l&apos;espace de votre client : pas d&apos;outil en plus, pas de copier-coller. Il connaît chaque appel passé pour lui.</p>
+          <div className="st-ai">
+            <div className="q"><div className="st-prompt"><span className="u1">client-mystere ~</span><br />prépare mon rendez-vous de jeudi avec Atelier Morel<span className="st-cur" /></div>
+              <div className="st-chips"><span>brief pré-rendez-vous</span><span>objections de la semaine</span><span>débrief de visio</span><span>meilleur créneau</span><span>historique des conversations</span></div></div>
+            <div className="st-ans"><b>Atelier Morel, gérant.</b> Il veut réduire ses coûts et a accepté quand vous avez parlé de délai. Objection probable : le timing. Trois questions pour ouvrir :<ol><li>Combien vous coûte l&apos;énergie aujourd&apos;hui ?</li><li>Qu&apos;est-ce qui bloquait jusqu&apos;ici ?</li><li>Qui décide avec vous ?</li></ol></div>
+          </div>
         </div>
       </section>
 
-      <section className="lp-final">
-        <p className="lp-sub">Vos clients suivent vos appels en direct. Vous gagnez leur confiance.</p>
-        <h2 className="lp-h2">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h2>
-        <Link className="btn primary lp-cta" href="/inscription">Commencer maintenant</Link>
+      <section id="demo" className="st-sec">
+        <div className="st-side"><div className="st-n">03</div><small>La démo<br />en 1 minute</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Trustpipe, <span className="st-thin">en vrai.</span></h2>
+          <figure className="st-video" style={{ margin: "40px 0 0" }}>
+            <video controls playsInline preload="none" poster="/video/trustpipe-poster.jpg" width={1920} height={1080}>
+              <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
+            </video>
+          </figure>
+        </div>
       </section>
-      <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>
-      <LegalFooter />
+
+      <section id="integrations" className="st-sec">
+        <div className="st-side"><div className="st-n">04</div><small>Les entrées<br />compatibles</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Branchez votre dialer. <span className="st-thin">Les appels arrivent.</span></h2>
+          <p className="st-lead">Une clé à coller, ou un clic pour Minari. Vos appels remontent tout seuls, client par client, avec leur enregistrement.</p>
+          <div className="st-dl">{DIALERS.map((d) => <span key={d}>{d}</span>)}<span className="x">+ votre outil (API) · Zapier · Make · n8n · CSV</span></div>
+        </div>
+      </section>
+
+      <section id="securite" className="st-sec">
+        <div className="st-side"><div className="st-n">05</div><small>Sécurité<br />et RGPD</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Vos données restent <span className="st-thin">en France.</span></h2>
+          <div className="st-badges"><span>Hébergé en France</span><span>Chiffrement AES-256</span><span>Conforme RGPD</span></div>
+          <div className="st-secg">{SECURITY.map(([t, d]) => <div key={t}><b>{t}</b><p>{d}</p></div>)}</div>
+        </div>
+      </section>
+
+      <section id="tarifs" className="st-sec">
+        <div className="st-side"><div className="st-n">06</div><small>Tarifs<br />sans engagement</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Deux formules. <span className="st-thin">Résiliables en un clic.</span></h2>
+          <div className="st-pr">
+            {(["solo", "agency"] as const).map((id) => (
+              <div key={id} className={id === "agency" ? "best" : ""}>
+                <h3>{PLANS[id].name} <small>{id === "agency" ? "RECOMMANDÉ" : "SDR FREELANCE"}</small></h3>
+                <div className="st-amt">{euros(PLANS[id].price)}€<span> HT/MOIS</span></div>
+                <ul>
+                  <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
+                  <li>Tous les dialers, ou CSV</li>
+                  <li>Analyse IA de chaque appel</li>
+                  <li>Lien de suivi et assistant IA pour vos clients</li>
+                  <li>Relances et brief pré-rendez-vous</li>
+                  <li>{id === "agency" ? "Toute l'équipe commerciale" : "Pour un SDR freelance"}</li>
+                </ul>
+                <Link className="b" href={start}>CHOISIR {PLANS[id].name.toUpperCase()} →</Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section id="faq" className="st-sec">
+        <div className="st-side"><div className="st-n">07</div><small>Vos<br />questions</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Questions <span className="st-thin">fréquentes.</span></h2>
+          <div className="st-faq">{FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
+        </div>
+      </section>
+
+      <section className="st-end">
+        <div className="st-huge" aria-hidden="true">TRUSTPIPE</div>
+        <div className="st-endrow">
+          <p>Vos clients voient enfin le travail. Lancez votre première session aujourd&apos;hui.</p>
+          <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "CRÉER MON PREMIER LIEN"} <span aria-hidden="true">→</span></Link>
+        </div>
+      </section>
+
+      <footer className="st-foot">
+        <span>© {new Date().getFullYear()} {LEGAL.brand.toUpperCase()} · DONNÉES DE DÉMONSTRATION FICTIVES SUR CETTE PAGE</span>
+        <nav aria-label="Informations légales"><Link href="/mentions-legales">MENTIONS LÉGALES</Link><Link href="/cgv">CONDITIONS GÉNÉRALES</Link><Link href="/confidentialite">CONFIDENTIALITÉ</Link><a href="mailto:bonjour@trustpipe.fr">BONJOUR@TRUSTPIPE.FR</a></nav>
+      </footer>
     </div>
   );
 }
