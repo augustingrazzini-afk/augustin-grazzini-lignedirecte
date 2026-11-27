@@ -62,7 +62,7 @@ test("cloisonnement : le commercial ne voit que ses appels, le dirigeant voit to
 
 test("classement : par rendez-vous, « Non attribués » toujours en dernier, taux en pourcentage", () => {
   const reps = [lea, agence];
-  const mk = (clientId: string | null, rdv = false, connected = true) => ({ kind: "call", clientId, connected, durationSec: 60, meetingBooked: rdv });
+  const mk = (clientId: string | null, rdv = false, connected = true) => ({ kind: "call", clientId, connected, durationSec: 60, meetingBooked: rdv, startedAt: new Date("2026-11-19T15:10:00Z") });
   const rows = rankReps([mk(null, true), mk(null, true), mk(agence.id, true), mk(lea.id), mk(lea.id, false, false)], reps);
   assert.deepEqual(rows.map((r) => r.name), ["Prospectio", "Léa Martin", "Non attribués"]);
   assert.equal(rows[1].rate, 50);
@@ -139,4 +139,16 @@ test("webhook Stripe (liens de paiement) : la formule et le nombre de commerciau
   } finally {
     await db.organization.delete({ where: { id: o2.id } });
   }
+});
+
+test("créneaux : classement par taux de décroché, heure de Paris, volume minimum", async () => {
+  const { slotInsights } = await import("../src/lib/stats");
+  const at = (iso: string, n: number, ok: number) => Array.from({ length: n }, (_, i) => ({ kind: "call", startedAt: new Date(iso), connected: i < ok, meetingBooked: false }));
+  // Jeudi 19/11/2026 : 15 h 10 UTC = 16 h à Paris (hiver). Mercredi 10 h UTC = 11 h à Paris. Samedi ignoré.
+  const ins = slotInsights([...at("2026-11-19T15:10:00Z", 40, 10), ...at("2026-11-18T10:05:00Z", 30, 3), ...at("2026-11-18T12:00:00Z", 5, 5), ...at("2026-11-21T10:00:00Z", 50, 50)]);
+  assert.deepEqual(ins.slots.map((x) => [x.label, x.calls, x.rate]), [["jeudi 16h", 40, 25], ["mercredi 11h", 30, 10]], "5 appels à 100 % ne comptent pas, le samedi non plus");
+  assert.equal(ins.hours[0].label, "16h");
+  assert.equal(ins.days[0].label, "jeudi");
+  // Été : 14 h UTC = 16 h à Paris.
+  assert.equal(slotInsights(at("2026-07-09T14:00:00Z", 20, 4)).slots[0].label, "jeudi 16h");
 });

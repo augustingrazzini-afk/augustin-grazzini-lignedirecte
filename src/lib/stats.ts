@@ -98,10 +98,33 @@ export function slotLevel(slot: { calls: number; connected: number } | undefined
   return { kind: "rate" as const, rate, level: SLOT_LEVELS.find((l) => rate >= l.min)! };
 }
 
+/** Nombre d'appels minimum pour annoncer un « meilleur créneau » : en dessous, le taux ne veut rien dire. */
+export const BEST_MIN_CALLS = 20;
+const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi"];
+
+/**
+ * Créneaux d'appel (heure de Paris, lundi-vendredi, 8 h-20 h) classés par taux de décroché, sur un volume suffisant :
+ * par jour et heure, par heure seule, par jour seul. Sert au tableau de bord, au classement et à l'assistant IA.
+ */
+export function slotInsights(all: Pick<Call, "kind" | "startedAt" | "connected" | "meetingBooked">[], min = BEST_MIN_CALLS) {
+  const acc = { slot: new Map<string, number[]>(), hour: new Map<string, number[]>(), day: new Map<string, number[]>() };
+  const add = (m: Map<string, number[]>, k: string, c: { connected: boolean; meetingBooked: boolean }) => { const v = m.get(k) || [0, 0, 0]; v[0]++; if (c.connected) v[1]++; if (c.meetingBooked) v[2]++; m.set(k, v); };
+  for (const c of all) {
+    if (c.kind === "meeting") continue;
+    const d = weekdayParis(c.startedAt), h = hourParis(c.startedAt);
+    if (d >= 5 || h < 8 || h >= 20) continue;
+    add(acc.slot, `${JOURS[d]} ${h}h`, c); add(acc.hour, `${h}h`, c); add(acc.day, JOURS[d], c);
+  }
+  const rank = (m: Map<string, number[]>) => [...m.entries()].filter(([, v]) => v[0] >= min)
+    .map(([label, v]) => ({ label, calls: v[0], connected: v[1], meetings: v[2], rate: (v[1] / v[0]) * 100 }))
+    .sort((a, b) => b.rate - a.rate || b.calls - a.calls);
+  return { min, slots: rank(acc.slot), hours: rank(acc.hour), days: rank(acc.day) };
+}
+
 /** Meilleur créneau : le plus fort taux de décroché parmi ceux qui ont assez d'appels (à égalité, le plus d'appels). */
 export function bestSlot(slots: Stats["slots"]) {
   return Object.entries(slots)
-    .filter(([, v]) => v.calls >= SLOT_MIN_CALLS)
+    .filter(([, v]) => v.calls >= BEST_MIN_CALLS)
     .map(([k, v]) => ({ key: k, rate: (v.connected / v.calls) * 100, calls: v.calls }))
     .sort((a, b) => b.rate - a.rate || b.calls - a.calls)[0] ?? null;
 }

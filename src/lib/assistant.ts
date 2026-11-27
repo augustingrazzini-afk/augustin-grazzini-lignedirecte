@@ -10,7 +10,7 @@ import { markAiDown } from "./ai-config";
 import { activityScope, channelOverview } from "./channels";
 import { OBJ_LABEL, displayName, fmtDuration, isConversation } from "./format";
 import { periodStart } from "./period";
-import { bestSlot, computeStats, windowCalls } from "./stats";
+import { bestSlot, computeStats, slotInsights, windowCalls } from "./stats";
 import type { TranscriptLine } from "./providers/types";
 
 const DAYS = { type: "integer", description: "Période en jours (1 = aujourd'hui, 7, 30, 90, 365). Par défaut 30.", enum: [1, 7, 30, 90, 365] } as const;
@@ -19,7 +19,7 @@ const day = (d: Date) => d.toLocaleString("fr-FR", { timeZone: "Europe/Paris", d
 export const ASSISTANT_TOOLS: Anthropic.Tool[] = [
   {
     name: "stats",
-    description: "Statistiques de prospection sur une période : appels (volume, décroché, conversations, RDV, taux, objections, meilleur créneau, par commercial). À utiliser pour toute question chiffrée ou de diagnostic.",
+    description: "Statistiques de prospection sur une période : appels (volume, décroché, conversations, RDV, taux, objections, par commercial) et créneaux d'appel (meilleurs et pires créneaux, par heure, par jour, pour l'équipe et par commercial). À utiliser pour toute question chiffrée ou de diagnostic.",
     input_schema: { type: "object", properties: { days: DAYS }, additionalProperties: false },
   },
   {
@@ -83,6 +83,18 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
         appels: { total: s.total, decroches: s.connected, conversations: s.conversations, rdv: s.meetings, taux_decroche: `${s.connectRate.toFixed(1)} %`, conversation_vers_rdv: `${s.convToMeeting.toFixed(1)} %`, duree_moyenne_conversation: fmtDuration(s.avgConvSec),
           objections: s.objections.map((o) => ({ objection: OBJ_LABEL[o.key] || o.key, nombre: o.count, part_passee: o.passedRate == null ? "inconnue" : `${o.passedRate.toFixed(0)} %` })),
           meilleur_creneau: best ? { jour_heure: slotLabel(best.key), taux: `${best.rate.toFixed(0)} %`, appels: best.calls } : null,
+          creneaux: (() => {
+            const fmtS = (x: { label: string; calls: number; rate: number; meetings: number }) => ({ creneau: x.label, taux_decroche: `${x.rate.toFixed(1)} %`, appels: x.calls, rdv: x.meetings });
+            const team = slotInsights(calls);
+            return {
+              note: `Heure de Paris, lundi-vendredi. Seuls les créneaux d'au moins ${team.min} appels sont classés : ne conclus rien sur moins.`,
+              equipe: { meilleurs_creneaux: team.slots.slice(0, 5).map(fmtS), pires_creneaux: team.slots.slice(-3).reverse().map(fmtS), par_heure: team.hours.map(fmtS), par_jour: team.days.map(fmtS) },
+              par_commercial: [...new Set(calls.map((c) => repOf(reps, c)))].map((n) => {
+                const ins = slotInsights(calls.filter((c) => repOf(reps, c) === n));
+                return { commercial: n, meilleures_heures: ins.hours.slice(0, 3).map(fmtS), meilleurs_creneaux: ins.slots.slice(0, 3).map(fmtS) };
+              }).filter((r) => r.meilleures_heures.length),
+            };
+          })(),
           par_commercial: [...new Set(calls.map((c) => repOf(reps, c)))].map((n) => {
             const mine = calls.filter((c) => c.kind !== "meeting" && repOf(reps, c) === n);
             const rep = [...reps.values()].find((r) => r.name === n) as { kind?: string; agency?: string } | undefined;
@@ -108,7 +120,7 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
       if (!c) return { erreur: "Appel introuvable dans votre espace." };
       const tr = ((c.transcript as unknown as TranscriptLine[]) || []).map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n");
       return { id: c.id, type: c.kind === "meeting" ? "rendez-vous" : "appel de prospection", date: day(c.startedAt), prospect: displayName(c), entreprise: c.company, poste: c.jobTitle, duree: fmtDuration(c.durationSec), rdv: c.meetingBooked,
-        commercial: repOf(reps, c), liste: c.listName, resume: c.summary, objections: c.objDetails ?? c.objections, ...(c.debrief ? { debrief_rendez_vous: c.debrief } : {}), transcription: tr.slice(0, 30000) || "pas de transcription" };
+        commercial: repOf(reps, c), liste: c.listName, resume: c.summary, ...(c.aiSummary ? { analyse_ia: c.aiSummary } : {}), objections: c.objDetails ?? c.objections, ...(c.debrief ? { debrief_rendez_vous: c.debrief } : {}), transcription: tr.slice(0, 30000) || "pas de transcription" };
     }
     case "search_messages": {
       const days = pickDays(input.days), q = typeof input.query === "string" ? input.query.trim().slice(0, 80) : "";

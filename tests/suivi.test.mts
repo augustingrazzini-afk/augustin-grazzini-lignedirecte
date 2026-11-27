@@ -62,7 +62,8 @@ test("carte des créneaux : couleurs selon le taux de décroché, et meilleur cr
   assert.equal(lv(10, 2), "Bon");
   assert.equal(lv(10, 3), "Excellent");
   const best = bestSlot({ "1-13": { calls: 3, connected: 3 }, "0-9": { calls: 2, connected: 2 }, "2-10": { calls: 20, connected: 6 } });
-  assert.equal(best?.key, "1-13", "le créneau à 2 appels est ignoré");
+  assert.equal(best?.key, "2-10", "un meilleur créneau demande 20 appels : 3 appels à 100 % ne suffisent pas");
+  assert.equal(bestSlot({ "1-13": { calls: 19, connected: 19 } }), null);
 });
 
 test("assistant IA : les outils ne sortent jamais du périmètre du client", async () => {

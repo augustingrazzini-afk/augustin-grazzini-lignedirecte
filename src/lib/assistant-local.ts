@@ -76,7 +76,7 @@ async function stats(scope: Scope, days: number, focus?: "objections" | "creneau
   }
   if (focus === "creneau") {
     return a.meilleur_creneau ? `**Meilleur créneau sur ${s.periode}** : ${a.meilleur_creneau.jour_heure}, ${a.meilleur_creneau.taux} de décroché (${a.meilleur_creneau.appels} appels).\nLa carte complète est sur le tableau de bord, rubrique « Quand ça décroche ».`
-      : "Pas encore assez d'appels pour dégager un meilleur créneau (3 appels minimum par créneau).";
+      : "Pas encore assez d'appels pour dégager un meilleur créneau (20 appels minimum par créneau).";
   }
   const meetings = (await runTool(scope, "search_calls", { days, filter: "meetings", limit: 5 })) as CallRow[];
   const out = [`**Bilan ${s.periode}**`, list([`${a.total} appels, ${a.decroches} décrochés (${a.taux_decroche})`, `${a.conversations} conversations, durée moyenne ${a.duree_moyenne_conversation}`, `**${a.rdv} rendez-vous** (${a.conversation_vers_rdv} des conversations)`])];

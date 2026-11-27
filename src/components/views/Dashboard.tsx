@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Scope } from "@/lib/access";
-import { SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotLevel, windowCalls } from "@/lib/stats";
+import { BEST_MIN_CALLS, SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotInsights, slotLevel, windowCalls } from "@/lib/stats";
 import { OBJ_LABEL, fmt, fmtDuration, isConversation, pct } from "@/lib/format";
 import { CallItem } from "../CallItem";
 import { ChannelOverview } from "./Channels";
@@ -30,6 +30,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
   const steps: [string, number][] = [["Appels", s.total], ["Décrochés", s.connected], ["Conversations", s.conversations], ["Rendez-vous", s.meetings]];
   const omx = Math.max(1, ...s.objections.map((o) => o.count));
   const best = bestSlot(s.slots);
+  const ins = slotInsights(calls);
   const feed = calls.filter((c) => isConversation(c) || c.kind === "meeting").slice(0, 7);
   const multiSource = new Set(calls.map((c) => c.provider)).size > 1;
 
@@ -93,7 +94,8 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
               <span><i className="few" />Moins de {SLOT_MIN_CALLS} appels</span>
               <span><i />Aucun appel</span>
             </div>
-            <p className="sub" style={{ margin: "12px 0 0" }}>{best ? <>Meilleur créneau : <b style={{ color: "var(--ink)" }}>{DAYS[+best.key.split("-")[0]]} {best.key.split("-")[1]}h</b>, {Math.round(best.rate)} % de décroché sur {best.calls} appels.</> : `Pas encore assez d'appels : il en faut au moins ${SLOT_MIN_CALLS} sur un même créneau.`}</p>
+            <p className="sub" style={{ margin: "12px 0 0" }}>{best ? <>Meilleur créneau : <b style={{ color: "var(--ink)" }}>{DAYS[+best.key.split("-")[0]]} {best.key.split("-")[1]}h</b>, {Math.round(best.rate)} % de décroché sur {best.calls} appels.</> : `Pas encore assez d'appels pour désigner un meilleur créneau : il en faut au moins ${BEST_MIN_CALLS} sur un même créneau.`}</p>
+            {ins.hours.length > 1 && <p className="sub" style={{ margin: "6px 0 0" }}>Meilleures heures : {ins.hours.slice(0, 3).map((h) => `${h.label} (${Math.round(h.rate)} %)`).join(" · ")}{ins.days.length > 1 ? <> · meilleur jour : {ins.days[0].label} ({Math.round(ins.days[0].rate)} %)</> : null}</p>}
           </div>
         </div>
       </div>

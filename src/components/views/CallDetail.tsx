@@ -61,7 +61,9 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
         </div>
         {debrief && <DebriefCard d={debrief} />}
         {c.kind === "meeting" && !debrief && tr.length > 0 && <div className="card"><div className="sec"><h4>Débrief IA</h4><p className="muted" style={{ margin: 0 }}>{aiEnabled() ? "Le débrief de ce rendez-vous est en préparation : il apparaît ici dans quelques instants." : "Le débrief IA de ce rendez-vous sera disponible dès l'activation de l'IA. En attendant, la transcription est à droite."}</p></div></div>}
-        {c.summary && <div className="card"><div className="sec"><h4>Résumé</h4><div className="sumbox">{c.summary.replace(/^-\s*/gm, "• ")}</div></div></div>}
+        {c.aiSummary && <div className="card" id="analyse-ia"><div className="sec"><h4>Analyse IA <span className="pill win" style={{ marginLeft: 8 }}>Trustpipe</span></h4><div className="sumbox">{c.aiSummary.replace(/^-\s*/gm, "• ")}</div>
+          {c.aiAnalyzedAt && <p className="muted small" style={{ margin: "8px 0 0" }}>Analysé le {c.aiAnalyzedAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "Europe/Paris" })} à {c.aiAnalyzedAt.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })} à partir de la transcription. À vérifier : une IA peut se tromper.</p>}</div></div>}
+        {c.summary && c.summary.trim() !== c.aiSummary.trim() && <div className="card"><div className="sec"><h4>{c.aiSummary ? "Résumé de l'outil d'appel" : "Résumé"}</h4><div className="sumbox">{c.summary.replace(/^-\s*/gm, "• ")}</div></div></div>}
         {det.length > 0 && (
           <div className="card"><div className="sec"><h4>Objections</h4><div className="stack" style={{ gap: 8 }}>{det.map((o, i) => (
             <div key={i} className="objcard"><div className="row"><b>{OBJ_LABEL[o.category] || o.category}</b><span className="spacer" />{o.passed ? <span className="pill win">Passée</span> : <span className="pill bad">Non passée</span>}</div><span>{o.summary}</span><span className="muted">Réponse : {o.rep_response}</span></div>

@@ -171,6 +171,8 @@ model Call {
   tags          String[]     @default([])
   phoneLast4    String       @default("")
   summary       String       @default("")
+  aiSummary     String       @default("") // analyse rédigée par l'IA de Trustpipe (le résumé de l'outil d'appel reste dans summary)
+  aiAnalyzedAt  DateTime?
   objections    String[]     @default([])
   objDetails    Json         @default("[]")
   transcript    Json         @default("[]")

@@ -3,6 +3,7 @@ import { apiScope, callScope } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, analyzeCall, debriefMeeting } from "@/lib/ai";
+import { hasAi } from "@/lib/billing";
 
 export const maxDuration = 120;
 
@@ -31,8 +32,11 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   if ("error" in r) return r.error;
   const blocked = await assertActive(r.scope);
   if (blocked) return blocked;
+  const org = await db.organization.findUnique({ where: { id: r.scope.orgId }, select: { plan: true } });
+  if (org && !hasAi(org)) return jsonError("L'analyse IA des appels est incluse à partir de la formule Essentiel.", 402);
   try {
-    await analyzeCall(r.call);
+    const done = await analyzeCall(r.call);
+    if (!done) return jsonError("Cet appel n'a pas de transcription : il n'y a rien à analyser.", 400);
     if (r.call.kind === "meeting") await debriefMeeting(r.call.id);
     return NextResponse.json({ ok: true });
   } catch (e) {

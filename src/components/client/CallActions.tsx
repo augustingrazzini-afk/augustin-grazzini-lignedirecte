@@ -7,14 +7,15 @@ export function CallActions({ id, canDelete, canAnalyze, back, clientId, meeting
   const [busy, setBusy] = useState("");
   const [confirm, setConfirm] = useState(false);
   const [err, setErr] = useState("");
+  const [done, setDone] = useState(false);
   const q = clientId ? `?client=${encodeURIComponent(clientId)}` : "";
   async function run(method: "POST" | "DELETE") {
-    setBusy(method); setErr("");
+    setBusy(method); setErr(""); setDone(false);
     const r = await fetch(`/api/calls/${id}${q}`, { method });
     const j = await r.json().catch(() => ({}));
     setBusy("");
     if (!r.ok) return setErr(j.error || "Action impossible");
-    if (method === "DELETE") router.push(back); else router.refresh();
+    if (method === "DELETE") router.push(back); else { setDone(true); router.refresh(); document.getElementById("analyse-ia")?.scrollIntoView({ behavior: "smooth", block: "center" }); }
   }
   return (
     <>
@@ -23,6 +24,7 @@ export function CallActions({ id, canDelete, canAnalyze, back, clientId, meeting
         ? <button className="btn danger" disabled={!!busy} onClick={() => run("DELETE")}>Confirmer la suppression</button>
         : <button className="btn" onClick={() => setConfirm(true)}>Supprimer</button>)}
       {err && <span className="pill bad">{err}</span>}
+      {done && !err && <span className="pill win">{meeting ? "Débrief mis à jour ✓" : "Analyse IA mise à jour ✓ (voir « Analyse IA » ci-dessous)"}</span>}
     </>
   );
 }

@@ -79,7 +79,7 @@ function transcriptText(t: TranscriptLine[], max = 40000) {
 
 export async function analyzeCall(call: Pick<Call, "id" | "kind" | "transcript" | "summary" | "orgId" | "clientId" | "contactKey" | "firstName" | "lastName" | "company" | "startedAt">) {
   const tr = (call.transcript as unknown as TranscriptLine[]) || [];
-  if (!tr.length) return;
+  if (!tr.length) return false;
   const r = await json<{ summary: string; objections: string[]; meeting_booked: boolean; follow_up: FollowUp }>(
     `Analyse cette transcription ${call.kind === "meeting" ? "de rendez-vous commercial mené par un AE" : "d'appel de prospection téléphonique B2B"}.
 Rédige en français un résumé de 3 à 5 puces (contexte, besoin, objections, issue, prochaine étape) sans rien inventer.
@@ -96,14 +96,17 @@ ${transcriptText(tr)}`,
     where: { id: call.id },
     data: {
       summary: call.summary?.trim() ? call.summary : r.summary,
+      // L'analyse de Trustpipe est toujours gardée, même quand l'outil d'appel fournit déjà son propre résumé.
+      aiSummary: r.summary, aiAnalyzedAt: new Date(),
       objections: r.objections.filter((k) => (OBJECTION_KEYS as readonly string[]).includes(k)),
       ...(r.meeting_booked ? { meetingBooked: true } : {}),
       aiStatus: "done",
     },
   });
-  if (r.meeting_booked) return closeTasksOnMeeting(call.orgId, call.contactKey);
+  if (r.meeting_booked) { await closeTasksOnMeeting(call.orgId, call.contactKey); return true; }
   const d = draft(r.follow_up, call.startedAt);
   if (d) await upsertTask(call, "call", call.id, d, "ai");
+  return true;
 }
 
 /* ---------- 1 ter. Débrief d'un rendez-vous (avec l'appel de prospection qui l'a obtenu) ---------- */
