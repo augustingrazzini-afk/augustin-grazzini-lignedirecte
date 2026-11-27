@@ -53,6 +53,13 @@ const FEED = [
   { time: "09:33", rep: "Léa · interne", name: "Julie Martin", company: "Elec Pro 34", kind: "conv", summary: "Curieuse, veut une plaquette par email avant d'aller plus loin.", dur: "1 min 48" },
   { time: "09:30", rep: "Prospectio · agence", name: "Thomas Roux", company: "Nova Habitat", kind: "absent", summary: "Pas de réponse, relance proposée pour demain matin.", dur: "—" },
 ] as const;
+/** Extrait de transcription d'exemple (fictif). */
+const TRANSCRIPT: [string, string, string, boolean][] = [
+  ["00:04", "Léa", "Bonjour Monsieur Morel, je vous appelle au sujet de vos coûts d'énergie.", false],
+  ["00:41", "Prospect", "On paie trop, c'est sûr. Mais là je n'ai pas le temps.", false],
+  ["01:12", "Léa", "Dix minutes suffisent pour vous montrer l'écart.", false],
+  ["01:36", "Prospect", "Jeudi, je vous donne un quart d'heure.", true],
+];
 const RESULT: Record<string, string> = { rdv: "RDV PRIS", rappel: "À RAPPELER", refus: "PAS INTÉRESSÉ", conv: "À SUIVRE", absent: "PAS DE RÉPONSE" };
 
 /** Classement d'exemple (fictif). */
@@ -124,7 +131,7 @@ export default async function Home() {
             <h1 className="st-h1">Tous vos commerciaux.<br /><span className="st-thin">Un seul écran.</span><br /><span className="st-o">En direct.</span></h1>
             <div className="st-hrow">
               <div>
-                <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
+                <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Transcriptions, résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
                 <Link className="st-aipill" href="#claude"><span className="st-aiic" aria-hidden="true">✳</span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
                 <Link className="st-aipill" href="/assistant" style={{ marginTop: 10 }}><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
                 <p className="st-note">SANS ENGAGEMENT · PRIX PAR COMMERCIAL SUIVI · DONNÉES EN FRANCE</p>
@@ -194,6 +201,19 @@ export default async function Home() {
             {BOARD.map(([n, k, a, d, c, r], i) => (
               <div key={n} className="st-br"><span className="st-o">{i + 1}</span><span><b>{n}</b><small>{k}</small></span><span>{a}</span><span>{d}</span><span>{c}</span><span className="st-rdvn">{r}</span></div>
             ))}
+          </div>
+          <div className="st-trx" aria-label="Exemple : la transcription et le résumé d'un appel">
+            <div className="st-trx-l">
+              <div className="st-fh" style={{ padding: "0 0 14px" }}><span className="st-o">● TRANSCRIPTION COMPLÈTE</span><span>LÉA · ATELIER MOREL · 02:14</span></div>
+              {TRANSCRIPT.map(([ts, who, txt, hi]) => <p key={ts}><span>{ts}</span><span><b>{who} :</b> {hi ? <mark>{txt}</mark> : txt}</span></p>)}
+              <div className="st-player" aria-hidden="true"><span className="b">▶</span><span className="w">{Array.from({ length: 48 }, (_, i) => <i key={i} style={{ height: `${22 + Math.round(Math.abs(Math.sin(i / 4)) * 60 + (i * 37 % 17))}%` }} />)}</span><span className="t">02:14</span></div>
+              <small>Enregistrement à réécouter quand votre outil d&apos;appel le fournit.</small>
+            </div>
+            <div className="st-trx-r">
+              <h3>Chaque appel. <span className="st-thin">Mot pour mot.</span></h3>
+              <p>Chaque conversation de chaque commercial est <b>transcrite en entier</b>, avec qui parle et à quel moment. Vous relisez ce qui s&apos;est vraiment dit, sans demander un compte rendu.</p>
+              <ul><li>La transcription complète, horodatée</li><li>Le résumé de l&apos;IA en quelques points</li><li>Les objections du prospect, repérées</li><li>Une recherche par prospect, entreprise ou mot-clé</li></ul>
+            </div>
           </div>
           <div className="st-trio">
             <div><div className="st-big">1</div><h4>Un espace pour toute l&apos;équipe.</h4><p>Internes, freelances, agences : peu importe leur outil d&apos;appel, tout arrive au même endroit.</p></div>
