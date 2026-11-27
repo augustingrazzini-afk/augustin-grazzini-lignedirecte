@@ -184,7 +184,7 @@ export async function createClient(_: FormState, f: FormData): Promise<FormState
     if (email && !isEmail(email)) return { error: "Adresse email invalide." };
     const count = await db.client.count({ where: { orgId: scope.orgId } });
     const max = maxClients(org);
-    if (count >= max) return { error: `Votre abonnement couvre ${max} commercial(aux). Ajoutez des commerciaux depuis la page Abonnement (49,99 € HT par commercial et par mois).` };
+    if (count >= max) return { error: `Votre abonnement couvre ${max} commercial(aux). Pour en suivre un de plus : page Abonnement, « Gérer mon abonnement », augmentez la quantité, puis revenez l'ajouter.` };
     const kind = ["interne", "freelance", "agence"].includes(s(f, "kind", 20)) ? s(f, "kind", 20) : "interne";
     const c = await db.client.create({ data: { orgId: scope.orgId, name, kind, agency: kind === "interne" ? "" : s(f, "agency", 80) } });
     // Attribution automatique : son nom dans l'outil d'appel partagé, et/ou ses listes (sans doublon, 20 au plus).

@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { maxClients } from "@/lib/billing";
+import { PLANS, type PlanId, euros, maxClients } from "@/lib/billing";
+import { portalLink } from "@/lib/stripe";
 import { fmt } from "@/lib/format";
 import { createClient } from "@/app/actions";
 import { PageTop } from "@/components/Shell";
@@ -30,9 +31,17 @@ export default async function Page() {
   const known = lists.filter((l) => l.listName).map((l) => ({ name: l.listName!, calls: l._count._all, taken: taken.has(l.listName!.toLowerCase()) }));
   const freeNames = names.filter((n) => n.repName && !takenRep.has(n.repName.toLowerCase()));
   const max = maxClients(org);
+  const plan = PLANS[org.plan as PlanId] || PLANS.agency;
+  const portal = portalLink();
   return (
     <>
       <PageTop title="Commerciaux" subtitle="Vos commerciaux internes, freelances et agences : chaque appel leur est attribué automatiquement" />
+      {Number.isFinite(max) && reps.length >= max && (
+        <div className="banner" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
+          <span><b>Votre abonnement couvre {max} commercial{max > 1 ? "aux" : ""}, tous utilisés.</b> Pour en suivre un de plus : augmentez la quantité de votre abonnement ({euros(plan.price)} € HT par commercial et par mois, au prorata), puis revenez l&apos;ajouter ici.</span>
+          {portal ? <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Ajouter un commercial à mon abonnement</a> : <Link className="btn primary" href="/app/billing">Gérer mon abonnement</Link>}
+        </div>
+      )}
       <div className="grid g-2">
         <div className="card"><h2>Votre équipe commerciale</h2><p className="sub">{reps.length}{Number.isFinite(max) ? ` / ${max}` : ""} commercial(aux) suivi(s) · {fmt(unassigned)} appel(s) non attribués</p>
           {reps.length ? <div className="list">{reps.map((c) => (
