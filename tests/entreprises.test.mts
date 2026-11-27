@@ -127,10 +127,10 @@ test("webhook Stripe (liens de paiement) : la formule et le nombre de commerciau
   };
   try {
     assert.equal((await hook.POST(new Request("https://x", { method: "POST", headers: { "stripe-signature": "t=1,v1=faux" }, body: "{}" }))).status, 400, "signature fausse refusée");
-    const r1 = await send({ id: "evt_1", object: "event", type: "checkout.session.completed", data: { object: { object: "checkout.session", client_reference_id: o2.id, customer: `cus_${tag}`, subscription: `sub_${tag}`, metadata: { plan: "starter" } } } });
+    const r1 = await send({ id: "evt_1", object: "event", type: "checkout.session.completed", data: { object: { object: "checkout.session", client_reference_id: o2.id, customer: `cus_${tag}`, subscription: `sub_${tag}`, metadata: { plan: "starter" }, amount_subtotal: 5997 } } });
     assert.equal(r1.status, 200);
     let o = await db.organization.findUniqueOrThrow({ where: { id: o2.id } });
-    assert.deepEqual([o.plan, o.subscriptionStatus, o.stripeSubscriptionId], ["starter", "active", `sub_${tag}`]);
+    assert.deepEqual([o.plan, o.subscriptionStatus, o.stripeSubscriptionId, o.seats], ["starter", "active", `sub_${tag}`, 3], "3 commerciaux déduits de 59,97 € HT");
     // Passage en Premium avec 3 commerciaux depuis le portail Stripe.
     await send({ id: "evt_2", object: "event", type: "customer.subscription.updated", data: { object: { object: "subscription", id: `sub_${tag}`, customer: `cus_${tag}`, status: "active", cancel_at_period_end: false, cancel_at: null, items: { data: [{ quantity: 3, price: { id: "price_p", lookup_key: "trustpipe_premium_mensuel_eur", metadata: {} } }] } } } });
     o = await db.organization.findUniqueOrThrow({ where: { id: o2.id } });

@@ -12,7 +12,7 @@ export default function Page() {
       <h2>2. Clients concernés</h2>
       <p>Le Service est réservé aux professionnels (entreprises et leurs commerciaux, salariés ou prestataires) agissant dans le cadre de leur activité. Le droit de rétractation du Code de la consommation ne s&apos;applique pas.</p>
       <h2>3. Compte et accès</h2>
-      <p>La connexion se fait par lien envoyé par email. L&apos;utilisateur est responsable de l&apos;accès à sa boîte email et des personnes qu&apos;il invite (dirigeants, managers, commerciaux). Le lien de suivi partagé avec un client donne accès, sans compte, aux données de ce client : l&apos;utilisateur choisit de le créer, le partage sous sa responsabilité et peut le désactiver à tout moment.</p>
+      <p>La connexion se fait par lien envoyé par email. L&apos;utilisateur est responsable de l&apos;accès à sa boîte email et des personnes qu&apos;il invite (dirigeants, managers, commerciaux). Chaque commercial invité n&apos;accède qu&apos;à ses propres appels. Un lien de lecture seule, quand il existe, donne accès sans compte aux appels concernés : l&apos;utilisateur le partage sous sa responsabilité et peut le désactiver à tout moment.</p>
       <h2>4. Souscription</h2>
       <p>L&apos;accès à Trustpipe démarre avec la souscription d&apos;une formule : la carte bancaire, enregistrée sur Stripe, est débitée du premier mois à la souscription. Les espaces ouverts avant le 27 novembre 2026 avec un essai gratuit le conservent jusqu&apos;à son terme.</p>
       <h2>5. Prix et paiement</h2>
