@@ -1,5 +1,6 @@
 import { db } from "./db";
 import { isAdminOrg } from "./admin";
+import { deleteStored } from "./storage";
 
 export const PURGE_AFTER_DAYS = 30;
 
@@ -29,4 +30,21 @@ export async function purgeEndedOrgs(now = new Date()) {
     n++;
   }
   return n;
+}
+
+/** Durées de conservation (politique de confidentialité) : enregistrements 6 mois, transcriptions 12 mois. Résumés et statistiques sont gardés. */
+export const RECORDING_MONTHS = 6, TRANSCRIPT_MONTHS = 12;
+const monthsAgo = (n: number, now: Date) => { const d = new Date(now); d.setMonth(d.getMonth() - n); return d; };
+
+export async function purgeOldMedia(now = new Date()) {
+  // Fichiers stockés chez nous : supprimés un par un, par lots, avant d'effacer leur référence.
+  const stored = await db.call.findMany({ where: { startedAt: { lt: monthsAgo(RECORDING_MONTHS, now) }, recordingKey: { not: null } }, select: { id: true, recordingKey: true }, take: 200 });
+  for (const c of stored) {
+    try { await deleteStored(c.recordingKey!); } catch (e) { console.error("suppression enregistrement", c.id, e); continue; }
+    await db.call.update({ where: { id: c.id }, data: { recordingKey: null } });
+  }
+  const links = await db.call.updateMany({ where: { startedAt: { lt: monthsAgo(RECORDING_MONTHS, now) }, recordingUrl: { not: null } }, data: { recordingUrl: null } });
+  const old = await db.call.findMany({ where: { startedAt: { lt: monthsAgo(TRANSCRIPT_MONTHS, now) }, NOT: { transcript: { equals: [] } } }, select: { id: true }, take: 2000 });
+  if (old.length) await db.call.updateMany({ where: { id: { in: old.map((c) => c.id) } }, data: { transcript: [], objDetails: [] } });
+  return { recordings: stored.length + links.count, transcripts: old.length };
 }

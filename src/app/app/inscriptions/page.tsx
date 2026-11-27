@@ -17,6 +17,7 @@ export default async function Page() {
   const scope = await requireOrgScope();
   if (!isAdminOrg(scope.orgId)) notFound();
   const now = Date.now();
+  const errors = await db.errorLog.findMany({ orderBy: { createdAt: "desc" }, take: 30 });
   const [orgs, users24, users7, usersAll, feedback, visits] = await Promise.all([
     db.organization.findMany({
       orderBy: { createdAt: "desc" }, take: 300,
@@ -111,6 +112,11 @@ export default async function Page() {
             </table>
           </div>
         )}
+      </div>
+      <div className="card mt">
+        <h2>Erreurs récentes</h2><p className="sub">Erreurs serveur des 30 derniers jours. Vous recevez un email à la première occurrence de chaque erreur.</p>
+        {!errors.length ? <p className="muted">Aucune erreur enregistrée.</p> : <div className="scroll-x"><table><thead><tr><th>Quand</th><th>Page</th><th>Message</th><th>Code</th></tr></thead>
+          <tbody>{errors.map((e) => <tr key={e.id}><td>{e.createdAt.toLocaleString("fr-FR", { timeZone: "Europe/Paris", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}</td><td>{e.method} {e.path}</td><td>{e.message.slice(0, 160)}</td><td>{e.digest}</td></tr>)}</tbody></table></div>}
       </div>
       <div className="card mt">
         <h2>Derniers avis</h2>

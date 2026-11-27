@@ -16,6 +16,7 @@ export function CallItem({ c, base, showSource, rep }: { c: Call; base: string; 
         {rep && <span className="pill rep">{rep}</span>}
         {c.kind === "meeting" && <span className="pill warn">RDV AE</span>}
         {c.meetingBooked && <span className="pill win">RDV pris</span>}
+        {c.optOut && <span className="pill bad">Ne plus contacter</span>}
         {c.objections.slice(0, 3).map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}
         {hasTr && <span className="pill">Transcription</span>}
         {(c.recordingUrl || c.recordingKey) && <span className="pill">Audio</span>}

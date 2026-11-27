@@ -1,4 +1,4 @@
-import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { DeleteObjectCommand, GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export const storageEnabled = () => !!(process.env.S3_BUCKET && process.env.S3_ACCESS_KEY_ID && process.env.S3_SECRET_ACCESS_KEY);
@@ -28,4 +28,10 @@ export async function presignUpload(orgId: string, contentType: string, size: nu
 export async function presignRead(key: string, expiresIn = 3600) {
   if (!storageEnabled()) return null;
   return getSignedUrl(client(), new GetObjectCommand({ Bucket: process.env.S3_BUCKET, Key: key }), { expiresIn });
+}
+
+/** Supprime un enregistrement stocké chez nous (fin de la durée de conservation). */
+export async function deleteStored(key: string) {
+  if (!storageEnabled()) return;
+  await client().send(new DeleteObjectCommand({ Bucket: process.env.S3_BUCKET!, Key: key }));
 }

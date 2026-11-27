@@ -65,3 +65,39 @@ test("export CSV : les cellules qui ressemblent à une formule sont neutralisée
   assert.equal(csvCell("Paul; \"Morel\""), `"Paul; ""Morel"""`);
   assert.equal(csvCell(null), `""`);
 });
+
+test("opposition : un prospect qui refuse d'être recontacté n'a plus aucune relance", async () => {
+  const { RE_OPTOUT, upsertTask, isOptedOut } = await import("../src/lib/tasks");
+  const { afterCall } = await import("../src/lib/ingest");
+  for (const yes of ["Ne plus me rappeler svp", "Demande à ne pas être recontacté.", "Demande à être retiré de la liste", "inscrit sur Bloctel", "do not call"]) assert.ok(RE_OPTOUT.test(yes), yes);
+  for (const no of ["Rappeler jeudi", "Pas intéressé pour le moment", "Envoyer la plaquette", "Ne pas rappeler avant mars", "Il ne décroche pas, rappeler demain"]) assert.ok(!RE_OPTOUT.test(no), no);
+  const tag = Date.now().toString(36);
+  const org = await db.organization.create({ data: { name: `Opp ${tag}`, trialEndsAt: new Date(Date.now() + 864e5) } });
+  try {
+    const mk = (id: string, summary: string) => db.call.create({ data: { orgId: org.id, provider: "test", externalId: id, startedAt: new Date(), status: "connected", connected: true, durationSec: 60, firstName: "Luc", lastName: "Petit", company: "Acme", contactKey: `k-${tag}`, summary } });
+    const c1 = await mk("o1", "Rappeler la semaine prochaine");
+    await afterCall(c1);
+    assert.equal(await db.task.count({ where: { orgId: org.id, status: "open" } }), 1, "relance créée");
+    const c2 = await mk("o2", "Très agacé : demande à ne plus être rappelé.");
+    await afterCall(c2);
+    assert.equal(await isOptedOut(org.id, `k-${tag}`), true);
+    assert.equal(await db.task.count({ where: { orgId: org.id, status: "open" } }), 0, "relance retirée");
+    await upsertTask(c1, "call", "autre", { channel: "call", dueAt: new Date(), reason: "x" }, "rule");
+    assert.equal(await db.task.count({ where: { orgId: org.id, status: "open" } }), 0, "aucune nouvelle relance");
+  } finally { await db.organization.delete({ where: { id: org.id } }); }
+});
+
+test("conservation : enregistrements effacés après 6 mois, transcriptions après 12", async () => {
+  const { purgeOldMedia } = await import("../src/lib/purge");
+  const tag = Date.now().toString(36);
+  const org = await db.organization.create({ data: { name: `Cons ${tag}`, trialEndsAt: new Date(Date.now() + 864e5) } });
+  const mk = (id: string, days: number) => db.call.create({ data: { orgId: org.id, provider: "test", externalId: id, startedAt: new Date(Date.now() - days * 864e5), status: "connected", summary: "Résumé gardé", recordingUrl: "https://ex.test/a.mp3", transcript: [{ s: "A", t: "Bonjour", ts: "" }] } });
+  try {
+    const [recent, m7, m13] = [await mk("r", 10), await mk("m7", 215), await mk("m13", 400)];
+    await purgeOldMedia();
+    const get = async (id: string) => { const c = await db.call.findUniqueOrThrow({ where: { id } }); return [!!c.recordingUrl, (c.transcript as unknown[]).length, c.summary]; };
+    assert.deepEqual(await get(recent.id), [true, 1, "Résumé gardé"]);
+    assert.deepEqual(await get(m7.id), [false, 1, "Résumé gardé"]);
+    assert.deepEqual(await get(m13.id), [false, 0, "Résumé gardé"]);
+  } finally { await db.organization.delete({ where: { id: org.id } }); }
+});

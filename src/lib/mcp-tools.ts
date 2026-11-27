@@ -1,3 +1,4 @@
+import { isOptedOut } from "./tasks";
 import type { Prisma } from "@prisma/client";
 import { db } from "./db";
 import { sha256 } from "./crypto";
@@ -143,6 +144,7 @@ async function creerRelance(c: Ctx, a: Args): Promise<Out> {
     ? { firstName: { equals: first, mode: "insensitive" }, lastName: { equals: last, mode: "insensitive" } }
     : { OR: [{ firstName: { equals: first, mode: "insensitive" } }, { lastName: { equals: first, mode: "insensitive" } }] };
   const ref = await db.call.findFirst({ where: { orgId: c.orgId, ...nameMatch, ...(company ? { company: { contains: company, mode: "insensitive" } } : {}), ...(clientId ? { clientId } : {}) }, orderBy: { startedAt: "desc" } });
+  if (ref && (await isOptedOut(c.orgId, ref.contactKey))) return { text: `${name} a demandé à ne plus être contacté : aucune relance n'a été créée.` };
   const t = await db.task.create({ data: {
     orgId: c.orgId, clientId: clientId ?? ref?.clientId ?? null,
     contactKey: ref?.contactKey || `m:${sha256(`${name.toLowerCase()}|${company.toLowerCase()}`).slice(0, 20)}`,

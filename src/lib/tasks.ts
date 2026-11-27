@@ -51,6 +51,22 @@ const RE_RECALL = /rappel|rappeler|recontact|revenir vers|relancer|follow.?up|ca
 const RE_SEND = /(envoy|envoi|transmet|recevoir|partager).{0,40}(mail|e-mail|email|slides|plaquette|documentation|présentation|devis|proposition|infos?)/i;
 const RE_NO = /demande explicite de ne pas|ne (plus|pas) (le |la |les )?(re)?contacter|ne pas (être )?recontact|stop|désinscri|pas intéressé du tout/i;
 
+/** Le prospect demande explicitement à ne plus être contacté (détection par mots-clés, quand l'IA n'a pas analysé l'appel). */
+export const RE_OPTOUT = /ne (plus|jamais) (jamais )?(être |me |nous |le |la |les |l')?(re)?(contact|rappel|appel|sollicit|démarch)|ne pas (être |me |nous |le |la |les |l')?(re)?(contact|rappel|appel|sollicit|démarch)\S*(?=[\s.,;!]|$)(?![.,;!]? (avant|d'ici|tout de suite|maintenant|aujourd|cette|ce |pour l'instant|le |la |en |dans |demain|lundi|mardi|mercredi|jeudi|vendredi))|retir\S* (de|des) (la |vos |votre )?(liste|fichier|base)|liste (rouge|d'opposition)|bloctel|do not call|désinscri/i;
+
+/** Opposition connue pour ce prospect : un appel marqué, ou une désinscription email. */
+export async function isOptedOut(orgId: string, contactKey: string) {
+  if (!contactKey) return false;
+  if (await db.call.count({ where: { orgId, contactKey, optOut: true } })) return true;
+  return (await db.activity.count({ where: { orgId, contactKey, type: "unsubscribed" } })) > 0;
+}
+
+/** Enregistre l'opposition : les relances ouvertes de ce prospect sont retirées, et plus aucune ne sera créée. */
+export async function markOptOut(orgId: string, contactKey: string) {
+  if (!contactKey) return;
+  await db.task.updateMany({ where: { orgId, contactKey, status: "open" }, data: { status: "dismissed", doneAt: new Date() } });
+}
+
 export type TaskDraft = { channel: "call" | "email" | "linkedin"; dueAt: Date; reason: string; suggestion?: string };
 
 /** Relance déduite d'un appel par des règles simples (utilisé quand l'IA n'est pas disponible). */
@@ -84,6 +100,7 @@ type Who = { orgId: string; clientId: string | null; contactKey: string; firstNa
 /** Crée la relance d'une source (appel, réponse…) — une seule par source, jamais recréée si on l'a fermée. */
 export async function upsertTask(who: Who, sourceKind: "call" | "activity" | "rule", sourceId: string, d: TaskDraft, source: "ai" | "rule") {
   if (!who.contactKey) return;
+  if (await isOptedOut(who.orgId, who.contactKey)) return; // le prospect s'est opposé : aucune relance
   const data = {
     clientId: who.clientId, contactKey: who.contactKey, contactName: [who.firstName, who.lastName].filter(Boolean).join(" "), company: who.company,
     channel: d.channel, dueAt: d.dueAt, reason: d.reason.slice(0, 300), suggestion: (d.suggestion || "").slice(0, 1500), source,

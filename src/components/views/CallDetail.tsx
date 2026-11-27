@@ -70,6 +70,8 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           ))}</div></div></div>
         )}
         {!det.length && c.objections.length > 0 && <div className="card"><div className="sec"><h4>Objections</h4><div className="row">{c.objections.map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}</div></div></div>}
+        {c.optOut && <div className="card"><div className="sec"><h4>Opposition du prospect <span className="pill bad" style={{ marginLeft: 8 }}>Ne plus contacter</span></h4>
+          <p className="muted small" style={{ margin: 0 }}>Ce prospect a demandé à ne plus être contacté. Ses relances ont été retirées et Trustpipe n&apos;en proposera plus. Pensez à le marquer aussi « ne pas appeler » dans votre outil d&apos;appel.</p></div></div>}
         {c.aiMeeting && !c.meetingBooked && c.kind === "call" && (
           <div className="card"><div className="sec"><h4>Rendez-vous détecté par l&apos;IA</h4>
             <p className="muted small" style={{ margin: "0 0 10px" }}>D&apos;après la transcription, un rendez-vous semble avoir été fixé, mais l&apos;outil d&apos;appel ne l&apos;indique pas. Il n&apos;est pas compté dans les chiffres tant qu&apos;il n&apos;est pas confirmé.</p>

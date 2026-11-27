@@ -2,7 +2,7 @@ import type { ClientRule, Prisma } from "@prisma/client";
 import { db } from "./db";
 import { sha256 } from "./crypto";
 import type { NormalizedActivity, NormalizedCall } from "./providers/types";
-import { closeTasksOnMeeting, draftFromCall, draftFromReply, upsertTask } from "./tasks";
+import { RE_OPTOUT, closeTasksOnMeeting, draftFromCall, draftFromReply, markOptOut, upsertTask } from "./tasks";
 import { aiEnabled } from "./ai-config";
 
 const norm = (s?: string) => (s || "").trim().toLowerCase();
@@ -113,6 +113,12 @@ export async function reapplyRules(orgId: string) {
 /** Relances liées à un appel : RDV pris → on ferme ; sinon règles (l'IA affinera si une transcription arrive). */
 export async function afterCall(c: Awaited<ReturnType<typeof db.call.findFirstOrThrow>>) {
   if (c.meetingBooked) return closeTasksOnMeeting(c.orgId, c.contactKey);
+  // Opposition repérée dans le résumé de l'outil d'appel : on la garde et on retire les relances de ce prospect.
+  if (!c.optOut && c.summary && RE_OPTOUT.test(c.summary)) {
+    await db.call.update({ where: { id: c.id }, data: { optOut: true } });
+    return markOptOut(c.orgId, c.contactKey);
+  }
+  if (c.optOut) return;
   if (c.aiStatus === "pending" && aiEnabled()) return; // l'analyse IA créera la relance
   const d = draftFromCall(c);
   if (d) await upsertTask(c, "call", c.id, d, "rule");
@@ -145,6 +151,7 @@ export async function upsertActivities(t: Target, items: NormalizedActivity[]): 
       saved = await db.activity.create({ data: { ...data, orgId: t.orgId, provider: t.provider, externalId: a.externalId, integrationId: t.integrationId ?? null, clientId, aiStatus: ai } });
       created++;
       if (a.type === "meeting_booked") await closeTasksOnMeeting(t.orgId, saved.contactKey);
+      else if (a.type === "unsubscribed") await markOptOut(t.orgId, saved.contactKey);
       else if (isReply && ai === "none") {
         const d = draftFromReply(saved);
         if (d) await upsertTask(saved, "activity", saved.id, d, "rule");

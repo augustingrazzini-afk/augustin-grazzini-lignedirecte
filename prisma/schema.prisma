@@ -177,6 +177,7 @@ model Call {
   summary       String       @default("")
   aiSummary     String       @default("") // analyse rédigée par l'IA de Trustpipe (le résumé de l'outil d'appel reste dans summary)
   aiAnalyzedAt  DateTime?
+  optOut        Boolean      @default(false) // le prospect a demandé à ne plus être contacté : plus aucune relance
   aiMeeting     Boolean      @default(false) // l'IA pense qu'un RDV a été fixé : à confirmer, ne compte pas dans les chiffres
   objections    String[]     @default([])
   objDetails    Json         @default("[]")
@@ -385,4 +386,16 @@ model McpToken {
   createdAt        DateTime  @default(now())
 
   @@index([orgId])
+}
+
+/** Erreurs serveur (suivi maison) : consultables depuis la page de l'éditeur, purgées après 30 jours. */
+model ErrorLog {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  path      String
+  method    String   @default("")
+  message   String
+  digest    String   @default("")
+
+  @@index([createdAt])
 }

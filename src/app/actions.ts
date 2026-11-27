@@ -294,6 +294,33 @@ export async function confirmMeeting(f: FormData) {
   revalidatePath(`/app/calls/${callId}`);
 }
 
+/** Suppression définitive de l'espace par son propriétaire : toutes les données, les accès et les comptes qui n'ont que cet espace. */
+export async function deleteOrganization(_: FormState, f: FormData): Promise<FormState> {
+  let gone = false;
+  try {
+    const scope = await requireOrgScope();
+    if (scope.role !== "owner") return { error: "Réservé au propriétaire de l'espace." };
+    const { isAdminOrg } = await import("@/lib/admin");
+    if (isAdminOrg(scope.orgId)) return { error: "Cet espace ne peut pas être supprimé." };
+    const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId }, include: { members: { select: { userId: true } } } });
+    if (s(f, "confirm", 80).trim().toLowerCase() !== org.name.trim().toLowerCase()) return { error: `Pour confirmer, tapez exactement le nom de l'espace : ${org.name}` };
+    // Un abonnement Stripe en cours continuerait d'être prélevé : il faut le résilier d'abord.
+    if (org.stripeSubscriptionId?.startsWith("sub_") && ["active", "past_due", "trialing"].includes(org.subscriptionStatus) && !org.cancelRequestedAt)
+      return { error: "Résiliez d'abord votre abonnement depuis la page Abonnement, puis revenez supprimer l'espace." };
+    await db.organization.delete({ where: { id: org.id } }); // appels, commerciaux, outils, relances… supprimés en cascade
+    for (const m of org.members) {
+      const u = await db.user.findUnique({ where: { id: m.userId }, include: { memberships: true, clientAccess: true } });
+      if (u && !u.memberships.length && !u.clientAccess.length) {
+        await db.loginToken.deleteMany({ where: { email: u.email } });
+        await db.user.delete({ where: { id: u.id } });
+      }
+    }
+    gone = true;
+  } catch (e) { return fail(e); }
+  if (gone) { await destroySession(); redirect("/?espace=supprime"); }
+  return {};
+}
+
 /* ---------- Équipe ---------- */
 export async function inviteTeammate(_: FormState, f: FormData): Promise<FormState> {
   try {

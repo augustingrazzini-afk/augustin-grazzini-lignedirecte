@@ -5,7 +5,7 @@ import { debriefPending, processPendingAi, requeueStaleAi } from "@/lib/ai";
 import { processTranscriptions } from "@/lib/transcribe";
 import { db } from "@/lib/db";
 
-import { purgeEndedOrgs } from "@/lib/purge";
+import { purgeEndedOrgs, purgeOldMedia } from "@/lib/purge";
 export const maxDuration = 300;
 
 /**
@@ -25,5 +25,7 @@ export async function GET(req: Request) {
   const analyzed = await processPendingAi({ limit: 500, concurrency: 6, deadline: t0 + 270e3 });
   await db.loginToken.deleteMany({ where: { expiresAt: { lt: new Date(Date.now() - 864e5) } } });
   const purged = await purgeEndedOrgs().catch((e) => { console.error("purge fin de contrat", e); return 0; });
-  return NextResponse.json({ sync, requeued, analyzed, purged });
+  const media = await purgeOldMedia().catch((e) => { console.error("purge enregistrements", e); return null; });
+  await db.errorLog.deleteMany({ where: { createdAt: { lt: new Date(Date.now() - 30 * 864e5) } } }).catch(() => {});
+  return NextResponse.json({ sync, requeued, analyzed, purged, media });
 }

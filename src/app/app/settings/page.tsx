@@ -1,6 +1,6 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { changePassword, inviteTeammate, revokeMcpToken, saveOffer } from "@/app/actions";
+import { changePassword, deleteOrganization, inviteTeammate, revokeMcpToken, saveOffer } from "@/app/actions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AlertSettings } from "@/components/AlertSettings";
@@ -32,6 +32,11 @@ export default async function Page() {
           <a className="btn" href="/api/export/calls" download>Exporter tous mes appels (CSV)</a>
           <p className="muted small" style={{ margin: "10px 0 0" }}>Après la fin d&apos;un abonnement, les données sont conservées 30 jours puis supprimées.</p>
         </div>
+        {scope.role === "owner" && <div className="card"><h2>Supprimer mon espace</h2><p className="sub">Supprime définitivement tous les appels, commerciaux, outils connectés, relances et comptes de cet espace. Exportez vos données avant : c&apos;est irréversible.</p>
+          <ActionForm action={deleteOrganization} submit="Supprimer définitivement">
+            <label className="full">Tapez le nom de l&apos;espace pour confirmer<input className="input" name="confirm" required autoComplete="off" /></label>
+          </ActionForm>
+        </div>}
         <div className="card"><h2>Claude</h2><p className="sub">Branchez Claude sur Trustpipe : il lit vos relances et l&apos;historique de vos prospects, et planifie vos relances à votre place.</p>
           <p className="small" style={{ margin: "0 0 6px" }}>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
           <code className="small" style={{ display: "block", padding: "10px 12px", background: "var(--panel)", border: "1px solid var(--stroke-2)", borderRadius: 4, userSelect: "all", wordBreak: "break-all" }}>{mcpUrl}</code>

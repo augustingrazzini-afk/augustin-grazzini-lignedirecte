@@ -42,7 +42,9 @@ export default function Page() {
 
       <h2>6. Durées de conservation</h2>
       <ul>
-        <li>Compte et données de prospection : pendant l&apos;abonnement, puis suppression dans les 30 jours suivant la fin du contrat (délai permettant l&apos;export).</li>
+        <li>Compte et données de prospection : pendant l&apos;abonnement, puis suppression 30 jours après la fin du contrat (délai permettant l&apos;export).</li>
+        <li>Enregistrements d&apos;appels : 6 mois au plus. Transcriptions : 12 mois au plus. Les résumés et statistiques sont conservés pendant l&apos;abonnement.</li>
+        <li>Opposition d&apos;un prospect (« ne plus me contacter ») : conservée pour ne plus proposer de relance.</li>
         <li>Liens de connexion : 30 minutes de validité, supprimés au plus tard 24 heures après expiration.</li>
         <li>Session : 30 jours.</li>
         <li>Factures : 10 ans (obligation légale).</li>

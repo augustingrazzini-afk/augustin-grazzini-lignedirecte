@@ -5,7 +5,7 @@ import { db } from "./db";
 import { OBJECTION_KEYS, type TranscriptLine } from "./providers/types";
 import { OBJ_LABEL, fmtDuration, isConversation, displayName } from "./format";
 import { runPool } from "./pool";
-import { closeTasksOnMeeting, upsertTask, type TaskDraft } from "./tasks";
+import { markOptOut, closeTasksOnMeeting, upsertTask, type TaskDraft } from "./tasks";
 
 const MODEL = process.env.AI_MODEL || "claude-opus-5-5";
 let client: Anthropic | null = null;
@@ -61,6 +61,7 @@ const ANALYSIS_SCHEMA = obj({
   summary: { type: "string", description: "3 à 5 puces commençant par '- '" },
   objections: { type: "array", items: { type: "string", enum: [...OBJECTION_KEYS] } },
   meeting_booked: { type: "boolean" },
+  opt_out: { type: "boolean", description: "true seulement si le prospect demande explicitement à ne plus être contacté (« ne me rappelez plus », « retirez-moi de votre liste »). Un simple refus ou « pas intéressé » ne suffit pas." },
   follow_up: FOLLOW_UP,
 });
 type FollowUp = { needed: boolean; date: string; channel: "call" | "email" | "linkedin"; reason: string; suggestion: string };
@@ -80,7 +81,7 @@ function transcriptText(t: TranscriptLine[], max = 40000) {
 export async function analyzeCall(call: Pick<Call, "id" | "kind" | "transcript" | "summary" | "orgId" | "clientId" | "contactKey" | "firstName" | "lastName" | "company" | "startedAt">) {
   const tr = (call.transcript as unknown as TranscriptLine[]) || [];
   if (!tr.length) return false;
-  const r = await json<{ summary: string; objections: string[]; meeting_booked: boolean; follow_up: FollowUp }>(
+  const r = await json<{ summary: string; objections: string[]; meeting_booked: boolean; opt_out?: boolean; follow_up: FollowUp }>(
     `Analyse cette transcription ${call.kind === "meeting" ? "de rendez-vous commercial mené par un AE" : "d'appel de prospection téléphonique B2B"}.
 Rédige en français un résumé de 3 à 5 puces (contexte, besoin, objections, issue, prochaine étape) sans rien inventer.
 Classe les objections du prospect parmi : relevance (pas pertinent / pas de besoin), incumbent (solution déjà en place), timing (pas le moment), too_busy (pas le temps), authority (pas décideur), budget, other.
@@ -103,9 +104,11 @@ ${transcriptText(tr)}
       objections: r.objections.filter((k) => (OBJECTION_KEYS as readonly string[]).includes(k)),
       // Le compteur de rendez-vous ne dépend que de l'outil d'appel (ou d'une confirmation humaine) : l'IA ne fait que signaler.
       aiMeeting: !!r.meeting_booked,
+      ...(r.opt_out ? { optOut: true } : {}),
       aiStatus: "done",
     },
   });
+  if (r.opt_out) { await markOptOut(call.orgId, call.contactKey); return true; } // opposition : relances retirées, aucune nouvelle
   if (r.meeting_booked) return true; // pas de relance proposée : un rendez-vous semble fixé (à confirmer sur la fiche)
   const d = draft(r.follow_up, call.startedAt);
   if (d) await upsertTask(call, "call", call.id, d, "ai");

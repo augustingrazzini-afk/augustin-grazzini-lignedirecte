@@ -1,3 +1,4 @@
+import { isOptedOut } from "@/lib/tasks";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, scopeClientId } from "@/lib/access";
@@ -46,6 +47,7 @@ export async function POST(req: Request) {
   const where = { orgId: scope.orgId, contactKey: b.data.contactKey, ...(scope.kind === "client" ? { clientId } : {}) };
   const ref = (await db.call.findFirst({ where, orderBy: { startedAt: "desc" } })) || (await db.activity.findFirst({ where, orderBy: { occurredAt: "desc" } }));
   if (!ref) return jsonError("Prospect introuvable", 404);
+  if (await isOptedOut(scope.orgId, ref.contactKey)) return jsonError("Ce prospect a demandé à ne plus être contacté : aucune relance ne peut être créée.", 409);
   await db.task.create({ data: {
     orgId: scope.orgId, clientId: ref.clientId, contactKey: ref.contactKey, contactName: [ref.firstName, ref.lastName].filter(Boolean).join(" "), company: ref.company,
     channel: b.data.channel, dueAt: new Date(b.data.dueAt), reason: b.data.reason, source: "manual", sourceKind: "manual", sourceId: crypto.randomUUID(),
