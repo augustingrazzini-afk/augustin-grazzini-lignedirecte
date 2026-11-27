@@ -20,6 +20,11 @@ export async function POST(req: Request) {
     if (!src) {
       try { src = new URL(String(b.r || "")).hostname.replace(/^www\./, "").slice(0, 60); } catch { src = ""; }
       if (src === "trustpipe.fr") src = "";
+      // Applis mobiles (android-app://…) et domaines connus : nom lisible.
+      if (/googlequicksearchbox|^google\.|\.google\./.test(src)) src = "google";
+      else if (/linkedin|^lnkd\.in$/.test(src)) src = "linkedin";
+      else if (/facebook|^fb\.|instagram/.test(src)) src = "facebook / instagram";
+      else if (/whatsapp/.test(src)) src = "whatsapp";
     }
     await bumpUsage(`visitsrc:${src || "direct"}`);
   }
