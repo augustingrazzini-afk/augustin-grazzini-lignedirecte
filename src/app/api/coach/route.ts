@@ -2,7 +2,7 @@ import { bumpUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, scopeClientId } from "@/lib/access";
-import { assertActive, assertPremium, jsonError, sameOrigin } from "@/lib/api";
+import { assertActive, assertAi, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, asJson, generateCoach } from "@/lib/ai";
 import { computeStats, windowCalls } from "@/lib/stats";
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
   if (!b.success) return jsonError("Requête invalide");
   const scope = await apiScope(req, { clientId: b.data.clientId });
   if (!scope) return jsonError("Accès refusé", 403);
-  const blocked = (await assertActive(scope)) || (await assertPremium(scope));
+  const blocked = (await assertActive(scope)) || (await assertAi(scope));
   if (blocked) return blocked;
   // Garde-fou de coût : plafond par espace et par jour.
   if ((await bumpUsage(`coach:${scope.orgId}`)) > 30) return jsonError("Limite de 30 diagnostics par jour atteinte pour votre espace. Elle se remet à zéro demain.", 429);

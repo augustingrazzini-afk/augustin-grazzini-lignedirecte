@@ -8,7 +8,7 @@ const { db } = await import("../src/lib/db");
 const { upsertCalls, reapplyRules, routeClient } = await import("../src/lib/ingest");
 const billing = await import("../src/lib/billing");
 const { planForPrice } = await import("../src/lib/stripe");
-const { assertPremium } = await import("../src/lib/api");
+const { assertPremium, assertAi } = await import("../src/lib/api");
 const { rankReps } = await import("../src/components/views/Leaderboard");
 const { callScope } = await import("../src/lib/access");
 const { registerClient, checkAuthorize, issueCode, exchangeToken } = await import("../src/lib/mcp-server");
@@ -76,6 +76,8 @@ test("formules : limites de commerciaux et fonctions IA", () => {
   assert.equal(maxClients({ plan: "agency", seats: 4 }), 4, "nombre de commerciaux payés");
   assert.equal(maxClients({ plan: "starter", seats: 0 }), 1);
   assert.equal(maxClients({ plan: "premium", seats: 12 }), 12);
+  assert.equal(maxClients({ plan: "agency", seats: 9 }), 4, "Essentiel : 4 commerciaux au plus");
+  assert.equal(maxClients({ plan: "starter", seats: 5 }), 2, "Découverte : 2 commerciaux au plus");
   assert.equal(maxClients({ plan: "solo", seats: 1 }), 3, "anciennes formules conservées");
   assert.deepEqual(["starter", "agency", "premium", "trial", "solo"].map((p) => [hasAi({ plan: p }), hasPremium({ plan: p })]),
     [[false, false], [true, false], [true, true], [true, true], [true, true]]);
@@ -90,8 +92,9 @@ test("Stripe : chaque prix retrouve sa formule", () => {
   assert.equal(planForPrice(price(null)), null);
 });
 
-test("Premium : assistant et connecteur Claude bloqués en Essentiel, ouverts en Premium", async () => {
+test("Assistant inclus dès Essentiel ; connecteur Claude bloqué en Essentiel, ouvert en Premium", async () => {
   const scope = { kind: "org", orgId: org.id, userId: boss.id, role: "owner" } as never;
+  assert.equal(await assertAi(scope), null, "assistant ouvert en Essentiel");
   const r = await assertPremium(scope);
   assert.equal(r?.status, 402);
   assert.match(String((await r!.json()).error), /Premium/);

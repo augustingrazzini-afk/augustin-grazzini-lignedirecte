@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, scopeClientId, type Scope } from "@/lib/access";
-import { assertActive, assertPremium, jsonError, sameOrigin } from "@/lib/api";
+import { assertActive, assertAi, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, aiEnabled } from "@/lib/ai";
 import { askAssistant } from "@/lib/assistant";
@@ -37,7 +37,7 @@ export async function POST(req: Request) {
     if (scope && (await bumpUsage(`share:${c!.id}`)) > SHARE_DAILY_LIMIT) return jsonError(`Limite de ${SHARE_DAILY_LIMIT} questions par jour atteinte pour ce lien. Revenez demain !`, 429);
   } else scope = await apiScope(req, { clientId: b.data.clientId });
   if (!scope) return jsonError("Accès refusé", 403);
-  const blocked = (await assertActive(scope)) || (await assertPremium(scope));
+  const blocked = (await assertActive(scope)) || (await assertAi(scope));
   if (blocked) return blocked;
   // Garde-fou de coût : plafond de questions par jour et par espace (hors liens de suivi, déjà limités).
   if (!b.data.shareToken && (await bumpUsage(`assistant:${scope.orgId}`)) > ORG_DAILY_LIMIT) return jsonError(`Limite de ${ORG_DAILY_LIMIT} questions par jour atteinte pour votre espace. Elle se remet à zéro demain.`, 429);

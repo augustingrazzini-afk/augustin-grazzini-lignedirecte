@@ -2,7 +2,7 @@
 import type { Scope } from "@/lib/access";
 import { db } from "@/lib/db";
 import Link from "next/link";
-import { PLANS, euros, hasPremium } from "@/lib/billing";
+import { PLANS, euros, hasAi, hasPremium } from "@/lib/billing";
 import { aiEnabled, type Brief, type CoachResult } from "@/lib/ai";
 import { PageTop, Period } from "./Shell";
 import { Calls } from "./views/Calls";
@@ -38,14 +38,22 @@ export function CallPage({ scope, base, id }: { scope: Scope; base: string; id: 
 
 
 /** Encart « inclus en Premium » à la place d'une fonction IA avancée. */
-async function premiumGate(scope: Scope, what: string): Promise<React.ReactNode | null> {
+async function premiumGate(scope: Scope, what: string, fromEssentiel = false): Promise<React.ReactNode | null> {
   const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { plan: true } });
-  if (!org || hasPremium(org)) return null;
+  if (!org || (fromEssentiel ? hasAi(org) : hasPremium(org))) return null;
+  if (fromEssentiel) return (
+    <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
+      <span className="pill win">Essentiel</span>
+      <h2 style={{ margin: "14px 0 8px" }}>{what} est inclus à partir de la formule Essentiel</h2>
+      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Résumé et analyse IA de chaque appel, objections, relances automatiques et assistant IA sur toute l&apos;équipe : {euros(PLANS.agency.price)} € HT par commercial et par mois.</p>
+      {scope.kind === "org" ? <Link className="btn primary" href="/app/billing">Passer en Essentiel</Link> : <p className="muted small">Demandez à l&apos;entreprise qui vous a invité de changer de formule.</p>}
+    </div>
+  );
   return (
     <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
       <span className="pill win">Premium</span>
       <h2 style={{ margin: "14px 0 8px" }}>{what} est inclus dans la formule Premium</h2>
-      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Assistant IA sur toute l&apos;équipe, briefs pré-rendez-vous, débriefs de visio, transcription automatique et connecteur Claude : {euros(PLANS.premium.price)} € HT par commercial et par mois.</p>
+      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Commerciaux illimités, connecteur Claude, briefs pré-rendez-vous, débriefs de visio et transcription automatique : {euros(PLANS.premium.price)} € HT par commercial et par mois.</p>
       {scope.kind === "org" ? <Link className="btn primary" href="/app/billing">Passer en Premium</Link> : <p className="muted small">Demandez à l&apos;entreprise qui vous a invité de passer en Premium.</p>}
     </div>
   );
@@ -107,7 +115,7 @@ export async function RelancesPage({ scope, base }: { scope: Scope; base: string
 
 export async function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
   const isClient = scope.kind === "client";
-  const gate = await premiumGate(scope, "L'assistant IA");
+  const gate = await premiumGate(scope, "L'assistant IA", true);
   return (
     <>
       <PageTop title="Assistant IA" subtitle={isClient ? "Posez vos questions sur votre prospection et préparez vos rendez-vous" : "Il a écouté les appels de tous vos commerciaux : performances, objections, prospects, rendez-vous"} />

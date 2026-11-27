@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PLANS, type PlanId, euros, maxClients } from "@/lib/billing";
+import { PLANS, type PlanId, euros, maxClients, PLAN_CAP } from "@/lib/billing";
 import { portalLink } from "@/lib/stripe";
 import { fmt } from "@/lib/format";
 import { createClient } from "@/app/actions";
@@ -38,7 +38,7 @@ export default async function Page() {
       <PageTop title="Commerciaux" subtitle="Vos commerciaux internes, freelances et agences : chaque appel leur est attribué automatiquement" />
       {Number.isFinite(max) && reps.length >= max && (
         <div className="banner" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
-          <span><b>Votre abonnement couvre {max} commercial{max > 1 ? "aux" : ""}, tous utilisés.</b> Pour en suivre un de plus : augmentez la quantité de votre abonnement ({euros(plan.price)} € HT par commercial et par mois, au prorata), puis revenez l&apos;ajouter ici.</span>
+          <span>{max >= (PLAN_CAP[org.plan] ?? Infinity) ? <><b>Votre formule {plan.name} est limitée à {max} commerciaux, tous utilisés.</b> Pour en suivre plus, passez à la formule supérieure depuis votre abonnement.</> : <><b>Votre abonnement couvre {max} commercial{max > 1 ? "aux" : ""}, tous utilisés.</b> Pour en suivre un de plus : augmentez la quantité de votre abonnement ({euros(plan.price)} € HT par commercial et par mois, au prorata), puis revenez l&apos;ajouter ici.</>}</span>
           {portal ? <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Ajouter un commercial à mon abonnement</a> : <Link className="btn primary" href="/app/billing">Gérer mon abonnement</Link>}
         </div>
       )}

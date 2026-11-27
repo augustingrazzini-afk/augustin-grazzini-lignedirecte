@@ -94,7 +94,7 @@ const FAQ: [string, string][] = [
   ["Mes commerciaux utilisent des outils différents, ça marche ?", "Oui, c'est fait pour ça. Votre équipe interne sur Aircall, un freelance sur Minari, une agence sur Ringover : chacun branche son outil et tous les appels arrivent dans votre espace, rangés par commercial."],
   ["Qu'est-ce que le commercial a à faire ?", "Presque rien. Il reçoit une invitation par email et branche son outil d'appel en 2 minutes (une clé à coller, ou un clic pour Minari). S'il appelle depuis votre outil, il n'a même rien à faire : vous indiquez son nom et ses appels lui sont attribués."],
   ["Le commercial voit-il les appels des autres ?", "Non. Chaque commercial a son espace et ne voit que ses propres appels, ses résumés et son assistant IA. Vous seul (et les managers que vous invitez) voyez toute l'équipe."],
-  ["Combien ça coûte ?", "Le prix est par commercial suivi et par mois, sans engagement : Essentiel à 49,99 € HT (suivi en direct et analyse IA de chaque appel), Premium à 69,99 € HT (avec l'assistant IA, les briefs et débriefs de rendez-vous, la transcription et le connecteur Claude). Une formule Découverte sans IA existe à 19,99 € HT. Les dirigeants et managers ne sont pas facturés."],
+  ["Combien ça coûte ?", "Le prix est par commercial suivi et par mois, sans engagement : Essentiel à 49,99 € HT (jusqu'à 4 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à 69,99 € HT (commerciaux illimités, connecteur Claude, briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à 19,99 € HT, limitée à 2 commerciaux. Les dirigeants et managers ne sont pas facturés."],
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Dans Claude, ajoutez un connecteur personnalisé avec l'adresse https://trustpipe.fr/api/mcp, puis autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
@@ -227,9 +227,9 @@ export default async function Home() {
       </section>
 
       <section id="assistant" className="st-sec">
-        <div className="st-side"><div className="st-n">02</div><small>Assistant IA<br />Premium</small></div>
+        <div className="st-side"><div className="st-n">02</div><small>Assistant IA<br />dès Essentiel</small></div>
         <div className="st-body">
-          <span className="st-aitag"><span className="st-dot" />ASSISTANT IA · FORMULE PREMIUM</span>
+          <span className="st-aitag"><span className="st-dot" />ASSISTANT IA · INCLUS DÈS ESSENTIEL</span>
           <h2 className="st-h2">Un assistant IA. <span className="st-thin">Il a écouté toute l&apos;équipe.</span></h2>
           <p className="st-lead">Dans Trustpipe, un assistant IA a écouté chaque appel de chaque commercial. Vous lui posez vos questions comme à un directeur commercial : qui performe, qui a besoin d&apos;aide, pourquoi les prospects refusent, comment préparer votre rendez-vous de jeudi.</p>
           <div className="st-ai">
@@ -300,7 +300,7 @@ export default async function Home() {
               </div>
             ))}
           </div>
-          <p className="st-lead" style={{ fontSize: 16 }}>Exemple : 2 commerciaux internes + 1 freelance + 1 agence en Essentiel = 4 × {euros(PLANS.agency.price)} € HT par mois. Vous choisissez le nombre au paiement et l&apos;ajustez quand vous voulez. Dirigeants et managers ne sont pas facturés.</p>
+          <p className="st-lead" style={{ fontSize: 16 }}>Exemple : 2 commerciaux internes + 1 freelance + 1 agence en Essentiel = 4 × {euros(PLANS.agency.price)} € HT par mois. Vous choisissez le nombre au paiement et l&apos;ajustez quand vous voulez. Au-delà de 4 commerciaux : Premium, sans limite. Dirigeants et managers ne sont pas facturés.</p>
         </div>
       </section>
 
