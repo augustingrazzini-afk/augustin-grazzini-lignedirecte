@@ -75,10 +75,13 @@ model Membership {
   @@unique([orgId, userId])
 }
 
+/** Un commercial suivi par la boîte (interne, freelance ou agence). Nom technique historique : Client. */
 model Client {
   id           String         @id @default(cuid())
   orgId        String
   name         String
+  kind         String         @default("interne") // interne | freelance | agence
+  agency       String         @default("") // société du freelance / de l'agence
   offer        String         @default("")
   slackWebhook String?
   shareToken   String?        @unique // lien de suivi en direct, lisible sans compte ; null = désactivé
@@ -133,7 +136,7 @@ model ClientRule {
   orgId     String
   clientId  String
   provider  String? // null = toutes les sources
-  field     String // list | campaign | tag | number | company
+  field     String // rep | list | campaign | tag | number | company
   value     String
   createdAt DateTime     @default(now())
   org       Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)

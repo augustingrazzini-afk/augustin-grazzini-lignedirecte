@@ -34,12 +34,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
     : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price)} € HT par mois, sans engagement`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
-  const features = (id: "solo" | "solo_plus" | "agency") => [
-    Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités",
-    "Accès en direct pour vos clients, avec assistant IA intégré",
+  const features = (_id?: string) => [
+    "Internes, freelances et agences au même endroit",
+    "Chaque appel en direct, résumé et analysé par l'IA",
+    "Classement et résultats par commercial",
+    "Assistant IA, relances, briefs de rendez-vous",
     "Tous les dialers : Minari, lemlist, Aircall, Ringover… ou CSV",
-    "Transcriptions, résumés et analyse IA de chaque appel",
-    id === "agency" ? "Facturé par commercial : choisissez le nombre au paiement" : "1 commercial",
   ];
   return (
     <>
@@ -55,7 +55,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
           <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
           <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
             {features(org.plan === "agency" || org.plan === "solo_plus" ? org.plan : "solo").map((f) => <li key={f}>{f}</li>)}
-            {org.plan === "agency" && <li><b>{org.seats} commercial{org.seats > 1 ? "aux" : ""}</b> sur votre abonnement : {euros(PLANS.agency.price * org.seats)} € HT / mois. Pour en ajouter, écrivez-nous ou changez la quantité dans « Gérer mon abonnement ».</li>}
+            {org.plan === "agency" && <li><b>{org.seats} commercial{org.seats > 1 ? "aux" : ""}</b> suivi{org.seats > 1 ? "s" : ""} sur votre abonnement : {euros(PLANS.agency.price * org.seats)} € HT / mois. Pour en suivre plus, changez la quantité dans « Gérer mon abonnement ».</li>}
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>
@@ -79,16 +79,16 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
       )}
 
       {!subscribed && (
-        <div className="grid g-3e">
+        <div className="grid g-2e">
           {PAID_PLANS.map((id) => {
             const p = PLANS[id];
             return (
               <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
-                <h2>{p.name}</h2>
+                <h2>Par commercial suivi</h2>
                 <div className="amt">{euros(p.price)} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois{p.perSeat ? " par commercial" : ""}</span></div>
                 <ul>{features(id).map((f) => <li key={f}>{f}</li>)}</ul>
                 {owner && (links
-                  ? (links[id] ? <a className={`btn${id === "agency" ? " primary" : ""}`} href={links[id]!}>Choisir {p.name}</a> : <button className="btn" disabled>Choisir {p.name}</button>)
+                  ? (links[id] ? <a className={`btn${id === "agency" ? " primary" : ""}`} href={links[id]!}>Continuer vers le paiement</a> : <button className="btn" disabled>Choisir {p.name}</button>)
                   : <form action="/api/billing" method="post"><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><button className={`btn${id === "agency" ? " primary" : ""}`} disabled={!stripeEnabled()}>Choisir {p.name}</button></form>)}
               </div>
             );

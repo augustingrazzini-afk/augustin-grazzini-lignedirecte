@@ -34,7 +34,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
     { href: `${base}/sources`, label: "Sources", icon: "sources", sep: true },
     ...(isOrg
       ? [
-          { href: `${base}/clients`, label: "Clients", icon: "clients" },
+          { href: `${base}/clients`, label: "Commerciaux", icon: "clients" },
           { href: `${base}/settings`, label: "Réglages", icon: "settings" },
           { href: `${base}/billing`, label: "Abonnement", icon: "billing" },
           ...(admin ? [{ href: `${base}/inscriptions`, label: "Inscriptions", icon: "clients" }] : []),

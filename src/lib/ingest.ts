@@ -7,7 +7,7 @@ import { aiEnabled } from "./ai-config";
 
 const norm = (s?: string) => (s || "").trim().toLowerCase();
 
-/** Trouve le client d'un appel : intégration d'un client > règles (liste, campagne, tag, numéro, entreprise). */
+/** Trouve le commercial d'un appel (modèle « Client ») : outil branché par le commercial > règles (nom du commercial, liste, campagne, tag, numéro, entreprise). */
 export function routeClient(call: NormalizedCall, provider: string, rules: ClientRule[], fixedClientId?: string | null): string | null {
   if (fixedClientId) return fixedClientId;
   for (const r of rules) {
@@ -19,6 +19,7 @@ export function routeClient(call: NormalizedCall, provider: string, rules: Clien
       (r.field === "campaign" && (norm(call.campaign) === v || norm(call.listName) === v)) ||
       (r.field === "tag" && (call.tags || []).some((t) => norm(t) === v)) ||
       (r.field === "company" && norm(call.company) === v) ||
+      (r.field === "rep" && norm(call.repName) === v) ||
       (r.field === "number" && !!call.phone && call.phone.replace(/\D/g, "").endsWith(v.replace(/\D/g, "")));
     if (hit) return r.clientId;
   }
@@ -100,10 +101,10 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{
 export async function reapplyRules(orgId: string) {
   const rules = await db.clientRule.findMany({ where: { orgId } });
   if (!rules.length) return 0;
-  const calls = await db.call.findMany({ where: { orgId, clientId: null }, select: { id: true, provider: true, listName: true, campaign: true, tags: true, company: true } });
+  const calls = await db.call.findMany({ where: { orgId, clientId: null }, select: { id: true, provider: true, listName: true, campaign: true, tags: true, company: true, repName: true } });
   let n = 0;
   for (const c of calls) {
-    const cid = routeClient({ externalId: "", startedAt: new Date(), durationSec: 0, status: "", connected: false, meetingBooked: false, listName: c.listName, campaign: c.campaign, tags: c.tags, company: c.company }, c.provider, rules);
+    const cid = routeClient({ externalId: "", startedAt: new Date(), durationSec: 0, status: "", connected: false, meetingBooked: false, listName: c.listName, campaign: c.campaign, tags: c.tags, company: c.company, repName: c.repName }, c.provider, rules);
     if (cid) { await db.call.update({ where: { id: c.id }, data: { clientId: cid } }); n++; }
   }
   return n;

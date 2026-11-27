@@ -43,7 +43,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   return (
     <AuthCard title={`Connecter ${p.clientName}`} subtitle={`${p.clientName} demande l'accès à l'espace « ${m.org.name} ».`}>
       <ul className="small" style={{ margin: "0 0 18px", paddingLeft: 18, lineHeight: 1.7 }}>
-        <li>Lire vos relances, vos clients et l&apos;historique d&apos;appels de vos prospects</li>
+        <li>Lire vos relances, vos commerciaux et l&apos;historique d&apos;appels de vos prospects</li>
         <li>Créer, reporter et marquer comme faites vos relances</li>
         <li>Rien d&apos;autre : pas d&apos;accès à vos réglages, à vos outils connectés ni à la facturation</li>
       </ul>

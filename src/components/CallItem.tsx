@@ -3,7 +3,7 @@ import type { Call } from "@prisma/client";
 import { OBJ_LABEL, dateFR, displayName, fmtDuration, initials } from "@/lib/format";
 import { SOURCE_LABEL } from "@/lib/providers";
 
-export function CallItem({ c, base, showSource }: { c: Call; base: string; showSource?: boolean }) {
+export function CallItem({ c, base, showSource, rep }: { c: Call; base: string; showSource?: boolean; rep?: string }) {
   const first = c.summary.split("\n").find((l) => l.trim())?.replace(/^-\s*/, "") || (c.connected ? "Appel décroché" : "Pas de réponse");
   const hasTr = Array.isArray(c.transcript) && (c.transcript as unknown[]).length > 0;
   return (
@@ -13,6 +13,7 @@ export function CallItem({ c, base, showSource }: { c: Call; base: string; showS
       <span className="meta">{dateFR(c.startedAt)} · {fmtDuration(c.durationSec)}</span>
       <span className="sum">{first}</span>
       <span className="tags">
+        {rep && <span className="pill rep">{rep}</span>}
         {c.kind === "meeting" && <span className="pill warn">RDV AE</span>}
         {c.meetingBooked && <span className="pill win">RDV pris</span>}
         {c.objections.slice(0, 3).map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}

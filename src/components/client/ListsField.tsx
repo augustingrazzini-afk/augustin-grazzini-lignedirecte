@@ -10,7 +10,7 @@ export function ListsField({ known }: { known: { name: string; calls: number; ta
   const add = (v = "") => setRows((r) => (r.length === 1 && !r[0] && v ? [v] : [...r, v]));
   return (
     <div className="full lists-field">
-      <span className="lf-label">Listes d&apos;appels de ce client <span className="muted small">(une ou plusieurs)</span></span>
+      <span className="lf-label">Ou ses listes d&apos;appels <span className="muted small">(facultatif, une ou plusieurs)</span></span>
       {rows.map((v, i) => (
         <div key={i} className="lf-row">
           <input className="input" name="list" value={v} onChange={(e) => set(i, e.target.value)} list="known-lists" placeholder="Nom exact de la liste dans Minari, Aircall…" autoComplete="off" />

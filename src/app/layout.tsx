@@ -12,7 +12,7 @@ import { Analytics } from "@vercel/analytics/next";
 const APP = process.env.APP_NAME || "Trustpipe";
 export const metadata: Metadata = {
   title: { default: APP, template: `%s · ${APP}` },
-  description: "Le reporting d'appels pour chaque client : vos clients suivent vos appels en direct (Minari, lemlist, Aircall, Ringover…) et l'assistant IA intégré prépare leurs rendez-vous. Pour les SDR freelances et les petites équipes commerciales.",
+  description: "Centralisez tous vos commerciaux (salariés, freelances, agences de prospection) et suivez chacun de leurs appels en direct, quel que soit leur outil : Minari, Aircall, Ringover, lemlist… Classement, résumés IA et un assistant IA qui a tout écouté.",
   manifest: "/manifest.webmanifest",
   icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/trustpipe-mark.svg", type: "image/svg+xml" }, { url: "/icon-192.png", type: "image/png", sizes: "192x192" }], apple: "/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Trustpipe", statusBarStyle: "black-translucent" },

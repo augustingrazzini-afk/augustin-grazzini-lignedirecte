@@ -9,32 +9,32 @@ import { LEGAL } from "@/lib/legal";
 
 export const metadata = {
   title: "L'assistant IA de Trustpipe",
-  description: "Un assistant IA qui a écouté chaque appel de prospection : il prépare les rendez-vous, répond sur la campagne et explique les objections. Pour vous et pour vos clients.",
+  description: "Un assistant IA qui a écouté chaque appel de chacun de vos commerciaux : il compare l'équipe, repère qui a besoin d'aide, explique les objections et prépare vos rendez-vous.",
 };
 
 const HOW: [string, string][] = [
-  ["Vos appels arrivent", "Minari, lemlist, Aircall, Ringover… Chaque appel remonte tout seul dans Trustpipe, avec son enregistrement quand votre outil le fournit."],
-  ["L'IA les lit", "Chaque appel est transcrit et résumé : ce que le prospect a dit, ses objections, le résultat et la prochaine étape."],
-  ["On lui pose ses questions", "Votre client depuis son lien de suivi, vous depuis votre espace : on lui écrit comme à un collègue, il répond à partir des vrais appels."],
+  ["Les appels arrivent", "Chaque commercial branche son outil (Minari, Aircall, Ringover, lemlist…) : tous les appels de l'équipe remontent tout seuls dans Trustpipe."],
+  ["L'IA les écoute", "Chaque appel est transcrit et résumé : ce que le prospect a dit, ses objections, le résultat et la prochaine étape."],
+  ["Vous lui posez vos questions", "Comme à un directeur commercial : il répond en quelques secondes, à partir des vrais appels de chacun."],
 ];
 
-const CLIENT_ASKS = [
+const BOSS_ASKS = [
+  "Qui a pris le plus de rendez-vous cette semaine ?",
+  "Quel commercial a besoin d'aide, et pourquoi ?",
+  "L'agence fait-elle le travail promis ?",
   "Prépare mon rendez-vous de jeudi avec Atelier Morel",
-  "Qu'est-ce qui bloque le plus chez les prospects ?",
-  "Combien de rendez-vous cette semaine ?",
-  "Débriefe ma visio de ce matin",
 ];
-const YOU_ASKS = [
+const REP_ASKS = [
   "Qui dois-je rappeler en priorité aujourd'hui ?",
-  "À quelle heure les prospects décrochent-ils le plus ?",
-  "Résume la semaine pour mon client",
+  "À quelle heure mes prospects décrochent-ils le plus ?",
   "Comment répondre à « on a déjà un fournisseur » ?",
+  "Résume ma semaine",
 ];
 
 const FAQ: [string, string][] = [
   ["Est-ce inclus dans l'abonnement ?", "Oui. L'assistant IA est inclus dans toutes les formules, sans option ni supplément."],
-  ["Mon client a-t-il besoin d'un compte ?", "Non. Il ouvre son lien de suivi et l'assistant est là, dans l'onglet Assistant IA. Il ne voit que ses propres appels."],
-  ["Sur quoi se base-t-il pour répondre ?", "Sur les appels de l'espace : résumés, transcriptions, résultats, rendez-vous et relances. Il n'invente pas de chiffres : s'il n'a pas l'information, il le dit."],
+  ["Mes commerciaux y ont-ils accès ?", "Oui, chacun dans son espace : son assistant ne connaît que ses propres appels. Le vôtre connaît toute l'équipe."],
+  ["Sur quoi se base-t-il pour répondre ?", "Sur les appels de vos commerciaux : résumés, transcriptions, résultats, rendez-vous et relances. Il n'invente pas de chiffres : s'il n'a pas l'information, il le dit."],
   ["Peut-il se tromper ?", "Comme toute IA, oui. Ses réponses sont une aide à la préparation : relisez avant d'envoyer quoi que ce soit au prospect."],
   ["Et dans Claude ?", "Oui : avec le connecteur Trustpipe, vous retrouvez vos relances et l'historique de vos prospects directement dans Claude."],
 ];
@@ -57,9 +57,9 @@ export default function Page() {
             <div>
               <span className="st-aitag"><span className="st-dot" />INCLUS DANS TOUTES LES FORMULES</span>
               <h1 className="st-h1" style={{ fontSize: "clamp(40px, 5.2vw, 80px)" }}>L&apos;assistant IA.<br /><span className="st-thin">Il a écouté</span><br /><span className="st-o">chaque appel.</span></h1>
-              <p className="st-lead" style={{ fontSize: 19 }}>Dans Trustpipe, un assistant IA connaît toute votre prospection : chaque appel, chaque objection, chaque rendez-vous. Votre client et vous lui posez vos questions en français, il répond en quelques secondes à partir des vrais appels.</p>
+              <p className="st-lead" style={{ fontSize: 19 }}>Dans Trustpipe, un assistant IA a écouté chaque appel de chacun de vos commerciaux : salariés, freelances, agences. Vous lui posez vos questions en français, il répond en quelques secondes à partir des vrais appels.</p>
               <div className="st-btns" style={{ maxWidth: 440, marginTop: 28 }}>
-                <Link className="st-btn p" href="/inscription">ESSAYER TRUSTPIPE <span aria-hidden="true">→</span></Link>
+                <Link className="st-btn p" href="/inscription">SUIVRE MES COMMERCIAUX <span aria-hidden="true">→</span></Link>
                 <a className="st-btn g" href="#comment">COMMENT ÇA MARCHE <span aria-hidden="true">↓</span></a>
               </div>
             </div>
@@ -81,10 +81,10 @@ export default function Page() {
       <section className="st-sec">
         <div className="st-side"><div className="st-n">02</div><small>Pour qui</small></div>
         <div className="st-body">
-          <h2 className="st-h2">Votre client lui parle. <span className="st-thin">Vous aussi.</span></h2>
+          <h2 className="st-h2">Vous pilotez. <span className="st-thin">Vos commerciaux progressent.</span></h2>
           <div className="st-two">
-            <div><span className="who">VOTRE CLIENT · DEPUIS SON LIEN DE SUIVI</span><h3>Il prépare ses rendez-vous</h3><p className="st-lead" style={{ fontSize: 15.5, marginTop: 8 }}>Sans vous appeler ni attendre le reporting du vendredi : il demande, l&apos;assistant répond.</p><ul>{CLIENT_ASKS.map((a) => <li key={a}>{a}</li>)}</ul></div>
-            <div><span className="who">VOUS · DEPUIS VOTRE ESPACE</span><h3>Vous pilotez la campagne</h3><p className="st-lead" style={{ fontSize: 15.5, marginTop: 8 }}>Priorités du jour, objections, bons créneaux : votre coach de prospection, qui connaît chaque appel.</p><ul>{YOU_ASKS.map((a) => <li key={a}>{a}</li>)}</ul></div>
+            <div><span className="who">VOUS · DIRIGEANT OU MANAGER</span><h3>Vous pilotez l&apos;équipe</h3><p className="st-lead" style={{ fontSize: 15.5, marginTop: 8 }}>Sans attendre le reporting du vendredi : vous demandez, l&apos;assistant répond avec les chiffres et les appels.</p><ul>{BOSS_ASKS.map((a) => <li key={a}>{a}</li>)}</ul></div>
+            <div><span className="who">VOS COMMERCIAUX · DANS LEUR ESPACE</span><h3>Ils progressent</h3><p className="st-lead" style={{ fontSize: 15.5, marginTop: 8 }}>Chaque commercial a son propre assistant, qui ne connaît que ses appels : relances, objections, préparation.</p><ul>{REP_ASKS.map((a) => <li key={a}>{a}</li>)}</ul></div>
           </div>
         </div>
       </section>
@@ -108,7 +108,7 @@ export default function Page() {
 
       <section className="st-end">
         <div className="st-endrow">
-          <p>L&apos;assistant IA est inclus dès la formule Solo, à 24,99 € HT par mois.</p>
+          <p>L&apos;assistant IA est inclus : 49,99 € HT par mois et par commercial suivi.</p>
           <Link className="st-btn p" href="/inscription">CRÉER MON COMPTE <span aria-hidden="true">→</span></Link>
         </div>
       </section>

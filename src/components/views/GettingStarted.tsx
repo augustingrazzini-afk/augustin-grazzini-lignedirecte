@@ -6,15 +6,14 @@ import { hasRecordings, listeningHelp } from "@/lib/listening";
 
 /**
  * « Premiers pas » : le mini-tutoriel de l'espace commercial. Chaque étape se coche toute seule
- * à partir des données (outil connecté, client créé, lien partagé…). Disparaît quand tout est fait,
+ * à partir des données (commercial ajouté, outil branché…). Disparaît quand tout est fait,
  * ou quand l'utilisateur le masque.
  */
 export async function GettingStarted({ orgId, userId }: { orgId: string; userId: string }) {
-  const [integrations, calls, clients, shared, convs, recorded, firstInteg] = await Promise.all([
+  const [integrations, calls, clients, convs, recorded, firstInteg] = await Promise.all([
     db.integration.count({ where: { orgId } }),
     db.call.count({ where: { orgId } }),
     db.client.findMany({ where: { orgId }, orderBy: { createdAt: "asc" }, select: { id: true }, take: 1 }),
-    db.client.count({ where: { orgId, shareToken: { not: null } } }),
     db.conversation.count({ where: { orgId, owner: userId } }),
     db.call.count({ where: { orgId, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] } }),
     db.integration.findFirst({ where: { orgId }, orderBy: { createdAt: "asc" }, select: { provider: true } }),
@@ -23,24 +22,24 @@ export async function GettingStarted({ orgId, userId }: { orgId: string; userId:
   const prov = firstInteg && hasRecordings(firstInteg.provider) ? firstInteg.provider : null;
   const label = prov ? (() => { try { return getProvider(prov).label; } catch { return prov; } })() : "votre outil d'appel";
   const listen = listeningHelp(prov || "", label);
-  const firstClient = clients[0]?.id;
+  const firstRep = clients[0]?.id;
   const steps = [
-    { done: integrations > 0 || calls > 0, title: "Connectez votre outil d'appel", text: "Minari, lemlist, Aircall, Ringover… Une clé à coller (ou un clic pour Minari), et vos appels arrivent tout seuls.", href: "/app/sources", cta: "Connecter un outil" },
-    { done: recorded > 0, title: "Activez l'écoute de vos appels", text: `${listen.title} : chaque appel aura son bouton Écouter, pour vous et pour vos clients. Puis cliquez sur « Récupérer les enregistrements ».`, href: "/app/sources#ecoute", cta: "Activer l'écoute" },
-    { done: clients.length > 0, title: "Créez votre premier client", text: "Donnez-lui un nom et indiquez ses listes d'appels : ses appels sont rangés chez lui automatiquement.", href: "/app/clients", cta: "Créer un client" },
-    { done: shared > 0, title: "Envoyez-lui son lien de suivi", text: "Sur la fiche du client, créez le lien et envoyez-le. Il suit vos appels en direct, sans compte ni mot de passe.", href: firstClient ? `/app/clients/${firstClient}` : "/app/clients", cta: "Partager le lien" },
-    { done: calls > 0, title: "Regardez vos appels arriver", text: "Chaque appel est résumé par l'IA, avec la transcription et les objections. Le tableau de bord se met à jour en continu.", href: "/app/calls", cta: "Voir mes appels" },
-    { done: convs > 0, title: "Posez une question à l'assistant IA", text: "« Prépare mon rendez-vous de jeudi avec… », « Quelles objections reviennent ? » : il relit vos appels pour vous.", href: "/app/coach", cta: "Essayer l'assistant" },
+    { done: clients.length > 0, title: "Ajoutez vos commerciaux", text: "Internes, freelances ou agence de prospection : un nom, son statut, son email. Il reçoit une invitation.", href: "/app/clients", cta: "Ajouter un commercial" },
+    { done: integrations > 0 || calls > 0, title: "Branchez leurs outils d'appel", text: "Chaque commercial branche son outil (Minari, Aircall, Ringover, lemlist…) depuis son invitation. Votre équipe partage un outil ? Branchez-le vous-même.", href: firstRep && !integrations ? `/app/clients/${firstRep}` : "/app/sources", cta: "Brancher un outil" },
+    { done: recorded > 0, title: "Activez l'écoute des appels", text: `${listen.title} : chaque appel aura son bouton Écouter. Puis cliquez sur « Récupérer les enregistrements ».`, href: "/app/sources#ecoute", cta: "Activer l'écoute" },
+    { done: calls > 0, title: "Regardez les appels arriver", text: "Chaque appel de chaque commercial, résumé par l'IA, avec la transcription et les objections. Le classement se met à jour en direct.", href: "/app/calls", cta: "Voir les appels" },
+    { done: convs > 0, title: "Posez une question à l'assistant IA", text: "« Qui a pris le plus de rendez-vous cette semaine ? », « Pourquoi les prospects refusent ? » : il a écouté tous les appels.", href: "/app/coach", cta: "Essayer l'assistant" },
   ];
+
   const doneCount = steps.filter((s) => s.done).length;
   if (doneCount === steps.length) return null;
   const next = steps.findIndex((s) => !s.done);
   return (
-    <Dismissible storeKey={`tp-gs2-${orgId}`} className="card gs">
+    <Dismissible storeKey={`tp-gs3-${orgId}`} className="card gs">
       <div className="gs-head">
         <div>
           <h2>Premiers pas</h2>
-          <p className="muted small" style={{ margin: "2px 0 0" }}>{steps.length} étapes, environ 3 minutes. Elles se cochent toutes seules.</p>
+          <p className="muted small" style={{ margin: "2px 0 0" }}>{steps.length} étapes pour suivre toute votre équipe commerciale. Elles se cochent toutes seules.</p>
         </div>
         <span className="gs-count">{doneCount}/{steps.length}</span>
       </div>
@@ -61,18 +60,18 @@ export async function GettingStarted({ orgId, userId }: { orgId: string; userId:
   );
 }
 
-/** Accueil du client (lien de suivi ou espace client) : ce qu'il peut faire, en 4 points. */
-export function ClientWelcome({ storeKey, base, by }: { storeKey: string; base: string; by: string }) {
+/** Accueil de l'espace du commercial invité (ou d'un ancien lien de suivi en lecture seule). */
+export function ClientWelcome({ storeKey, base, by, rep = false }: { storeKey: string; base: string; by: string; rep?: boolean }) {
   const items = [
+    ...(rep ? [{ icon: "🔌", title: "Branchez votre outil", text: "Minari, Aircall, Ringover, lemlist… 2 minutes, et vos appels arrivent ici.", href: `${base}/sources` }] : []),
     { icon: "📈", title: "Pilotage", text: "Vos résultats en direct : appels, conversations, rendez-vous.", href: base },
     { icon: "📞", title: "Appels", text: "Chaque conversation avec son résumé, sa transcription et les objections.", href: `${base}/calls` },
-    { icon: "📅", title: "Mes rendez-vous", text: "Déposez la transcription de votre rendez-vous : l'IA vous le débriefe.", href: `${base}/rendez-vous` },
-    { icon: "✨", title: "Assistant IA", text: "« Prépare mon rendez-vous avec… » : il relit les appels pour vous.", href: `${base}/coach` },
+    { icon: "✨", title: "Assistant IA", text: "« Prépare mon rendez-vous avec… » : il relit vos appels pour vous.", href: `${base}/coach` },
   ];
   return (
     <Dismissible storeKey={storeKey} className="card gs gs-client" closeLabel="J'ai compris">
       <h2 style={{ margin: "0 0 4px" }}>Bienvenue 👋</h2>
-      <p className="muted small" style={{ margin: "0 0 14px" }}>Ici, vous suivez en direct la prospection menée pour vous par {by}. La page se met à jour toute seule.</p>
+      <p className="muted small" style={{ margin: "0 0 14px" }}>{rep ? `${by} suit sa prospection avec Trustpipe. Branchez votre outil d'appel : vos appels arrivent ici, résumés par l'IA, et ${by} les suit en direct.` : `Ici, vous suivez en direct les appels de ${by}. La page se met à jour toute seule.`}</p>
       <div className="gs-grid">
         {items.map((it) => (
           <Link key={it.title} href={it.href} className="gs-tile">

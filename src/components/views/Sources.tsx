@@ -35,7 +35,7 @@ export async function Sources({ scope }: { scope: Scope }) {
             return (
               <div key={i.id} className="item" style={{ gridTemplateColumns: "42px minmax(0,1fr) auto" }}>
                 <span className="logo-src" style={{ background: providerColor(i.provider), gridRow: "span 2" }}>{p.label[0]}</span>
-                <span className="who">{i.label}{i.client && scope.kind === "org" && <span> · espace {i.client.name}</span>}</span>
+                <span className="who">{i.label}{i.client && scope.kind === "org" && <span> · branché par {i.client.name}</span>}</span>
                 <span>{i.status === "error" ? <span className="pill bad">Erreur</span> : <span className="pill win">Actif</span>}</span>
                 <span className="sum" style={{ WebkitLineClamp: 3 }}>{i._count.calls} appels · {universal ? "dernier envoi" : "dernière synchro"} {ago(i.lastSyncAt)}{i.lastError ? ` · ${i.lastError}` : ""}{p.beta ? " · intégration bêta" : ""}</span>
                 <span className="tags" style={{ gridColumn: "1/-1" }}>
@@ -62,7 +62,7 @@ export async function Sources({ scope }: { scope: Scope }) {
                           <b>{h.title}</b>
                           <ol className="small" style={{ margin: "6px 0 10px", paddingLeft: 18, lineHeight: 1.6 }}>{h.steps.map((st) => <li key={st}>{st}</li>)}</ol>
                           <form action={fetchRecordings}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm primary">Récupérer les enregistrements</button></form>
-                          <p className="muted small" style={{ margin: "6px 0 0" }}>Trustpipe relit les 90 derniers jours : comptez quelques minutes, puis rechargez la page. Vos clients pourront aussi écouter leurs appels.</p>
+                          <p className="muted small" style={{ margin: "6px 0 0" }}>Trustpipe relit les 90 derniers jours : comptez quelques minutes, puis rechargez la page. Chaque commercial pourra aussi réécouter ses appels.</p>
                         </div>
                       </details>
                     );
@@ -79,7 +79,7 @@ export async function Sources({ scope }: { scope: Scope }) {
       <CsvImport clientId={clientId} />
       <ManualAdd clientId={clientId} uploads={storageEnabled()} />
       <div className="card"><h2>Où vont vos données</h2><p className="sub" style={{ marginBottom: 0 }}>
-        {scope.kind === "client" ? "Les appels que vous ajoutez restent dans votre espace : seuls votre équipe et votre prestataire les voient. " : "Chaque appel est rangé chez un client grâce aux règles de l'onglet Clients : un client ne voit jamais les appels d'un autre. "}
+        {scope.kind === "client" ? "Les appels de l'outil que vous branchez arrivent dans votre espace, et l'entreprise pour qui vous prospectez les suit en direct. " : "Chaque appel est attribué à un commercial (l'outil qu'il a branché, ou les règles de l'onglet Commerciaux) : un commercial ne voit jamais les appels d'un autre. "}
         Les clés API sont chiffrées. Les numéros de téléphone ne sont pas conservés (seulement les 4 derniers chiffres).</p></div>
     </div>
   );

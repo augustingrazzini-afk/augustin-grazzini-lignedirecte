@@ -6,7 +6,7 @@ import { LEGAL } from "@/lib/legal";
 
 export const metadata = {
   title: "Trustpipe dans Claude",
-  description: "Branchez Trustpipe sur Claude : vos relances, vos clients et l'historique d'appels de vos prospects, directement dans la conversation.",
+  description: "Branchez Trustpipe sur Claude : vos relances, vos commerciaux et l'historique d'appels de vos prospects, directement dans la conversation.",
 };
 
 const URL_MCP = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/api/mcp`;
@@ -20,7 +20,7 @@ const STEPS: [string, string][] = [
 const TOOLS: [string, string, string][] = [
   ["lister_relances", "Lecture", "Vos relances à faire, en retard, du jour ou de la semaine, filtrables par client ou par prospect."],
   ["historique_prospect", "Lecture", "Les derniers appels d'un prospect : date, durée, résumé IA, rendez-vous pris, et ses relances."],
-  ["lister_clients", "Lecture", "Vos clients, avec leurs appels des 7 derniers jours et leurs relances à faire."],
+  ["lister_clients", "Lecture", "Vos commerciaux, avec leurs appels des 7 derniers jours et leurs relances à faire."],
   ["creer_relance", "Écriture", "Planifie une relance à une date, rattachée automatiquement au prospect déjà appelé."],
   ["modifier_relance", "Écriture", "Marque une relance comme faite, l'ignore, la rouvre ou la reporte."],
 ];
@@ -93,7 +93,7 @@ export default function Page() {
           <h2 className="st-h2">Votre espace, <span className="st-thin">et lui seul.</span></h2>
           <div className="st-secg">
             <div><b>Connexion OAuth</b><p>Vous autorisez Claude depuis Trustpipe, sans jamais lui donner votre mot de passe. Connexion sécurisée par PKCE.</p></div>
-            <div><b>Cloisonné</b><p>L&apos;accès est limité à votre espace : vos clients et vos relances, rien d&apos;un autre compte.</p></div>
+            <div><b>Cloisonné</b><p>L&apos;accès est limité à votre espace : vos commerciaux et vos relances, rien d&apos;un autre compte.</p></div>
             <div><b>Révocable</b><p>Coupez l&apos;accès en un clic dans Trustpipe : Réglages › Claude. Il s&apos;arrête aussi si vous quittez l&apos;espace.</p></div>
             <div><b>Jetons protégés</b><p>Les jetons d&apos;accès sont stockés hachés, renouvelés automatiquement et valables 30 jours.</p></div>
             <div><b>Hébergé en France</b><p>Vos données restent dans la base Trustpipe, à Paris. Le connecteur ne les envoie qu&apos;à Claude, à votre demande.</p></div>

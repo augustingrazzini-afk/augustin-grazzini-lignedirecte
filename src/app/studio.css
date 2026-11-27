@@ -297,9 +297,9 @@
 .st-ad-n::before { content: "0"; font-family: var(--disp); font-weight: 700; font-size: 22px; color: var(--o); letter-spacing: -.02em; animation: st-ad-count 14s steps(1) infinite; }
 @keyframes st-ad-count { 0%, 28% { content: "0"; } 30% { content: "64"; } 32% { content: "131"; } 34% { content: "198"; } 36% { content: "247"; } 38%, 93% { content: "289"; } 95%, 100% { content: "0"; } }
 .st-ad-q { align-self: flex-end; max-width: 100%; box-sizing: border-box; background: var(--o); color: var(--ink); padding: 10px 14px; font-family: var(--mono); font-size: 13px; opacity: 0; animation: st-ad-qbox 14s infinite; }
-.st-ad-q span { display: block; overflow: hidden; white-space: nowrap; width: 0; max-width: 100%; animation: st-ad-type 14s steps(43) infinite; }
+.st-ad-q span { display: block; overflow: hidden; white-space: nowrap; width: 0; max-width: 100%; animation: st-ad-type 14s steps(41) infinite; }
 @keyframes st-ad-qbox { 0%, 41% { opacity: 0; } 42%, 93% { opacity: 1; } 96%, 100% { opacity: 0; } }
-@keyframes st-ad-type { 0%, 42% { width: 0; } 52%, 100% { width: 43ch; } }
+@keyframes st-ad-type { 0%, 42% { width: 0; } 52%, 100% { width: 41ch; } }
 .st-ad-think { display: flex; gap: 6px; padding: 4px 0; opacity: 0; animation: st-ad-think 14s infinite; }
 .st-ad-think i { width: 7px; height: 7px; border-radius: 50%; background: var(--o); animation: st-blink 0.9s ease-in-out infinite; }
 .st-ad-think i:nth-child(2) { animation-delay: .15s; } .st-ad-think i:nth-child(3) { animation-delay: .3s; }
@@ -337,3 +337,19 @@
 .st-hero2 .st-ad { max-width: 1000px; }
 @media (max-width: 1100px) { .st-hero2 { grid-template-columns: 1fr; gap: 36px; padding-top: 40px; } }
 @media (max-width: 820px) { .st-two { grid-template-columns: 1fr; } .st-two > div:first-child { border-right: 0; border-bottom: 1px solid var(--line); } .st-two > div { padding: 22px; } }
+
+/* Accueil « entreprises » : commercial dans le fil, classement, tarif unique */
+.st-rep { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--o); margin-right: 10px; }
+.st-board { margin-top: 28px; border: 1px solid var(--line); background: #0d0c0b; }
+.st-br { display: grid; grid-template-columns: 40px minmax(0, 2fr) repeat(4, minmax(0, 1fr)); gap: 12px; align-items: center; padding: 14px 20px; border-top: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.st-br b { display: block; font-family: var(--disp); font-weight: 500; font-size: 16px; }
+.st-br small { color: var(--dim); font-size: 13px; }
+.st-bh { font-family: var(--mono); font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--dim); }
+.st-br > :first-child { font-family: var(--disp); font-weight: 700; }
+.st-rdvn { font-family: var(--disp); font-weight: 700; font-size: 22px; color: var(--o); }
+@media (max-width: 680px) { .st-br { grid-template-columns: 26px minmax(0, 1fr) auto auto; padding: 12px 16px; } .st-br > :nth-child(3), .st-br > :nth-child(4) { display: none; } }
+.st-pr1 { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); }
+.st-prx { padding: 34px; display: flex; flex-direction: column; gap: 14px; justify-content: center; }
+.st-prx b { font-family: var(--disp); font-size: 20px; text-transform: uppercase; }
+.st-prx p { margin: 0; font-size: 17px; line-height: 1.6; color: var(--soft); }
+@media (max-width: 900px) { .st-pr1 { grid-template-columns: 1fr; } .st-prx { padding: 26px 22px; } }

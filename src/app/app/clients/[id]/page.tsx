@@ -4,77 +4,78 @@ import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { fmt } from "@/lib/format";
 import { SOURCE_LABEL } from "@/lib/providers";
-import { addRule, deleteClient, deleteRule, disableShareLink, enableShareLink, inviteClientUser, removeClientUser, saveOffer } from "@/app/actions";
+import { addRule, deleteClient, deleteRule, disableShareLink, inviteClientUser, removeClientUser, saveOffer, updateRep } from "@/app/actions";
 import { CopyButton } from "@/components/client/CallActions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AlertSettings } from "@/components/AlertSettings";
+import { KIND_LABEL } from "@/components/views/Leaderboard";
 
-const FIELD: Record<string, string> = { list: "Liste", campaign: "Campagne", tag: "Tag", number: "Numéro appelé", company: "Entreprise du prospect" };
+const FIELD: Record<string, string> = { rep: "Nom du commercial dans l'outil", list: "Liste", campaign: "Campagne", tag: "Tag", number: "Numéro appelé", company: "Entreprise du prospect" };
 
+/** Fiche d'un commercial suivi par la boîte : attribution de ses appels, invitation, outil branché. */
 export default async function Page({ params }: { params: Promise<{ id: string }> }) {
   const scope = await requireOrgScope();
-  const client = await db.client.findFirst({ where: { id: (await params).id, orgId: scope.orgId }, include: { rules: true, members: { include: { user: true } }, _count: { select: { calls: true } } } });
-  if (!client) notFound();
-  const shareUrl = client.shareToken ? `${process.env.APP_URL || ""}/suivi/${client.shareToken}` : null;
-  const lists = await db.call.groupBy({ by: ["provider", "listName"], where: { orgId: scope.orgId, clientId: null, NOT: { listName: "" } }, _count: true, orderBy: { _count: { listName: "desc" } }, take: 12 });
+  const rep = await db.client.findFirst({ where: { id: (await params).id, orgId: scope.orgId }, include: { rules: true, members: { include: { user: true } }, integrations: true, _count: { select: { calls: true } } } });
+  if (!rep) notFound();
+  const shareUrl = rep.shareToken ? `${process.env.APP_URL || ""}/suivi/${rep.shareToken}` : null;
+  const [lists, names] = await Promise.all([
+    db.call.groupBy({ by: ["provider", "listName"], where: { orgId: scope.orgId, clientId: null, NOT: { listName: "" } }, _count: true, orderBy: { _count: { listName: "desc" } }, take: 12 }),
+    db.call.groupBy({ by: ["repName"], where: { orgId: scope.orgId, clientId: null, NOT: { repName: "" } }, _count: true, orderBy: { _count: { repName: "desc" } }, take: 12 }),
+  ]);
+  const status = rep.integrations.length ? `Outil branché : ${rep.integrations.map((i) => SOURCE_LABEL[i.provider] || i.label).join(", ")}` : rep.members.length ? "Invité, outil pas encore branché" : "Pas encore invité";
   return (
     <>
-      <PageTop title={client.name} subtitle={`${fmt(client._count.calls)} appels rangés dans son espace`}>
-        <Link className="btn" href={`/portal/${client.id}`}>Voir son espace</Link>
-        <Link className="btn" href={`/app?client=${client.id}`}>Ses stats</Link>
+      <PageTop title={rep.name} subtitle={`${[KIND_LABEL[rep.kind] || "Interne", rep.agency].filter(Boolean).join(" · ")} · ${fmt(rep._count.calls)} appels · ${status}`}>
+        <Link className="btn primary" href={`/app?client=${rep.id}`}>Ses résultats</Link>
+        <Link className="btn" href={`/app/calls?client=${rep.id}`}>Ses appels</Link>
       </PageTop>
       <div className="grid g-2">
         <div className="stack">
-          <div className="card"><h2>Rangement automatique</h2><p className="sub">Un appel qui correspond à une de ces règles apparaît dans l&apos;espace de {client.name}.</p>
-            {client.rules.length ? <div className="list">{client.rules.map((r) => (
+          <div className="card"><h2>Inviter {rep.name}</h2><p className="sub">Il reçoit un lien de connexion par email et branche son outil d&apos;appel (Minari, Aircall, Ringover, lemlist…) en 2 minutes. Ses appels arrivent ensuite ici en direct. Dans son espace, il ne voit que ses propres appels.</p>
+            {rep.members.length > 0 && <div className="list" style={{ marginBottom: 14 }}>{rep.members.map((m) => (
+              <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}><span className="who">{m.user.email}</span>
+                <form action={removeClientUser}><input type="hidden" name="clientId" value={rep.id} /><input type="hidden" name="userId" value={m.userId} /><button className="btn sm danger">Retirer</button></form></div>
+            ))}</div>}
+            <ActionForm action={inviteClientUser} submit={rep.members.length ? "Inviter une autre adresse" : "Envoyer l'invitation"} hidden={{ clientId: rep.id }}><label className="full">Email<input className="input" type="email" name="email" required placeholder="prenom@exemple.fr" /></label></ActionForm>
+          </div>
+          <div className="card"><h2>Attribution automatique</h2><p className="sub">Utile si {rep.name} appelle depuis votre outil : un appel qui correspond à une de ces règles lui est attribué. Les appels de l&apos;outil qu&apos;il branche lui-même lui reviennent d&apos;office.</p>
+            {rep.rules.length ? <div className="list">{rep.rules.map((r) => (
               <div key={r.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
                 <span className="who">{FIELD[r.field] || r.field} = « {r.value} »{r.provider && <span> · {SOURCE_LABEL[r.provider]}</span>}</span>
-                <form action={deleteRule}><input type="hidden" name="ruleId" value={r.id} /><input type="hidden" name="clientId" value={client.id} /><button className="btn sm danger">Retirer</button></form>
+                <form action={deleteRule}><input type="hidden" name="ruleId" value={r.id} /><input type="hidden" name="clientId" value={rep.id} /><button className="btn sm danger">Retirer</button></form>
               </div>
-            ))}</div> : <p className="muted">Aucune règle : rangez les appels à la main depuis leur fiche, ou ajoutez une règle.</p>}
-            <div style={{ marginTop: 14 }}><ActionForm action={addRule} submit="Ajouter la règle" hidden={{ clientId: client.id }}>
+            ))}</div> : <p className="muted">Aucune règle : attribuez les appels depuis leur fiche, ou ajoutez une règle.</p>}
+            <div style={{ marginTop: 14 }}><ActionForm action={addRule} submit="Ajouter la règle" hidden={{ clientId: rep.id }}>
               <label>Critère<select className="select" name="field">{Object.entries(FIELD).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
               <label>Source<select className="select" name="provider"><option value="">Toutes</option>{Object.entries(SOURCE_LABEL).filter(([k]) => !["csv", "manual"].includes(k)).map(([k, v]) => <option key={k} value={k}>{v}</option>)}</select></label>
-              <label className="full">Valeur exacte<input className="input" name="value" required list="lists" placeholder="ex. Nova - Q1" /></label>
-              <datalist id="lists">{lists.map((l) => <option key={l.provider + l.listName} value={l.listName} />)}</datalist>
+              <label className="full">Valeur exacte<input className="input" name="value" required list="vals" placeholder={`ex. ${rep.name}`} /></label>
+              <datalist id="vals">{names.map((n) => <option key={n.repName} value={n.repName} />)}{lists.map((l) => <option key={l.provider + l.listName} value={l.listName} />)}</datalist>
             </ActionForm></div>
-            {lists.length > 0 && <p className="muted small" style={{ margin: "10px 0 0" }}>Listes non rangées : {lists.map((l) => `${l.listName} (${l._count})`).join(", ")}</p>}
-          </div>
-          <div className="card"><h2>Son offre</h2><p className="sub">Ce que vend {client.name} : l&apos;IA s&apos;en sert pour ses briefs et son coach.</p>
-            <ActionForm action={saveOffer} submit="Enregistrer" hidden={{ clientId: client.id }}><textarea className="input full" name="offer" rows={4} defaultValue={client.offer} /></ActionForm>
+            {names.length > 0 && <p className="muted small" style={{ margin: "10px 0 0" }}>Commerciaux vus dans les appels non attribués : {names.map((n) => `${n.repName} (${n._count})`).join(", ")}</p>}
+            {lists.length > 0 && <p className="muted small" style={{ margin: "6px 0 0" }}>Listes non attribuées : {lists.map((l) => `${l.listName} (${l._count})`).join(", ")}</p>}
           </div>
         </div>
         <div className="stack">
-          <div className="card"><h2>Lien de suivi en direct</h2>
-            <p className="sub">Envoyez ce lien à {client.name} : ses appels, ses résumés et ses stats par jour, semaine, mois ou année, mis à jour en direct. Sans compte ni mot de passe, en lecture seule.</p>
-            {shareUrl ? (
-              <>
-                <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
-                  <input className="input" readOnly value={shareUrl} style={{ flex: "1 1 260px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
-                  <CopyButton text={shareUrl} label="Copier le lien" />
-                  <a className="btn sm" href={shareUrl} target="_blank" rel="noopener noreferrer">Ouvrir</a>
-                </div>
-                <div className="row" style={{ gap: 8, marginTop: 12 }}>
-                  <form action={enableShareLink}><input type="hidden" name="clientId" value={client.id} /><button className="btn sm">Générer un nouveau lien</button></form>
-                  <form action={disableShareLink}><input type="hidden" name="clientId" value={client.id} /><button className="btn sm danger">Désactiver</button></form>
-                </div>
-                <p className="muted small" style={{ margin: "8px 0 0" }}>Toute personne qui a ce lien voit les appels de {client.name}. Un nouveau lien coupe l&apos;ancien.</p>
-              </>
-            ) : (
-              <form action={enableShareLink}><input type="hidden" name="clientId" value={client.id} /><button className="btn primary">Créer le lien de suivi</button></form>
-            )}
+          <div className="card"><h2>Fiche</h2>
+            <ActionForm action={updateRep} submit="Enregistrer" hidden={{ clientId: rep.id }}>
+              <label>Nom<input className="input" name="name" required defaultValue={rep.name} /></label>
+              <label>Statut<select className="select" name="kind" defaultValue={rep.kind}><option value="interne">Interne (salarié)</option><option value="freelance">Freelance</option><option value="agence">Agence de prospection</option></select></label>
+              <label className="full">Société <span className="muted small">(freelance ou agence)</span><input className="input" name="agency" defaultValue={rep.agency} /></label>
+            </ActionForm>
           </div>
-          <div className="card"><h2>Accès à son espace</h2><p className="sub">Chaque personne reçoit un lien de connexion par email. Elle ne voit que les appels de {client.name}.</p>
-            {client.members.length > 0 && <div className="list" style={{ marginBottom: 14 }}>{client.members.map((m) => (
-              <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}><span className="who">{m.user.email}</span>
-                <form action={removeClientUser}><input type="hidden" name="clientId" value={client.id} /><input type="hidden" name="userId" value={m.userId} /><button className="btn sm danger">Retirer</button></form></div>
-            ))}</div>}
-            <ActionForm action={inviteClientUser} submit="Inviter" hidden={{ clientId: client.id }}><label className="full">Email<input className="input" type="email" name="email" required placeholder="prenom@client.fr" /></label></ActionForm>
+          <div className="card"><h2>Ce qu&apos;il vend</h2><p className="sub">Facultatif, si {rep.name} vend une offre différente de la vôtre : l&apos;IA s&apos;en sert pour ses briefs et l&apos;assistant.</p>
+            <ActionForm action={saveOffer} submit="Enregistrer" hidden={{ clientId: rep.id }}><textarea className="input full" name="offer" rows={3} defaultValue={rep.offer} /></ActionForm>
           </div>
-          <AlertSettings digest={false} slack={client.slackWebhook} clientId={client.id} canSlack />
-          {scope.role === "owner" && <div className="card"><h2>Supprimer ce client</h2><p className="sub">Ses appels restent dans votre espace, non rangés. Ses accès sont retirés.</p>
-            <form action={deleteClient}><input type="hidden" name="clientId" value={client.id} /><button className="btn danger">Supprimer {client.name}</button></form></div>}
+          <AlertSettings digest={false} slack={rep.slackWebhook} clientId={rep.id} canSlack />
+          {shareUrl && <div className="card"><h2>Lien de lecture</h2><p className="sub">Un ancien lien de suivi en lecture seule est encore actif pour {rep.name}.</p>
+            <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+              <input className="input" readOnly value={shareUrl} style={{ flex: "1 1 260px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
+              <CopyButton text={shareUrl} label="Copier" />
+              <form action={disableShareLink}><input type="hidden" name="clientId" value={rep.id} /><button className="btn sm danger">Désactiver</button></form>
+            </div></div>}
+          {scope.role === "owner" && <div className="card"><h2>Retirer ce commercial</h2><p className="sub">Ses appels restent dans votre espace, non attribués. Son accès est retiré.</p>
+            <form action={deleteClient}><input type="hidden" name="clientId" value={rep.id} /><button className="btn danger">Retirer {rep.name}</button></form></div>}
         </div>
       </div>
     </>

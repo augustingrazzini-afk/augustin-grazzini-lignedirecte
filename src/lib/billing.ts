@@ -7,8 +7,11 @@ export const PLANS = {
   solo_plus: { name: "Solo Illimité", maxClients: Infinity, price: 34.99, perSeat: false },
   agency: { name: "Équipe", maxClients: Infinity, price: 49.99, perSeat: true },
 } as const;
-/** Formules proposées à la souscription, dans l'ordre d'affichage. */
-export const PAID_PLANS = ["solo", "solo_plus", "agency"] as const;
+/**
+ * Formule proposée à la souscription : la boîte paie 49,99 € HT par commercial suivi.
+ * Solo et Solo Illimité restent reconnues pour les abonnements déjà souscrits, mais ne sont plus proposées.
+ */
+export const PAID_PLANS = ["agency"] as const;
 export type PaidPlan = (typeof PAID_PLANS)[number];
 /** Nombre de commerciaux autorisés : 1 pour les formules Solo, le nombre payé pour la formule Équipe. */
 export const seatLimit = (org: { plan: string; seats: number }) => (org.plan === "agency" ? Math.max(1, org.seats) : 1);
@@ -25,6 +28,8 @@ export function isActive(org: Pick<Organization, "subscriptionStatus" | "trialEn
   return org.subscriptionStatus === "trialing" && org.trialEndsAt > new Date();
 }
 
-export function maxClients(org: Pick<Organization, "plan">): number {
+/** Nombre de commerciaux suivis autorisés : le nombre payé pour la formule par commercial. */
+export function maxClients(org: Pick<Organization, "plan" | "seats">): number {
+  if (org.plan === "agency") return Math.max(1, org.seats);
   return (PLANS[org.plan as PlanId] ?? PLANS.trial).maxClients;
 }

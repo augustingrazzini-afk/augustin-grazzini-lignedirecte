@@ -95,8 +95,8 @@ export const TOOLS = [
   },
   {
     name: "lister_clients",
-    title: "Lister les clients",
-    description: "Liste les clients de l'espace Trustpipe, avec le nombre d'appels des 7 derniers jours et de relances à faire.",
+    title: "Lister les commerciaux",
+    description: "Liste les commerciaux suivis dans l'espace Trustpipe (salariés, freelances, agences), avec le nombre d'appels des 7 derniers jours et de relances à faire.",
     inputSchema: { type: "object", properties: {} },
     annotations: { readOnlyHint: true, openWorldHint: false },
   },

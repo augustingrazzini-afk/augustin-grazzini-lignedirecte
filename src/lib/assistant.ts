@@ -63,7 +63,15 @@ const JOURS = ["lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dim
 /** « 2-13 » → « mercredi 13h ». */
 const slotLabel = (k: string) => { const [d, h] = k.split("-").map(Number); return `${JOURS[d] ?? "?"} ${h}h`; };
 
+/** Noms des commerciaux suivis par la boîte (modèle Client), pour attribuer chaque appel. */
+async function repNames(scope: Scope) {
+  const reps = await db.client.findMany({ where: { orgId: scope.orgId }, select: { id: true, name: true, kind: true, agency: true } });
+  return new Map(reps.map((r) => [r.id, r]));
+}
+const repOf = (reps: Map<string, { name: string }>, c: { clientId: string | null; repName: string }) => (c.clientId && reps.get(c.clientId)?.name) || c.repName || "non attribué";
+
 export async function runTool(scope: Scope, name: string, input: Record<string, unknown>): Promise<unknown> {
+  const reps = await repNames(scope);
   switch (name) {
     case "stats": {
       const days = pickDays(input.days);
@@ -75,7 +83,11 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
         appels: { total: s.total, decroches: s.connected, conversations: s.conversations, rdv: s.meetings, taux_decroche: `${s.connectRate.toFixed(1)} %`, conversation_vers_rdv: `${s.convToMeeting.toFixed(1)} %`, duree_moyenne_conversation: fmtDuration(s.avgConvSec),
           objections: s.objections.map((o) => ({ objection: OBJ_LABEL[o.key] || o.key, nombre: o.count, part_passee: o.passedRate == null ? "inconnue" : `${o.passedRate.toFixed(0)} %` })),
           meilleur_creneau: best ? { jour_heure: slotLabel(best.key), taux: `${best.rate.toFixed(0)} %`, appels: best.calls } : null,
-          par_commercial: s.reps.map((r) => ({ commercial: r.name, appels: r.total, conversations: r.conversations, rdv: r.meetings })) },
+          par_commercial: [...new Set(calls.map((c) => repOf(reps, c)))].map((n) => {
+            const mine = calls.filter((c) => c.kind !== "meeting" && repOf(reps, c) === n);
+            const rep = [...reps.values()].find((r) => r.name === n) as { kind?: string; agency?: string } | undefined;
+            return { commercial: n, statut: rep?.kind || "", societe: rep?.agency || "", appels: mine.length, decroches: mine.filter((c) => c.connected).length, conversations: mine.filter(isConversation).length, rdv: mine.filter((c) => c.meetingBooked).length };
+          }) },
         emails: ch.hasEmail ? { prospects: ch.email.contacts, reponses: ch.email.replied, taux_reponse: `${ch.email.replyRate.toFixed(1)} %`, positives: ch.email.positive, rdv: ch.email.meetings, campagnes: ch.email.campaigns.slice(0, 10) } : "aucune activité email",
         linkedin: ch.hasLinkedin ? { invitations: ch.linkedin.invites, acceptees: ch.linkedin.accepted, taux_acceptation: `${ch.linkedin.acceptRate.toFixed(1)} %`, reponses: ch.linkedin.replied, taux_reponse: `${ch.linkedin.replyRate.toFixed(1)} %`, positives: ch.linkedin.positive, rdv: ch.linkedin.meetings } : "aucune activité LinkedIn",
       };
@@ -88,7 +100,7 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
         ...(q ? { OR: [{ firstName: like(q) }, { lastName: like(q) }, { company: like(q) }, { summary: like(q) }, { jobTitle: like(q) }] } : {}) };
       const calls = await db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: clamp(input.limit, 1, 40, 15) });
       return calls.map((c) => ({ id: c.id, date: day(c.startedAt), prospect: displayName(c), entreprise: c.company, poste: c.jobTitle, duree: fmtDuration(c.durationSec),
-        resultat: c.meetingBooked ? "RDV pris" : isConversation(c) ? "conversation" : c.connected ? "décroché" : c.status, commercial: c.repName,
+        resultat: c.meetingBooked ? "RDV pris" : isConversation(c) ? "conversation" : c.connected ? "décroché" : c.status, commercial: repOf(reps, c),
         objections: c.objections.map((o) => OBJ_LABEL[o] || o), resume: c.summary.slice(0, 400) }));
     }
     case "get_call": {
@@ -96,7 +108,7 @@ export async function runTool(scope: Scope, name: string, input: Record<string, 
       if (!c) return { erreur: "Appel introuvable dans votre espace." };
       const tr = ((c.transcript as unknown as TranscriptLine[]) || []).map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n");
       return { id: c.id, type: c.kind === "meeting" ? "rendez-vous" : "appel de prospection", date: day(c.startedAt), prospect: displayName(c), entreprise: c.company, poste: c.jobTitle, duree: fmtDuration(c.durationSec), rdv: c.meetingBooked,
-        commercial: c.repName, liste: c.listName, resume: c.summary, objections: c.objDetails ?? c.objections, ...(c.debrief ? { debrief_rendez_vous: c.debrief } : {}), transcription: tr.slice(0, 30000) || "pas de transcription" };
+        commercial: repOf(reps, c), liste: c.listName, resume: c.summary, objections: c.objDetails ?? c.objections, ...(c.debrief ? { debrief_rendez_vous: c.debrief } : {}), transcription: tr.slice(0, 30000) || "pas de transcription" };
     }
     case "search_messages": {
       const days = pickDays(input.days), q = typeof input.query === "string" ? input.query.trim().slice(0, 80) : "";
@@ -141,7 +153,7 @@ export type ChatTurn = { role: "user" | "assistant"; content: string };
 /** Fait tourner la conversation : Claude appelle les outils autant que nécessaire (8 étapes max), puis répond. */
 export async function askAssistant(scope: Scope, history: ChatTurn[], ctx: { who: string; offer: string; isClient: boolean }): Promise<{ text: string; steps: string[] }> {
   const system = `Tu es l'assistant de prospection de Trustpipe, pour ${ctx.who}.${ctx.offer ? ` Ce qu'il vend : ${ctx.offer.slice(0, 1500)}` : ""}
-${ctx.isClient ? "Tu parles au client d'un SDR : ses données sont les appels que son prestataire a menés pour lui, et les rendez-vous qu'il a lui-même ajoutés (avec leur débrief). Aide-le surtout à préparer ses rendez-vous, à comprendre ce qui marche ou non dans ses rendez-vous en recoupant avec les appels de prospection, et donne-lui des conseils concrets." : "Tu parles à un SDR (ou à son équipe) qui prospecte pour ses clients."}
+${ctx.isClient ? "Tu parles à un commercial (salarié, freelance ou agence) qui prospecte pour une entreprise : ses données sont ses propres appels et ses rendez-vous. Aide-le à préparer ses rendez-vous et ses relances, à comprendre ce qui marche dans ses appels, et donne-lui des conseils concrets." : "Tu parles au dirigeant ou au responsable commercial d'une entreprise qui suit tous ses commerciaux dans Trustpipe : salariés, freelances et agences de prospection. Chaque appel est attribué à un commercial (champ « commercial »). Aide-le à piloter son équipe : comparer les commerciaux (activité, décroché, conversations, rendez-vous), repérer qui a besoin d'aide et pourquoi, comprendre les objections, préparer ses rendez-vous. Sois factuel et bienveillant envers les commerciaux."}
 Nous sommes le ${day(new Date())} (heure de Paris).
 
 Règles :

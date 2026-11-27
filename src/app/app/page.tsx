@@ -6,6 +6,8 @@ import { PageTop, Period } from "@/components/Shell";
 import { Dashboard } from "@/components/views/Dashboard";
 import { pickDays } from "@/lib/period";
 import { GettingStarted } from "@/components/views/GettingStarted";
+import { Leaderboard } from "@/components/views/Leaderboard";
+import { windowCalls } from "@/lib/stats";
 
 export const metadata = { title: "Pilotage" };
 
@@ -17,6 +19,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
     db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }),
     db.integration.findFirst({ where: { orgId: scope.orgId }, orderBy: { lastSyncAt: { sort: "desc", nulls: "last" } }, select: { lastSyncAt: true } }),
   ]);
+  const teamCalls = scope.clientFilter ? [] : await windowCalls(scope, days);
   const href = (p: { days?: number; client?: string | null }) => {
     const q = new URLSearchParams({ days: String(p.days ?? days) });
     const c = p.client === undefined ? scope.clientFilter : p.client;
@@ -25,9 +28,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
   };
   return (
     <>
-      <PageTop title="Pilotage" subtitle={scope.clientFilter ? `Vue client : ${clients.find((c) => c.id === scope.clientFilter)?.name || "non rangés"}` : "Tous vos appels et rendez-vous"} live={last?.lastSyncAt ? `En direct · synchro ${ago(last.lastSyncAt)}` : null}>
+      <PageTop title="Pilotage" subtitle={scope.clientFilter ? `Commercial : ${clients.find((c) => c.id === scope.clientFilter)?.name || "appels non attribués"}` : "Toute votre équipe commerciale, en direct"} live={last?.lastSyncAt ? `En direct · synchro ${ago(last.lastSyncAt)}` : null}>
         {clients.length > 0 && (
-          <div className="seg" role="group" aria-label="Client">
+          <div className="seg" role="group" aria-label="Commercial">
             <Link href={href({ client: null })} aria-current={!scope.clientFilter ? "true" : undefined}>Tous</Link>
             {clients.slice(0, 6).map((c) => <Link key={c.id} href={href({ client: c.id })} aria-current={scope.clientFilter === c.id ? "true" : undefined}>{c.name}</Link>)}
           </div>
@@ -35,7 +38,9 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
         <Period days={days} href={(d) => href({ days: d })} />
       </PageTop>
       {!scope.clientFilter && <GettingStarted orgId={scope.orgId} userId={scope.userId} />}
-      <Dashboard scope={scope} base="/app" days={days} emptyHint={<><Link href="/app/sources">Connectez votre outil d&apos;appel ou importez un CSV</Link> pour commencer.</>} />
+      {!scope.clientFilter && <Leaderboard calls={teamCalls} reps={clients} href={(id) => href({ client: id })} />}
+      <div className="mt" />
+      <Dashboard scope={scope} base="/app" days={days} emptyHint={<><Link href="/app/clients">Ajoutez vos commerciaux</Link> et <Link href="/app/sources">branchez leur outil d&apos;appel</Link> pour commencer.</>} />
     </>
   );
 }

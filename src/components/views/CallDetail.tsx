@@ -69,11 +69,11 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
         )}
         {!det.length && c.objections.length > 0 && <div className="card"><div className="sec"><h4>Objections</h4><div className="row">{c.objections.map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}</div></div></div>}
         {scope.kind === "org" && (
-          <div className="card"><div className="sec"><h4>Client</h4>
+          <div className="card"><div className="sec"><h4>Commercial</h4>
             <form action={assignCall} className="row"><input type="hidden" name="callId" value={c.id} />
-              <select className="select" name="clientId" defaultValue={c.clientId || ""}><option value="">— Non rangé —</option>{clients.map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}</select>
-              <button className="btn sm">Ranger</button></form>
-            <p className="muted small" style={{ margin: "8px 0 0" }}>Le client choisi voit cet appel dans son espace.</p></div></div>
+              <select className="select" name="clientId" defaultValue={c.clientId || ""}><option value="">— Non attribué —</option>{clients.map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}</select>
+              <button className="btn sm">Attribuer</button></form>
+            <p className="muted small" style={{ margin: "8px 0 0" }}>Le commercial choisi voit aussi cet appel dans son espace.</p></div></div>
         )}
       </div>
       <div className="card">

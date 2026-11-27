@@ -9,7 +9,7 @@ import { isEmail, loginWithPassword, normEmail, resetPasswordWithToken, sendMagi
 import { hashPassword, passwordProblem, verifyPassword } from "@/lib/password";
 import { createSession, destroySession } from "@/lib/session";
 import { requireOrgScope, requireUser } from "@/lib/access";
-import { TRIAL_DAYS, isActive, maxClients, seatLimit } from "@/lib/billing";
+import { TRIAL_DAYS, isActive, maxClients } from "@/lib/billing";
 import { randomToken, seal } from "@/lib/crypto";
 import { getProvider } from "@/lib/providers";
 import { ProviderError } from "@/lib/providers/types";
@@ -152,20 +152,43 @@ export async function saveOffer(_: FormState, f: FormData): Promise<FormState> {
   } catch (e) { return fail(e); }
 }
 
-/* ---------- Clients ---------- */
+/* ---------- Commerciaux (modèle technique : Client) ---------- */
+export async function updateRep(_: FormState, f: FormData): Promise<FormState> {
+  try {
+    const { scope } = await writableOrg();
+    const name = s(f, "name", 80);
+    if (name.length < 2) return { error: "Indiquez le nom du commercial." };
+    const kind = ["interne", "freelance", "agence"].includes(s(f, "kind", 20)) ? s(f, "kind", 20) : "interne";
+    await db.client.updateMany({ where: { id: s(f, "clientId", 40), orgId: scope.orgId }, data: { name, kind, agency: kind === "interne" ? "" : s(f, "agency", 80) } });
+    revalidatePath("/app", "layout");
+    return { ok: "Enregistré." };
+  } catch (e) { return fail(e); }
+}
+
 export async function createClient(_: FormState, f: FormData): Promise<FormState> {
   try {
     const { scope, org } = await writableOrg();
     const name = s(f, "name", 80);
-    if (name.length < 2) return { error: "Indiquez le nom du client." };
+    if (name.length < 2) return { error: "Indiquez le nom du commercial." };
+    const email = normEmail(s(f, "email", 254));
+    if (email && !isEmail(email)) return { error: "Adresse email invalide." };
     const count = await db.client.count({ where: { orgId: scope.orgId } });
-    if (count >= maxClients(org)) return { error: `Votre formule est limitée à ${maxClients(org)} clients. Passez à la formule Équipe pour en ajouter.` };
-    const c = await db.client.create({ data: { orgId: scope.orgId, name } });
-    // Plusieurs listes possibles pour un même client (sans doublon, 20 au plus).
+    const max = maxClients(org);
+    if (count >= max) return { error: `Votre abonnement couvre ${max} commercial(aux). Ajoutez des commerciaux depuis la page Abonnement (49,99 € HT par commercial et par mois).` };
+    const kind = ["interne", "freelance", "agence"].includes(s(f, "kind", 20)) ? s(f, "kind", 20) : "interne";
+    const c = await db.client.create({ data: { orgId: scope.orgId, name, kind, agency: kind === "interne" ? "" : s(f, "agency", 80) } });
+    // Attribution automatique : son nom dans l'outil d'appel partagé, et/ou ses listes (sans doublon, 20 au plus).
     const lists = [...new Map(f.getAll("list").map((v) => String(v).trim().slice(0, 200)).filter(Boolean).map((v) => [v.toLowerCase(), v])).values()].slice(0, 20);
-    if (lists.length) {
-      await db.clientRule.createMany({ data: lists.map((value) => ({ orgId: scope.orgId, clientId: c.id, field: "list", value })) });
+    const rep = s(f, "rep", 120);
+    const ruleRows = [...(rep ? [{ field: "rep", value: rep }] : []), ...lists.map((value) => ({ field: "list", value }))];
+    if (ruleRows.length) {
+      await db.clientRule.createMany({ data: ruleRows.map((r) => ({ orgId: scope.orgId, clientId: c.id, ...r })) });
       await reapplyRules(scope.orgId);
+    }
+    if (email) {
+      const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
+      await db.clientMember.upsert({ where: { clientId_userId: { clientId: c.id, userId: user.id } }, update: {}, create: { clientId: c.id, userId: user.id } });
+      await sendMagicLink(email, { redirect: `/portal/${c.id}/sources`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace, avec leurs résumés et un assistant IA.` }).catch(() => {});
     }
     revalidatePath("/app/clients");
     redirect(`/app/clients/${c.id}`);
@@ -187,12 +210,12 @@ export async function inviteClientUser(_: FormState, f: FormData): Promise<FormS
     const { scope, org } = await writableOrg();
     const clientId = s(f, "clientId", 40);
     const client = await db.client.findFirst({ where: { id: clientId, orgId: scope.orgId } });
-    if (!client) return { error: "Client introuvable." };
+    if (!client) return { error: "Commercial introuvable." };
     const email = normEmail(s(f, "email", 254));
     if (!isEmail(email)) return { error: "Adresse email invalide." };
     const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
     await db.clientMember.upsert({ where: { clientId_userId: { clientId, userId: user.id } }, update: {}, create: { clientId, userId: user.id } });
-    await sendMagicLink(email, { redirect: `/portal/${clientId}`, intro: `${org.name} vous ouvre votre espace de suivi des appels « ${client.name} ».` });
+    await sendMagicLink(email, { redirect: `/portal/${clientId}/sources`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace « ${client.name} », avec leurs résumés et un assistant IA.` });
     revalidatePath(`/app/clients/${clientId}`);
     return { ok: `Invitation envoyée à ${email}.` };
   } catch (e) { return fail(e); }
@@ -226,16 +249,16 @@ export async function addRule(_: FormState, f: FormData): Promise<FormState> {
   try {
     const { scope } = await writableOrg();
     const clientId = s(f, "clientId", 40);
-    if (!(await db.client.count({ where: { id: clientId, orgId: scope.orgId } }))) return { error: "Client introuvable." };
+    if (!(await db.client.count({ where: { id: clientId, orgId: scope.orgId } }))) return { error: "Commercial introuvable." };
     const field = s(f, "field", 20);
-    if (!["list", "campaign", "tag", "number", "company"].includes(field)) return { error: "Critère invalide." };
+    if (!["rep", "list", "campaign", "tag", "number", "company"].includes(field)) return { error: "Critère invalide." };
     const value = s(f, "value", 200);
     if (!value) return { error: "Indiquez une valeur." };
     const provider = s(f, "provider", 20) || null;
     await db.clientRule.create({ data: { orgId: scope.orgId, clientId, field, value, provider } });
     const n = await reapplyRules(scope.orgId);
     revalidatePath(`/app/clients/${clientId}`);
-    return { ok: n ? `Règle ajoutée : ${n} appel(s) déjà existants rangés chez ce client.` : "Règle ajoutée." };
+    return { ok: n ? `Règle ajoutée : ${n} appel(s) déjà existants attribués à ce commercial.` : "Règle ajoutée." };
   } catch (e) { return fail(e); }
 }
 
@@ -261,10 +284,8 @@ export async function inviteTeammate(_: FormState, f: FormData): Promise<FormSta
     const email = normEmail(s(f, "email", 254));
     if (!isEmail(email)) return { error: "Adresse email invalide." };
     // Nombre de commerciaux limité par la formule : 1 en Solo, le nombre payé en Équipe.
-    const members = await db.membership.count({ where: { orgId: scope.orgId } });
-    const limit = seatLimit(org);
-    const already = await db.membership.findFirst({ where: { orgId: scope.orgId, user: { email } } });
-    if (!already && members >= limit) return { error: org.plan === "agency" ? `Votre formule Équipe compte ${limit} commercial(aux). Ajoutez des places depuis la page Abonnement pour inviter quelqu'un.` : "La formule Solo est pour un commercial. Passez à la formule Équipe (49,99 € HT par commercial) pour inviter votre équipe." };
+    // Les membres de l'espace sont les dirigeants et managers de la boîte : pas de limite.
+    // (L'abonnement compte les commerciaux suivis, voir createClient.)
     const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
     const other = await db.membership.findFirst({ where: { userId: user.id, NOT: { orgId: scope.orgId } } });
     if (other) return { error: "Cette personne a déjà son propre espace." };

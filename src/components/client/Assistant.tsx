@@ -66,7 +66,7 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
 
   const all = isClient
     ? ["Prépare mon rendez-vous avec …", "Quels prospects sont les plus chauds ce mois-ci ?", "Quelles objections reviennent le plus ?", "Résume la semaine de prospection"]
-    : ["Prépare mon rendez-vous avec …", "Fais-moi un diagnostic de la semaine", "Quelles objections reviennent le plus ce mois-ci et comment y répondre ?", "Quel est mon meilleur créneau d'appel ?", "Quelles relances dois-je faire aujourd'hui ?"];
+    : ["Qui a pris le plus de rendez-vous cette semaine ?", "Quel commercial a besoin d'aide, et pourquoi ?", "Quelles objections reviennent le plus ce mois-ci et comment y répondre ?", "Prépare mon rendez-vous avec …", "Quel est le meilleur créneau d'appel de l'équipe ?"];
   const suggestions = compact ? all.slice(0, 3) : all;
 
   async function send(text: string) {
@@ -111,7 +111,7 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
           <div className="as-hello">
             {!compact && <div className="as-avatar">✦</div>}
             <h2>{compact ? "Bonjour, je suis Pip 👋" : "Posez votre question"}</h2>
-            <p className="muted">{isClient ? "L'assistant lit les appels menés pour vous, et vous aide à préparer vos rendez-vous." : "L'assistant lit vos appels, transcriptions et relances pour vous répondre."}</p>
+            <p className="muted">{isClient ? "L'assistant lit vos appels et vous aide à préparer vos rendez-vous et vos relances." : "L'assistant a écouté les appels de tous vos commerciaux : posez-lui vos questions."}</p>
             <div className="as-sugg">{suggestions.map((s) => <button key={s} type="button" className="chip" onClick={() => send(s)}>{s}</button>)}</div>
           </div>
         )}
@@ -127,7 +127,7 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
       </div>
       {err && <div className="banner err" style={{ margin: "0 0 10px" }}>{err}</div>}
       <form className="as-input" onSubmit={(e) => { e.preventDefault(); send(input); }}>
-        <textarea ref={box} rows={1} value={input} maxLength={4000} placeholder={isClient ? "Ex. : prépare mon rendez-vous de jeudi avec Talentis RH" : "Ex. : qu'a dit Yanis Boyer sur son budget ?"} onChange={(e) => setInput(e.target.value)}
+        <textarea ref={box} rows={1} value={input} maxLength={4000} placeholder={isClient ? "Ex. : prépare mon rendez-vous de jeudi avec Talentis RH" : "Ex. : comment s'est passée la semaine de Léa ?"} onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(input); } }} />
         <button className="btn primary" disabled={busy || !input.trim()}>Envoyer</button>
       </form>
