@@ -381,3 +381,52 @@
 .st-trx-r li { padding: 9px 0; border-bottom: 1px solid var(--line); }
 .st-trx-r li::before { content: "● "; color: var(--o); font-size: 10px; margin-right: 8px; }
 @media (max-width: 900px) { .st-trx { grid-template-columns: 1fr; } .st-trx-l { border-right: 0; border-bottom: 1px solid var(--line); padding: 20px 16px; } .st-trx-r { padding: 22px 16px; } }
+
+/* Téléphone : rien ne dépasse de l'écran, page nettement plus courte */
+.st-hero > div, .st-sec > div { min-width: 0; }
+@media (max-width: 680px) {
+  .st-sec, .st-hero { grid-template-columns: minmax(0, 1fr); }
+  .st-body, .st-hc { padding-left: 16px; padding-right: 16px; }
+  .st-body { padding-top: 26px; padding-bottom: 32px; }
+  .st-side { padding: 16px; gap: 14px; }
+  .st-n { font-size: 30px; }
+  .st-hc { padding-top: 30px; }
+  .st-h1 { font-size: min(8.4vw, 40px); overflow-wrap: break-word; }
+  #equipe .st-trio { display: none; }
+  .st-pr .low { order: 1; }
+  .st-h2 { font-size: 27px; }
+  .st-lead { font-size: 16.5px; margin-top: 14px; }
+  .st-hrow { gap: 20px; }
+  .st-hrow p { font-size: 16.5px; }
+  .st-aipill { font-size: 14px; }
+  .st-wave { height: 130px; margin-top: 24px; }
+  .st-wave svg { height: 130px; }
+  .st-feed, .st-board, .st-trx, .st-list, .st-trio, .st-secg, .st-pr, .st-ai, .st-two { margin-top: 22px; }
+  .st-feed .st-fr:nth-of-type(n+4) { display: none; }
+  .st-trio > div { display: grid; grid-template-columns: 50px minmax(0, 1fr); column-gap: 14px; padding: 16px 0; align-items: start; }
+  .st-trio .st-big { font-size: 38px; grid-row: span 2; }
+  .st-trio h4 { margin: 0 0 4px; font-size: 17px; }
+  .st-trio p { font-size: 14.5px; }
+  .st-list { column-gap: 0; }
+  .st-list > div { grid-template-columns: 34px minmax(0, 1fr); padding: 13px 0; }
+  .st-list b { font-size: 16px; margin-bottom: 3px; }
+  .st-list p { font-size: 14px; }
+  .st-secg > div { padding: 14px 16px; }
+  .st-secg b { font-size: 15.5px; margin-bottom: 4px; }
+  .st-secg p { font-size: 13.5px; }
+  .st-trx-l p { grid-template-columns: 46px 1fr; font-size: 13.5px; padding: 8px 0; }
+  .st-trx-r h3 { font-size: 22px; }
+  .st-trx-r p { font-size: 15.5px; }
+  .st-trx-r li { padding: 7px 0; font-size: 15px; }
+  .st-pr .best { order: -1; }
+  .st-pr > div { padding: 20px 16px; }
+  .st-pr ul { margin: 14px 0 18px; font-size: 15px; }
+  .st-pr li { padding: 7px 0; }
+  .st-pr .b { padding: 15px; }
+  .st-dl span { padding: 13px 6px; font-size: 12px; }
+  .st-two > div { padding: 16px; }
+  .st-two li { padding: 8px 0; font-size: 13px; }
+  .st-faq summary { font-size: 16px; }
+  .st-endrow { padding: 24px 16px 28px; }
+}
+@media (max-width: 360px) { .st-rail > * { padding: 0 10px; } .st-logo { font-size: 14px; } .st-go { font-size: 11.5px; gap: 6px; } }

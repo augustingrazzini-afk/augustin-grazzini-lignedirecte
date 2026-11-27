@@ -132,8 +132,8 @@ export default async function Home() {
             <div className="st-hrow">
               <div>
                 <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Transcriptions, résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
-                <Link className="st-aipill" href="#claude"><span className="st-aiic" aria-hidden="true">✳</span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
-                <Link className="st-aipill" href="/assistant" style={{ marginTop: 10 }}><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
+                <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
+                <Link className="st-aipill" href="#claude" style={{ marginTop: 10 }}><span className="st-aiic" aria-hidden="true">✳</span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
                 <p className="st-note">SANS ENGAGEMENT · PRIX PAR COMMERCIAL SUIVI · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
