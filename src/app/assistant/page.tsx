@@ -32,7 +32,7 @@ const REP_ASKS = [
 ];
 
 const FAQ: [string, string][] = [
-  ["Est-ce inclus dans l'abonnement ?", "Oui. L'assistant IA est inclus dans toutes les formules, sans option ni supplément."],
+  ["Dans quelle formule est-il inclus ?", "Dans la formule Premium, à 69,99 € HT par commercial et par mois, avec les briefs et débriefs de rendez-vous, la transcription automatique et le connecteur Claude. La formule Essentiel (49,99 € HT) inclut déjà le résumé et l'analyse IA de chaque appel."],
   ["Mes commerciaux y ont-ils accès ?", "Oui, chacun dans son espace : son assistant ne connaît que ses propres appels. Le vôtre connaît toute l'équipe."],
   ["Sur quoi se base-t-il pour répondre ?", "Sur les appels de vos commerciaux : résumés, transcriptions, résultats, rendez-vous et relances. Il n'invente pas de chiffres : s'il n'a pas l'information, il le dit."],
   ["Peut-il se tromper ?", "Comme toute IA, oui. Ses réponses sont une aide à la préparation : relisez avant d'envoyer quoi que ce soit au prospect."],
@@ -51,11 +51,11 @@ export default function Page() {
       </header>
 
       <section className="st-sec">
-        <div className="st-side"><div className="st-n">IA</div><small>Assistant IA<br />inclus</small></div>
+        <div className="st-side"><div className="st-n">IA</div><small>Assistant IA<br />Premium</small></div>
         <div className="st-body">
           <div className="st-hero2">
             <div>
-              <span className="st-aitag"><span className="st-dot" />INCLUS DANS TOUTES LES FORMULES</span>
+              <span className="st-aitag"><span className="st-dot" />FORMULE PREMIUM</span>
               <h1 className="st-h1" style={{ fontSize: "clamp(40px, 5.2vw, 80px)" }}>L&apos;assistant IA.<br /><span className="st-thin">Il a écouté</span><br /><span className="st-o">chaque appel.</span></h1>
               <p className="st-lead" style={{ fontSize: 19 }}>Dans Trustpipe, un assistant IA a écouté chaque appel de chacun de vos commerciaux : salariés, freelances, agences. Vous lui posez vos questions en français, il répond en quelques secondes à partir des vrais appels.</p>
               <div className="st-btns" style={{ maxWidth: 440, marginTop: 28 }}>
@@ -108,7 +108,7 @@ export default function Page() {
 
       <section className="st-end">
         <div className="st-endrow">
-          <p>L&apos;assistant IA est inclus : 49,99 € HT par mois et par commercial suivi.</p>
+          <p>L&apos;assistant IA est inclus dans la formule Premium : 69,99 € HT par mois et par commercial suivi.</p>
           <Link className="st-btn p" href="/inscription">CRÉER MON COMPTE <span aria-hidden="true">→</span></Link>
         </div>
       </section>

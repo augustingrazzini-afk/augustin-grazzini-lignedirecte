@@ -5,13 +5,33 @@ export const PLANS = {
   trial: { name: "Essai gratuit", maxClients: 3, price: 0, perSeat: false },
   solo: { name: "Solo", maxClients: 3, price: 24.99, perSeat: false },
   solo_plus: { name: "Solo Illimité", maxClients: Infinity, price: 34.99, perSeat: false },
-  agency: { name: "Équipe", maxClients: Infinity, price: 49.99, perSeat: true },
+  starter: { name: "Découverte", maxClients: Infinity, price: 19.99, perSeat: true },
+  agency: { name: "Essentiel", maxClients: Infinity, price: 49.99, perSeat: true },
+  premium: { name: "Premium", maxClients: Infinity, price: 69.99, perSeat: true },
 } as const;
 /**
- * Formule proposée à la souscription : la boîte paie 49,99 € HT par commercial suivi.
+ * Formules proposées à la souscription, par commercial suivi : Découverte (19,99 € HT, sans IA, volontairement limitée),
+ * Essentiel (49,99 € HT, recommandée) et Premium (69,99 € HT).
  * Solo et Solo Illimité restent reconnues pour les abonnements déjà souscrits, mais ne sont plus proposées.
  */
-export const PAID_PLANS = ["agency"] as const;
+export const PAID_PLANS = ["starter", "agency", "premium"] as const;
+/** Contenu de chaque formule (site, souscription, abonnement). `no` : ce qui manque, affiché barré. */
+export const PLAN_FEATURES: Record<"starter" | "agency" | "premium", { tag: string; yes: string[]; no: string[] }> = {
+  starter: { tag: "Sans IA", yes: ["Appels de tous vos commerciaux en direct", "Classement des commerciaux"], no: ["Résumé et analyse IA des appels", "Objections et relances automatiques", "Assistant IA"] },
+  agency: { tag: "Recommandé", yes: ["Appels de tous vos commerciaux en direct", "Classement des commerciaux", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Écoute des appels"], no: ["Assistant IA"] },
+  premium: { tag: "Tout inclus", yes: ["Tout Essentiel", "Assistant IA sur toute l'équipe", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels", "Connecteur Claude"], no: [] },
+};
+/** Ce que Premium ajoute à Essentiel (affiché sur le site, la souscription et l'abonnement). */
+export const PREMIUM_EXTRAS = ["Assistant IA : posez vos questions sur toute l'équipe", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
+/**
+ * Fonctions IA avancées (assistant, briefs, débriefs, transcription par Trustpipe, connecteur Claude) :
+ * incluses partout sauf dans la formule Essentiel. L'essai et les anciennes formules les gardent.
+ */
+export const hasPremium = (org: { plan: string }) => org.plan !== "agency" && org.plan !== "starter";
+/** Analyse IA des appels (résumés, objections, relances automatiques) : tout sauf Découverte. */
+export const hasAi = (org: { plan: string }) => org.plan !== "starter";
+/** Formules sans IA avancée ou sans IA du tout, pour filtrer les traitements automatiques. */
+export const NO_PREMIUM_PLANS = ["agency", "starter"];
 export type PaidPlan = (typeof PAID_PLANS)[number];
 /** Nombre de commerciaux autorisés : 1 pour les formules Solo, le nombre payé pour la formule Équipe. */
 export const seatLimit = (org: { plan: string; seats: number }) => (org.plan === "agency" ? Math.max(1, org.seats) : 1);
@@ -30,6 +50,6 @@ export function isActive(org: Pick<Organization, "subscriptionStatus" | "trialEn
 
 /** Nombre de commerciaux suivis autorisés : le nombre payé pour la formule par commercial. */
 export function maxClients(org: Pick<Organization, "plan" | "seats">): number {
-  if (org.plan === "agency") return Math.max(1, org.seats);
+  if (org.plan === "agency" || org.plan === "premium" || org.plan === "starter") return Math.max(1, org.seats);
   return (PLANS[org.plan as PlanId] ?? PLANS.trial).maxClients;
 }

@@ -168,6 +168,12 @@
 .st-pr .best li::after { color: var(--ink); }
 .st-pr .b { display: block; text-align: center; padding: 18px; font-family: var(--disp); font-weight: 700; font-size: 15px; border: 1.5px solid currentColor; transition: transform .15s; }
 .st-pr .b:hover { transform: translateY(-2px); }
+.st-pr .low { opacity: .72; }
+.st-pr .low .st-amt { font-size: clamp(32px, 2.8vw, 44px); }
+.st-pr li.no { color: var(--dim); text-decoration: line-through; }
+.st-pr li.no::after { content: "×"; color: var(--dim); }
+.st-pr .best li.no { color: rgba(20, 7, 0, .45); }
+.st-pr .best li.no::after { color: rgba(20, 7, 0, .45); }
 .st-pr .best .b { background: var(--ink); color: var(--o); border-color: var(--ink); }
 
 /* Questions */

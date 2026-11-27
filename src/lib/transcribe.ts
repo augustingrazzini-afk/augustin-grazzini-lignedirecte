@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { NO_PREMIUM_PLANS } from "./billing";
 import { presignRead } from "./storage";
 import { needsRelay, signedAudioPath } from "./audio";
 import { trimTranscript, type TranscriptLine } from "./providers/types";
@@ -73,7 +74,7 @@ export async function processTranscriptions(opts: { orgId?: string; waitMs?: num
   try {
     // 1. Nouvelles transcriptions : conversations avec un enregistrement mais sans texte.
     const todo = await db.call.findMany({
-      where: { ...scope, transcriptStatus: "none", durationSec: { gte: MIN_SEC }, transcript: { equals: [] }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }],
+      where: { ...scope, org: { plan: { notIn: NO_PREMIUM_PLANS } }, transcriptStatus: "none", durationSec: { gte: MIN_SEC }, transcript: { equals: [] }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }],
         // Minari ne fournit qu'une page d'écoute (pas de fichier audio) : rien à transcrire.
         NOT: { provider: "minari", recordingKey: null } },
       orderBy: { startedAt: "desc" },

@@ -833,3 +833,8 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .lb-rdv i { display: block; height: 4px; background: var(--blue); border-radius: 2px; min-width: 2px; }
 @media (max-width: 900px) { .lb-row { grid-template-columns: 26px minmax(0, 1fr) repeat(2, auto); } .lb-row > :nth-child(4), .lb-row > :nth-child(5), .lb-row > :nth-child(6) { display: none; } }
 .pill.rep { background: rgba(255, 90, 31, .12); color: #B8400F; border: 1px solid rgba(255, 90, 31, .35); font-weight: 600; }
+.plans .plan-top { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.plans .plan-top h2 { margin: 0; }
+.plans .plan-no { color: var(--dim); text-decoration: line-through; }
+.plans .plan-low { opacity: .78; }
+.plans .plan-low .amt { font-size: 30px; }

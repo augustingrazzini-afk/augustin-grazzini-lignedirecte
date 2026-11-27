@@ -20,8 +20,8 @@ export const stripeEnabled = () => {
  * la clé live n'est pas configurée. Le client paie sur Stripe ; l'éditeur active ensuite le compte depuis « Inscriptions ».
  */
 const isStripeLink = (u?: string) => !!u && /^https:\/\/(buy|billing)\.stripe\.com\//.test(u);
-export function paymentLink(plan: "solo" | "solo_plus" | "agency", email: string, orgId: string): string | null {
-  const base = plan === "agency" ? process.env.STRIPE_LINK_AGENCY : plan === "solo_plus" ? process.env.STRIPE_LINK_SOLO_PLUS : process.env.STRIPE_LINK_SOLO;
+export function paymentLink(plan: Plan, email: string, orgId: string): string | null {
+  const base = plan === "starter" ? process.env.STRIPE_LINK_STARTER : plan === "premium" ? process.env.STRIPE_LINK_PREMIUM : plan === "agency" ? process.env.STRIPE_LINK_AGENCY : plan === "solo_plus" ? process.env.STRIPE_LINK_SOLO_PLUS : process.env.STRIPE_LINK_SOLO;
   if (!isStripeLink(base)) return null;
   const u = new URL(base!);
   u.searchParams.set("prefilled_email", email);
@@ -35,10 +35,10 @@ export const portalLink = () => (isStripeLink(process.env.STRIPE_PORTAL_LINK) ? 
 let s: Stripe | null = null;
 export const stripe = () => (s ??= new Stripe(process.env.STRIPE_SECRET_KEY!));
 
-type Plan = "solo" | "solo_plus" | "agency";
+type Plan = "solo" | "solo_plus" | "agency" | "premium" | "starter";
 /** Clé de recherche stable des prix : les prix sont retrouvés (ou créés) sur le compte Stripe de la clé, quel qu'il soit. */
-const LOOKUP: Record<Plan, string> = { solo: "trustpipe_solo_mensuel_eur", solo_plus: "trustpipe_solo_illimite_mensuel_eur", agency: "trustpipe_equipe_mensuel_eur" };
-const ENV: Record<Plan, () => string | undefined> = { solo: () => process.env.STRIPE_PRICE_SOLO, solo_plus: () => process.env.STRIPE_PRICE_SOLO_PLUS, agency: () => process.env.STRIPE_PRICE_AGENCY };
+const LOOKUP: Record<Plan, string> = { solo: "trustpipe_solo_mensuel_eur", solo_plus: "trustpipe_solo_illimite_mensuel_eur", agency: "trustpipe_equipe_mensuel_eur", premium: "trustpipe_premium_mensuel_eur", starter: "trustpipe_decouverte_mensuel_eur" };
+const ENV: Record<Plan, () => string | undefined> = { solo: () => process.env.STRIPE_PRICE_SOLO, solo_plus: () => process.env.STRIPE_PRICE_SOLO_PLUS, agency: () => process.env.STRIPE_PRICE_AGENCY, premium: () => process.env.STRIPE_PRICE_PREMIUM, starter: () => process.env.STRIPE_PRICE_STARTER };
 const cache = new Map<Plan, string>();
 /** Code fiscal Stripe : logiciel SaaS à usage professionnel (exigé par Stripe Tax / Managed Payments). */
 const TAX_CODE = "txcd_10103001";
@@ -81,6 +81,8 @@ export async function priceFor(plan: Plan): Promise<string> {
 
 export function planForPrice(price: Stripe.Price | undefined | null): Plan | null {
   if (!price) return null;
+  if (price.lookup_key === LOOKUP.starter || price.id === process.env.STRIPE_PRICE_STARTER || price.metadata?.plan === "starter") return "starter";
+  if (price.lookup_key === LOOKUP.premium || price.id === process.env.STRIPE_PRICE_PREMIUM || price.metadata?.plan === "premium") return "premium";
   if (price.lookup_key === LOOKUP.agency || price.id === process.env.STRIPE_PRICE_AGENCY || price.metadata?.plan === "agency") return "agency";
   if (price.lookup_key === LOOKUP.solo_plus || price.id === process.env.STRIPE_PRICE_SOLO_PLUS || price.metadata?.plan === "solo_plus") return "solo_plus";
   if (price.lookup_key === LOOKUP.solo || price.id === process.env.STRIPE_PRICE_SOLO || price.metadata?.plan === "solo") return "solo";

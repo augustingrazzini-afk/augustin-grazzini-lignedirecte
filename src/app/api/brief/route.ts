@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, callScope, scopeClientId } from "@/lib/access";
-import { assertActive, jsonError, sameOrigin } from "@/lib/api";
+import { assertActive, assertPremium, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, asJson, generateBrief } from "@/lib/ai";
 import { activityScope } from "@/lib/channels";
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   if (!b.success) return jsonError("Tapez au moins 3 caractères.");
   const scope = await apiScope(req, { clientId: b.data.clientId });
   if (!scope) return jsonError("Accès refusé", 403);
-  const blocked = await assertActive(scope);
+  const blocked = (await assertActive(scope)) || (await assertPremium(scope));
   if (blocked) return blocked;
 
   const words = b.data.query.split(/\s+/).filter((w) => w.length > 1);

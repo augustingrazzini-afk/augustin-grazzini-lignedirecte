@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     } else if (s.client_reference_id) {
       // Lien de paiement : abonnement actif dès le paiement, la formule vient des métadonnées du lien.
       // (Les notifications customer.subscription.* qui suivent corrigent le statut si le lien inclut encore un essai.)
-      const plan = ["agency", "solo", "solo_plus"].includes(s.metadata?.plan || "") ? s.metadata!.plan : null;
+      const plan = ["starter", "agency", "premium", "solo", "solo_plus"].includes(s.metadata?.plan || "") ? s.metadata!.plan : null;
       await db.organization.update({
         where: { id: s.client_reference_id },
         data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), subscriptionStatus: "active" },

@@ -4,7 +4,7 @@ import "./studio.css";
 import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { LogoMark } from "@/components/Logo";
 import { currentUser } from "@/lib/session";
-import { PLANS, euros } from "@/lib/billing";
+import { PAID_PLANS, PLANS, PLAN_FEATURES, euros } from "@/lib/billing";
 import { LEGAL } from "@/lib/legal";
 import { AI_CAN } from "@/lib/assistant-content";
 
@@ -87,7 +87,7 @@ const FAQ: [string, string][] = [
   ["Mes commerciaux utilisent des outils différents, ça marche ?", "Oui, c'est fait pour ça. Votre équipe interne sur Aircall, un freelance sur Minari, une agence sur Ringover : chacun branche son outil et tous les appels arrivent dans votre espace, rangés par commercial."],
   ["Qu'est-ce que le commercial a à faire ?", "Presque rien. Il reçoit une invitation par email et branche son outil d'appel en 2 minutes (une clé à coller, ou un clic pour Minari). S'il appelle depuis votre outil, il n'a même rien à faire : vous indiquez son nom et ses appels lui sont attribués."],
   ["Le commercial voit-il les appels des autres ?", "Non. Chaque commercial a son espace et ne voit que ses propres appels, ses résumés et son assistant IA. Vous seul (et les managers que vous invitez) voyez toute l'équipe."],
-  ["Combien ça coûte ?", "49,99 € HT par mois et par commercial suivi, sans engagement. Les dirigeants et managers qui consultent l'espace ne sont pas facturés. Vous ajoutez ou retirez des commerciaux quand vous voulez."],
+  ["Combien ça coûte ?", "Le prix est par commercial suivi et par mois, sans engagement : Essentiel à 49,99 € HT (suivi en direct et analyse IA de chaque appel), Premium à 69,99 € HT (avec l'assistant IA, les briefs et débriefs de rendez-vous, la transcription et le connecteur Claude). Une formule Découverte sans IA existe à 19,99 € HT. Les dirigeants et managers ne sont pas facturés."],
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Dans Claude, ajoutez un connecteur personnalisé avec l'adresse https://trustpipe.fr/api/mcp, puis autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
@@ -123,8 +123,8 @@ export default async function Home() {
             <div className="st-hrow">
               <div>
                 <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
-                <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA inclus.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
-                <p className="st-note">SANS ENGAGEMENT · 49,99 € HT PAR COMMERCIAL · DONNÉES EN FRANCE</p>
+                <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
+                <p className="st-note">SANS ENGAGEMENT · PRIX PAR COMMERCIAL SUIVI · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
                 <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "SUIVRE MES COMMERCIAUX"} <span aria-hidden="true">→</span></Link>
@@ -192,9 +192,9 @@ export default async function Home() {
       </section>
 
       <section id="assistant" className="st-sec">
-        <div className="st-side"><div className="st-n">02</div><small>Assistant IA<br />inclus</small></div>
+        <div className="st-side"><div className="st-n">02</div><small>Assistant IA<br />Premium</small></div>
         <div className="st-body">
-          <span className="st-aitag"><span className="st-dot" />ASSISTANT IA · INCLUS</span>
+          <span className="st-aitag"><span className="st-dot" />ASSISTANT IA · FORMULE PREMIUM</span>
           <h2 className="st-h2">Un assistant IA. <span className="st-thin">Il a écouté toute l&apos;équipe.</span></h2>
           <p className="st-lead">Dans Trustpipe, un assistant IA a écouté chaque appel de chaque commercial. Vous lui posez vos questions comme à un directeur commercial : qui performe, qui a besoin d&apos;aide, pourquoi les prospects refusent, comment préparer votre rendez-vous de jeudi.</p>
           <div className="st-ai">
@@ -234,29 +234,23 @@ export default async function Home() {
       </section>
 
       <section id="tarifs" className="st-sec">
-        <div className="st-side"><div className="st-n">05</div><small>Tarif<br />sans engagement</small></div>
+        <div className="st-side"><div className="st-n">05</div><small>Tarifs<br />sans engagement</small></div>
         <div className="st-body">
-          <h2 className="st-h2">Un seul tarif. <span className="st-thin">Par commercial suivi.</span></h2>
-          <div className="st-pr st-pr1">
-            <div className="best">
-              <h3>Par commercial<small>TOUT INCLUS</small></h3>
-              <div className="st-amt">{euros(PLANS.agency.price)}€<span>HT/MOIS PAR COMMERCIAL SUIVI</span></div>
-              <ul>
-                <li>Salariés, freelances et agences</li>
-                <li>Tous les outils d&apos;appel, ou CSV</li>
-                <li>Chaque appel résumé et analysé par l&apos;IA</li>
-                <li>Classement et résultats par commercial</li>
-                <li>Assistant IA, relances, briefs de rendez-vous</li>
-                <li>Dirigeants et managers non facturés</li>
-              </ul>
-              <Link className="b" href={start}>SUIVRE MES COMMERCIAUX →</Link>
-            </div>
-            <div className="st-prx">
-              <b>Exemple</b>
-              <p>2 commerciaux internes + 1 freelance + 1 agence de prospection = <span className="st-o">4 × {euros(PLANS.agency.price)} € HT</span> par mois.</p>
-              <p>Vous choisissez le nombre au paiement, et vous en ajoutez ou en retirez quand vous voulez. Sans engagement, résiliable en un clic.</p>
-            </div>
+          <h2 className="st-h2">Par commercial suivi. <span className="st-thin">Résiliable en un clic.</span></h2>
+          <div className="st-pr">
+            {PAID_PLANS.map((id) => (
+              <div key={id} className={id === "agency" ? "best" : id === "starter" ? "low" : ""}>
+                <h3>{PLANS[id].name}<small>{PLAN_FEATURES[id].tag.toUpperCase()}</small></h3>
+                <div className="st-amt">{euros(PLANS[id].price)}€<span>HT/MOIS PAR COMMERCIAL</span></div>
+                <ul>
+                  {PLAN_FEATURES[id].yes.map((t) => <li key={t}>{t}</li>)}
+                  {PLAN_FEATURES[id].no.map((t) => <li key={t} className="no">{t}</li>)}
+                </ul>
+                <Link className="b" href={start}>CHOISIR {PLANS[id].name.toUpperCase()} →</Link>
+              </div>
+            ))}
           </div>
+          <p className="st-lead" style={{ fontSize: 16 }}>Exemple : 2 commerciaux internes + 1 freelance + 1 agence en Essentiel = 4 × {euros(PLANS.agency.price)} € HT par mois. Vous choisissez le nombre au paiement et l&apos;ajustez quand vous voulez. Dirigeants et managers ne sont pas facturés.</p>
         </div>
       </section>
 

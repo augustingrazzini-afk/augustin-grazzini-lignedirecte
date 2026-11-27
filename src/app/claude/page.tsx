@@ -48,7 +48,7 @@ export default function Page() {
         <div className="st-side"><div className="st-n">AI</div><small>Connecteur<br />Claude</small></div>
         <div className="st-body" style={{ paddingTop: 80 }}>
           <h1 className="st-h1" style={{ fontSize: "clamp(40px, 6vw, 88px)" }}>Trustpipe.<br /><span className="st-thin">Dans Claude.</span></h1>
-          <p className="st-lead" style={{ fontSize: 21 }}>Demandez à Claude vos relances du jour, le contexte d&apos;un prospect ou de reporter un rappel : il lit et gère vos relances Trustpipe, directement dans la conversation. Disponible pour tous les comptes Trustpipe.</p>
+          <p className="st-lead" style={{ fontSize: 21 }}>Demandez à Claude vos relances du jour, le contexte d&apos;un prospect ou de reporter un rappel : il lit et gère vos relances Trustpipe, directement dans la conversation. Inclus dans la formule Premium.</p>
           <div className="st-btns" style={{ maxWidth: 420, marginTop: 32 }}>
             <a className="st-btn p" href="#installer">INSTALLER EN 1 MINUTE <span aria-hidden="true">↓</span></a>
           </div>
@@ -64,7 +64,7 @@ export default function Page() {
               <div key={t}><span>{String(i + 1).padStart(2, "0")}</span><div><b>{t}</b>{i === 1 ? <code className="st-mono" style={{ display: "block", marginTop: 8, padding: "14px 16px", border: "1px solid var(--o)", color: "var(--bone)", fontSize: 17, userSelect: "all", wordBreak: "break-all" }}>{d}</code> : <p>{d}</p>}</div></div>
             ))}
           </div>
-          <p className="st-lead" style={{ fontSize: 16 }}>Il faut un compte Trustpipe avec un abonnement actif. Pas encore de compte ? <Link href="/inscription" style={{ color: "var(--o)" }}>Créez-le ici</Link>.</p>
+          <p className="st-lead" style={{ fontSize: 16 }}>Il faut un compte Trustpipe avec la formule Premium active. Pas encore de compte ? <Link href="/inscription" style={{ color: "var(--o)" }}>Créez-le ici</Link>.</p>
         </div>
       </section>
 

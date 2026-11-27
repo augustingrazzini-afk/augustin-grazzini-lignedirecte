@@ -1,8 +1,9 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PAID_PLANS, PLANS, type PlanId, euros } from "@/lib/billing";
+import { PLANS, PLAN_FEATURES, type PlanId, euros } from "@/lib/billing";
 import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
 import { currentUser } from "@/lib/session";
+import { PlanPicker } from "@/components/PlanPicker";
 import { PageTop } from "@/components/Shell";
 import { requestCancel } from "@/app/actions";
 
@@ -31,7 +32,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   const statusLine = offered ? "Accès offert"
     : org.subscriptionStatus === "trialing" ? `Essai gratuit jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
-    : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price)} € HT par mois, sans engagement`
+    : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price * (plan.perSeat ? Math.max(1, org.seats) : 1))} € HT par mois, sans engagement`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
   const features = (_id?: string) => [
@@ -54,8 +55,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
         <div className="card">
           <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
           <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
-            {features(org.plan === "agency" || org.plan === "solo_plus" ? org.plan : "solo").map((f) => <li key={f}>{f}</li>)}
-            {org.plan === "agency" && <li><b>{org.seats} commercial{org.seats > 1 ? "aux" : ""}</b> suivi{org.seats > 1 ? "s" : ""} sur votre abonnement : {euros(PLANS.agency.price * org.seats)} € HT / mois. Pour en suivre plus, changez la quantité dans « Gérer mon abonnement ».</li>}
+            {(org.plan in PLAN_FEATURES ? PLAN_FEATURES[org.plan as keyof typeof PLAN_FEATURES].yes : features()).map((f) => <li key={f}>{f}</li>)}
+            {["starter", "agency", "premium"].includes(org.plan) && <li><b>{org.seats} commercial{org.seats > 1 ? "aux" : ""}</b> suivi{org.seats > 1 ? "s" : ""} sur votre abonnement : {euros(plan.price * org.seats)} € HT / mois. Pour en suivre plus, changez la quantité dans « Gérer mon abonnement ».</li>}
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>
@@ -78,23 +79,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
         </div>
       )}
 
-      {!subscribed && (
-        <div className="grid g-2e">
-          {PAID_PLANS.map((id) => {
-            const p = PLANS[id];
-            return (
-              <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
-                <h2>Par commercial suivi</h2>
-                <div className="amt">{euros(p.price)} €<span className="muted" style={{ fontSize: 15, fontWeight: 500 }}> HT / mois{p.perSeat ? " par commercial" : ""}</span></div>
-                <ul>{features(id).map((f) => <li key={f}>{f}</li>)}</ul>
-                {owner && (links
-                  ? (links[id] ? <a className={`btn${id === "agency" ? " primary" : ""}`} href={links[id]!}>Continuer vers le paiement</a> : <button className="btn" disabled>Choisir {p.name}</button>)
-                  : <form action="/api/billing" method="post"><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><button className={`btn${id === "agency" ? " primary" : ""}`} disabled={!stripeEnabled()}>Choisir {p.name}</button></form>)}
-              </div>
-            );
-          })}
-        </div>
-      )}
+      {!subscribed && <PlanPicker email={me?.email || ""} orgId={org.id} canBuy={owner} />}
       {!subscribed && <p className="muted small mt">🔒 Paiement sécurisé par Stripe, sans engagement : résiliable à tout moment depuis cette page.</p>}
       {!owner && <p className="muted small mt">Seul le propriétaire de l&apos;espace peut gérer l&apos;abonnement.</p>}
     </>

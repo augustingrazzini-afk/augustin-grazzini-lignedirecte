@@ -1,4 +1,5 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { NO_PREMIUM_PLANS } from "./billing";
 import { Prisma, type Activity, type Call } from "@prisma/client";
 import { db } from "./db";
 import { OBJECTION_KEYS, type TranscriptLine } from "./providers/types";
@@ -157,7 +158,7 @@ ${m.summary ? `Notes : ${m.summary.slice(0, 3000)}\n` : ""}${tr.length ? `Transc
 export async function debriefPending(opts: { orgId?: string; limit?: number } = {}) {
   if (!aiEnabled()) return 0;
   const todo = await db.call.findMany({
-    where: { ...(opts.orgId ? { orgId: opts.orgId } : {}), kind: "meeting", debrief: { equals: Prisma.DbNull }, aiStatus: { notIn: ["pending", "processing"] }, NOT: { transcript: { equals: [] } } },
+    where: { ...(opts.orgId ? { orgId: opts.orgId } : {}), org: { plan: { notIn: NO_PREMIUM_PLANS } }, kind: "meeting", debrief: { equals: Prisma.DbNull }, aiStatus: { notIn: ["pending", "processing"] }, NOT: { transcript: { equals: [] } } },
     orderBy: { startedAt: "desc" }, take: opts.limit ?? 10, select: { id: true },
   });
   let n = 0;
@@ -218,7 +219,7 @@ export async function processPendingAi(opts: { orgId?: string; limit?: number; c
 
   // Réponses email / LinkedIn à classer. Pas de réservation ici : la relance créée est idempotente
   // (une par source), donc une double analyse éventuelle ne crée pas de doublon.
-  const replies = await db.activity.findMany({ where: { aiStatus: "pending", ...scope }, orderBy: { occurredAt: "desc" }, take: limit });
+  const replies = await db.activity.findMany({ where: { aiStatus: "pending", ...scope, org: { plan: { not: "starter" } } }, orderBy: { occurredAt: "desc" }, take: limit });
   let busy = false;
   await runPool(replies, concurrency, async (a) => {
     try { await classifyActivity(a); } catch (e) {
@@ -229,8 +230,9 @@ export async function processPendingAi(opts: { orgId?: string; limit?: number; c
   if (busy) return 0;
 
   // Appels transcrits : chaque appel est réservé avant analyse.
+  // Formule Découverte : pas d'analyse IA des appels.
   const todo = await db.call.findMany({
-    where: { aiStatus: "pending", ...scope },
+    where: { aiStatus: "pending", ...scope, org: { plan: { not: "starter" } } },
     orderBy: { startedAt: "desc" },
     take: limit,
     select: { id: true },

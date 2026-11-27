@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import { db } from "./db";
-import { isActive } from "./billing";
+import { hasPremium, isActive } from "./billing";
 import type { Scope } from "./access";
 
 export const jsonError = (message: string, status = 400) => NextResponse.json({ error: message }, { status });
 
 /** Écriture autorisée seulement si l'essai ou l'abonnement de l'organisation est en cours. */
+/** Fonction réservée à la formule Premium (assistant IA, briefs, connecteur Claude). */
+export async function assertPremium(scope: Scope) {
+  const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { plan: true } });
+  if (org && !hasPremium(org)) return jsonError("Cette fonction est incluse dans la formule Premium (69,99 € HT par commercial). Passez en Premium depuis la page Abonnement.", 402);
+  return null;
+}
+
 export async function assertActive(scope: Scope) {
   const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { subscriptionStatus: true, trialEndsAt: true } });
   if (!org || !isActive(org)) return jsonError("L'abonnement de cet espace n'est plus actif. Les données restent consultables.", 402);

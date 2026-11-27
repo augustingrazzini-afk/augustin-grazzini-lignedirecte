@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, scopeClientId } from "@/lib/access";
-import { assertActive, jsonError, sameOrigin } from "@/lib/api";
+import { assertActive, assertPremium, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, asJson, generateCoach } from "@/lib/ai";
 import { computeStats, windowCalls } from "@/lib/stats";
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   if (!b.success) return jsonError("Requête invalide");
   const scope = await apiScope(req, { clientId: b.data.clientId });
   if (!scope) return jsonError("Accès refusé", 403);
-  const blocked = await assertActive(scope);
+  const blocked = (await assertActive(scope)) || (await assertPremium(scope));
   if (blocked) return blocked;
   const calls = await windowCalls(scope, b.data.days);
   if (!calls.length) return jsonError("Pas encore d'appels sur cette période.", 404);

@@ -1,6 +1,8 @@
 // Pages partagées entre l'espace SDR (/app) et le portail client (/portal/[id]).
 import type { Scope } from "@/lib/access";
 import { db } from "@/lib/db";
+import Link from "next/link";
+import { PLANS, euros, hasPremium } from "@/lib/billing";
 import { aiEnabled, type Brief, type CoachResult } from "@/lib/ai";
 import { PageTop, Period } from "./Shell";
 import { Calls } from "./views/Calls";
@@ -33,7 +35,24 @@ export function CallPage({ scope, base, id }: { scope: Scope; base: string; id: 
   return (<><PageTop title="Fiche appel" /><CallDetail scope={scope} base={base} id={id} /></>);
 }
 
+
+/** Encart « inclus en Premium » à la place d'une fonction IA avancée. */
+async function premiumGate(scope: Scope, what: string): Promise<React.ReactNode | null> {
+  const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { plan: true } });
+  if (!org || hasPremium(org)) return null;
+  return (
+    <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
+      <span className="pill win">Premium</span>
+      <h2 style={{ margin: "14px 0 8px" }}>{what} est inclus dans la formule Premium</h2>
+      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Assistant IA sur toute l&apos;équipe, briefs pré-rendez-vous, débriefs de visio, transcription automatique et connecteur Claude : {euros(PLANS.premium.price)} € HT par commercial et par mois.</p>
+      {scope.kind === "org" ? <Link className="btn primary" href="/app/billing">Passer en Premium</Link> : <p className="muted small">Demandez à l&apos;entreprise qui vous a invité de passer en Premium.</p>}
+    </div>
+  );
+}
+
 export async function BriefPage({ scope, q }: { scope: Scope; q?: string }) {
+  const gate = await premiumGate(scope, "Le brief pré-rendez-vous");
+  if (gate) return (<><PageTop title="Brief pré-meeting" subtitle="Tapez un prospect : l'IA prépare votre rendez-vous" />{gate}</>);
   const history = await db.brief.findMany({ where: { orgId: scope.orgId, clientId: clientOf(scope) ?? undefined, ...(scope.kind === "client" ? { clientId: scope.clientId } : {}) }, orderBy: { createdAt: "desc" }, take: 30 });
   return (
     <>
@@ -53,12 +72,13 @@ export async function RelancesPage({ scope, base }: { scope: Scope; base: string
   return (<><PageTop title="Relances" subtitle="Les rappels à faire, quand" /><Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
 }
 
-export function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
+export async function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
   const isClient = scope.kind === "client";
+  const gate = await premiumGate(scope, "L'assistant IA");
   return (
     <>
       <PageTop title="Assistant IA" subtitle={isClient ? "Posez vos questions sur votre prospection et préparez vos rendez-vous" : "Il a écouté les appels de tous vos commerciaux : performances, objections, prospects, rendez-vous"} />
-      <Assistant clientId={clientOf(scope)} isClient={isClient} aiReady />
+      {gate || <Assistant clientId={clientOf(scope)} isClient={isClient} aiReady />}
     </>
   );
 }
