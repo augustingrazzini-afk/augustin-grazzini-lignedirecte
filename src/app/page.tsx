@@ -214,6 +214,7 @@ export default async function Home() {
         <div className="st-body">
           <h2 className="st-h2">Chacun garde son outil. <span className="st-thin">Tout arrive chez vous.</span></h2>
           <p className="st-lead">Vous invitez un commercial, il branche son outil d&apos;appel en 2 minutes : une clé à coller, ou un clic pour Minari. Votre équipe partage un outil ? Vous le branchez une fois, et chaque appel est attribué au bon commercial.</p>
+          <p className="st-lead" style={{ fontSize: 15 }}>Minari est utilisé chaque jour en production. Les autres connecteurs suivent la documentation officielle de chaque outil : si le vôtre remonte mal, écrivez-nous, nous le corrigeons en priorité.</p>
           <div className="st-dl">{DIALERS.map((d) => <span key={d}>{d}</span>)}<span className="x">+ tout outil (API) · Zapier · Make · n8n · CSV</span></div>
           <div className="st-claude">
             <span className="st-mono">CONNECTEUR CLAUDE</span>
@@ -228,7 +229,7 @@ export default async function Home() {
         <div className="st-side"><div className="st-n">04</div><small>Sécurité<br />et RGPD</small></div>
         <div className="st-body">
           <h2 className="st-h2">Vos données restent <span className="st-thin">en France.</span></h2>
-          <div className="st-badges"><span>Hébergé en France</span><span>Chiffrement AES-256</span><span>Conforme RGPD</span></div>
+          <div className="st-badges"><span>Hébergé en France</span><span>Chiffrement AES-256</span><span>Contrat de sous-traitance RGPD</span></div>
           <div className="st-secg">{SECURITY.map(([t, d]) => <div key={t}><b>{t}</b><p>{d}</p></div>)}</div>
         </div>
       </section>

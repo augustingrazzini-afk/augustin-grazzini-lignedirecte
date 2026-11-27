@@ -1,3 +1,4 @@
+import { cache } from "react";
 import type { Call } from "@prisma/client";
 import { db } from "./db";
 import { callScope, type Scope } from "./access";
@@ -16,12 +17,12 @@ export type Stats = {
   lastCallAt: Date | null;
 };
 
-export async function windowCalls(scope: Scope, days: number) {
-  return db.call.findMany({
+/** Appels de la période. Mémorisé le temps d'un affichage : le classement et le tableau de bord partagent la même lecture. */
+export const windowCalls = cache(async (scope: Scope, days: number) =>
+  db.call.findMany({
     where: { ...callScope(scope), startedAt: { gte: periodStart(days) } },
     orderBy: { startedAt: "desc" },
-  });
-}
+  }));
 
 export function computeStats(all: Call[], days: number): Stats {
   const calls = all.filter((c) => c.kind !== "meeting");
