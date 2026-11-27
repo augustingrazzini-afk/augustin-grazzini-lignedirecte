@@ -154,14 +154,14 @@
 .st-badges span { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; border: 1px solid var(--o); color: var(--o); padding: 6px 10px; }
 
 /* Tarifs */
-.st-pr { display: grid; grid-template-columns: 1fr 1fr; margin-top: 40px; border: 1px solid var(--line); }
+.st-pr { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); margin-top: 40px; border: 1px solid var(--line); }
 .st-pr > div { padding: 34px; display: flex; flex-direction: column; }
-.st-pr > div:first-child { border-right: 1px solid var(--line); }
+.st-pr > div:not(:last-child) { border-right: 1px solid var(--line); }
 .st-pr .best { background: var(--o); color: var(--ink); }
 .st-pr h3 { font-family: var(--disp); font-weight: 700; font-size: 22px; text-transform: uppercase; display: flex; justify-content: space-between; align-items: center; gap: 12px; margin: 0; }
 .st-pr h3 small { font-family: var(--mono); font-size: 11px; font-weight: 500; letter-spacing: .12em; border: 1px solid currentColor; padding: 4px 8px; }
-.st-amt { font-family: var(--disp); font-weight: 900; font-size: clamp(48px, 5.4vw, 78px); letter-spacing: -.05em; margin: 22px 0 4px; line-height: 1; }
-.st-amt span { font-size: 15px; font-weight: 500; letter-spacing: 0; }
+.st-amt { font-family: var(--disp); font-weight: 900; font-size: clamp(40px, 3.6vw, 56px); letter-spacing: -.05em; margin: 22px 0 4px; white-space: nowrap; line-height: 1; }
+.st-amt span { display: block; margin-top: 10px; font-size: 13px; font-weight: 500; letter-spacing: 0; }
 .st-pr ul { list-style: none; margin: 24px 0 28px; padding: 0; font-size: 16px; flex: 1; }
 .st-pr li { padding: 10px 0; border-bottom: 1px solid rgba(128, 120, 110, .3); display: flex; justify-content: space-between; gap: 12px; }
 .st-pr li::after { content: "●"; font-size: 9px; color: var(--o); }
@@ -243,7 +243,7 @@
   .st-daw > * { min-width: 720px; }
   .st-trio, .st-list, .st-ai, .st-pr, .st-secg { grid-template-columns: 1fr; }
   .st-trio > div { margin: 0; border-right: 0; border-bottom: 1px solid var(--line); padding: 26px 0; }
-  .st-ai .q, .st-pr > div:first-child { border-right: 0; border-bottom: 1px solid var(--line); }
+  .st-ai .q, .st-pr > div:not(:last-child) { border-right: 0; border-bottom: 1px solid var(--line); }
   .st-dl { grid-template-columns: repeat(2, 1fr); }
   .st-pr > div { padding: 26px 22px; }
   .st-huge { margin-top: 48px; }

@@ -9,7 +9,7 @@ import { isEmail, loginWithPassword, normEmail, resetPasswordWithToken, sendMagi
 import { hashPassword, passwordProblem, verifyPassword } from "@/lib/password";
 import { createSession, destroySession } from "@/lib/session";
 import { requireOrgScope, requireUser } from "@/lib/access";
-import { TRIAL_DAYS, isActive, maxClients } from "@/lib/billing";
+import { TRIAL_DAYS, isActive, maxClients, seatLimit } from "@/lib/billing";
 import { randomToken, seal } from "@/lib/crypto";
 import { getProvider } from "@/lib/providers";
 import { ProviderError } from "@/lib/providers/types";
@@ -260,6 +260,11 @@ export async function inviteTeammate(_: FormState, f: FormData): Promise<FormSta
     if (scope.role !== "owner") return { error: "Réservé au propriétaire de l'espace." };
     const email = normEmail(s(f, "email", 254));
     if (!isEmail(email)) return { error: "Adresse email invalide." };
+    // Nombre de commerciaux limité par la formule : 1 en Solo, le nombre payé en Équipe.
+    const members = await db.membership.count({ where: { orgId: scope.orgId } });
+    const limit = seatLimit(org);
+    const already = await db.membership.findFirst({ where: { orgId: scope.orgId, user: { email } } });
+    if (!already && members >= limit) return { error: org.plan === "agency" ? `Votre formule Équipe compte ${limit} commercial(aux). Ajoutez des places depuis la page Abonnement pour inviter quelqu'un.` : "La formule Solo est pour un commercial. Passez à la formule Équipe (49,99 € HT par commercial) pour inviter votre équipe." };
     const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
     const other = await db.membership.findFirst({ where: { userId: user.id, NOT: { orgId: scope.orgId } } });
     if (other) return { error: "Cette personne a déjà son propre espace." };

@@ -26,7 +26,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
         <p className="muted">Votre abonnement est en cours d&apos;activation, cette page s&apos;actualise toute seule. Si rien ne se passe d&apos;ici une minute, <Link href="/app">ouvrez votre espace</Link>.</p></div>
     </div>
   );
-  const links = !stripeEnabled() ? { solo: paymentLink("solo", u.email, org.id), agency: paymentLink("agency", u.email, org.id) } : null;
+  const links = !stripeEnabled() ? { solo: paymentLink("solo", u.email, org.id), solo_plus: paymentLink("solo_plus", u.email, org.id), agency: paymentLink("agency", u.email, org.id) } : null;
   return (
     <div className="auth trial">
       <div className="trial-box">
@@ -38,21 +38,29 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
         {m.role !== "owner" ? (
           <div className="banner">Le propriétaire de l&apos;espace « {org.name} » doit choisir la formule. Revenez ensuite sur cette page.</div>
         ) : (
-          <div className="grid g-2e" style={{ marginTop: 20 }}>
-            {(["solo", "agency"] as const).map((id) => (
-              <form key={id} action={links ? links[id]! : "/api/billing"} method={links ? "get" : "post"} className={`card price${id === "agency" ? " lp-best" : ""}`}>
-                {links ? Array.from(new URL(links[id]!).searchParams).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)
-                  : <><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /></>}
-                <h2>{PLANS[id].name}</h2>
-                <div className="amt">{euros(PLANS[id].price)} €<span className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0 }}> HT / mois</span></div>
-                <ul>
-                  <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
-                  <li>Appels analysés et résumés par l&apos;IA</li>
-                  <li>Assistant IA, relances, lien de suivi client</li>
-                  {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
-                </ul>
-                <button className={`btn${id === "agency" ? " primary" : ""}`}>Choisir {PLANS[id].name}</button>
-              </form>
+<div>
+            {([["Vous travaillez seul", ["solo", "solo_plus"]], ["Vous êtes une équipe", ["agency"]]] as const).map(([title, ids]) => (
+              <div key={title} style={{ marginTop: 22 }}>
+                <h3 style={{ fontFamily: "var(--f-display)", textTransform: "uppercase", letterSpacing: "-.02em", fontSize: 16, margin: "0 0 10px", textAlign: "left" }}>{title}</h3>
+                <div className="grid g-2e">
+                  {ids.map((id) => (
+                    <form key={id} action={links ? links[id]! : "/api/billing"} method={links ? "get" : "post"} className={`card price${id === "agency" ? " lp-best" : ""}`}>
+                      {links ? Array.from(new URL(links[id]!).searchParams).map(([k, v]) => <input key={k} type="hidden" name={k} value={v} />)
+                        : <><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /></>}
+                      <h2>{PLANS[id].name}</h2>
+                      <div className="amt">{euros(PLANS[id].price)} €<span className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0 }}> HT / mois</span>{PLANS[id].perSeat && <div className="muted" style={{ fontSize: 14, fontWeight: 500, fontFamily: "var(--f-body)", letterSpacing: 0, marginTop: 6 }}>par commercial</div>}</div>
+                      <ul>
+                        <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
+                        <li>{id === "agency" ? "Autant de commerciaux que vous voulez : choisissez le nombre au paiement" : "1 commercial"}</li>
+                        <li>Appels analysés et résumés par l&apos;IA</li>
+                        <li>Assistant IA, relances, lien de suivi client</li>
+                      </ul>
+                      <button className={`btn${id === "agency" ? " primary" : ""}`}>Choisir {PLANS[id].name}</button>
+                    </form>
+                  ))}
+                  {ids.length === 1 && <div className="card" style={{ display: "flex", alignItems: "center" }}><p className="muted small" style={{ margin: 0, textAlign: "left" }}>Exemple : une équipe de 3 commerciaux = 3 × {euros(PLANS.agency.price)} € HT par mois. Vous ajoutez ou retirez des commerciaux quand vous voulez depuis la page Abonnement. En solo, la formule Équipe à 1 commercial marche aussi.</p></div>}
+                </div>
+              </div>
             ))}
           </div>
         )}

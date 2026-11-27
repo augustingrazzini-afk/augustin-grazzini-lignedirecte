@@ -4,7 +4,7 @@ import "./studio.css";
 import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { LogoMark } from "@/components/Logo";
 import { currentUser } from "@/lib/session";
-import { PLANS, euros } from "@/lib/billing";
+import { PAID_PLANS, PLANS, euros } from "@/lib/billing";
 import { LEGAL } from "@/lib/legal";
 
 /**
@@ -227,19 +227,19 @@ export default async function Home() {
       <section id="tarifs" className="st-sec">
         <div className="st-side"><div className="st-n">06</div><small>Tarifs<br />sans engagement</small></div>
         <div className="st-body">
-          <h2 className="st-h2">Deux formules. <span className="st-thin">Résiliables en un clic.</span></h2>
+          <h2 className="st-h2">Trois formules. <span className="st-thin">Résiliables en un clic.</span></h2>
           <div className="st-pr">
-            {(["solo", "agency"] as const).map((id) => (
+            {PAID_PLANS.map((id) => (
               <div key={id} className={id === "agency" ? "best" : ""}>
-                <h3>{PLANS[id].name} <small>{id === "agency" ? "RECOMMANDÉ" : "SDR FREELANCE"}</small></h3>
-                <div className="st-amt">{euros(PLANS[id].price)}€<span> HT/MOIS</span></div>
+                <h3>{PLANS[id].name}{id === "agency" && <small>À PLUSIEURS</small>}</h3>
+                <div className="st-amt">{euros(PLANS[id].price)}€<span>HT/MOIS{PLANS[id].perSeat ? " PAR COMMERCIAL" : ""}</span></div>
                 <ul>
                   <li>{Number.isFinite(PLANS[id].maxClients) ? `${PLANS[id].maxClients} clients suivis` : "Clients illimités"}</li>
                   <li>Tous les dialers, ou CSV</li>
                   <li>Analyse IA de chaque appel</li>
                   <li>Lien de suivi et assistant IA pour vos clients</li>
                   <li>Relances et brief pré-rendez-vous</li>
-                  <li>{id === "agency" ? "Toute l'équipe commerciale" : "Pour un SDR freelance"}</li>
+                  <li>{id === "agency" ? "Facturé par commercial, nombre au choix" : "1 commercial"}</li>
                 </ul>
                 <Link className="b" href={start}>CHOISIR {PLANS[id].name.toUpperCase()} →</Link>
               </div>
