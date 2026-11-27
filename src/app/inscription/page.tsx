@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { redirect } from "next/navigation";
 import { currentUser } from "@/lib/session";
 import { SignupForm } from "@/components/client/SignupForm";
@@ -12,6 +13,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ n
   return (
     <AuthCard title="Créer votre compte" subtitle="Sans engagement, résiliable en un clic."
       footer={<>Déjà un compte ? <Link href={`/login${q}`}><b>Se connecter</b></Link></>}>
+      <VisitBeacon page="/inscription" />
       <SignupForm />
       <p className="muted small" style={{ margin: "14px 0 0" }}>Nous vous envoyons un email pour confirmer votre adresse : votre compte est activé au clic.</p>
     </AuthCard>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { redirect } from "next/navigation";
 import { requireUser } from "@/lib/access";
 import { db } from "@/lib/db";
@@ -30,6 +31,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
     <div className="auth trial">
       <div className="trial-box">
         <Logo size={26} />
+        <VisitBeacon page="/essai" />
         <h1>Choisissez votre formule</h1>
         <p className="muted">Paiement mensuel par carte sur Stripe. <b>Sans engagement</b> : résiliable en un clic depuis la page Abonnement.</p>
         {err && <div className="banner err">Le paiement n&apos;a pas abouti. Réessayez ou choisissez une autre carte.</div>}

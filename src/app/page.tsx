@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { currentUser } from "@/lib/session";
 import { PLANS, euros } from "@/lib/billing";
 import { Logo } from "@/components/Logo";
@@ -96,6 +97,7 @@ export default async function Home() {
   const u = await currentUser();
   return (
     <div className="landing">
+      <VisitBeacon page="/" />
       <header className="lp-nav">
         <Logo size={24} />
         <div className="row" style={{ gap: 8 }}>

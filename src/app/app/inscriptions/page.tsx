@@ -17,7 +17,7 @@ export default async function Page() {
   const scope = await requireOrgScope();
   if (!isAdminOrg(scope.orgId)) notFound();
   const now = Date.now();
-  const [orgs, users24, users7, usersAll, feedback] = await Promise.all([
+  const [orgs, users24, users7, usersAll, feedback, visits] = await Promise.all([
     db.organization.findMany({
       orderBy: { createdAt: "desc" }, take: 300,
       include: {
@@ -30,7 +30,16 @@ export default async function Page() {
     db.user.count({ where: { createdAt: { gt: new Date(now - 7 * 864e5) } } }),
     db.user.count(),
     db.feedback.findMany({ orderBy: { createdAt: "desc" }, take: 20 }),
+    db.aiUsage.findMany({ where: { key: { startsWith: "visit" }, day: { gte: new Date(now - 29 * 864e5).toISOString().slice(0, 10) } } }),
   ]);
+  // Affluence du site (compteur maison, sans cookie) : 30 derniers jours.
+  const today = new Date(now).toISOString().slice(0, 10), week = new Date(now - 6 * 864e5).toISOString().slice(0, 10);
+  const sum = (k: string, from = "") => visits.filter((v) => v.key === k && v.day >= from).reduce((n, v) => n + v.count, 0);
+  const funnel: [string, string][] = [["Accueil", "visit:/"], ["Page d'inscription", "visit:/inscription"], ["Page de paiement", "visit:/essai"]];
+  const days = Array.from({ length: 14 }, (_, i) => new Date(now - (13 - i) * 864e5).toISOString().slice(0, 10));
+  const perDay = days.map((day) => ({ day, n: visits.filter((v) => v.key === "visit:/" && v.day === day).reduce((n, v) => n + v.count, 0) }));
+  const maxDay = Math.max(1, ...perDay.map((x) => x.n));
+  const sources = Object.entries(visits.filter((v) => v.key.startsWith("visitsrc:")).reduce<Record<string, number>>((m, v) => { const k = v.key.slice(9); m[k] = (m[k] || 0) + v.count; return m; }, {})).sort((x, y) => y[1] - x[1]).slice(0, 8);
   const real = orgs.filter((o) => !isAdminOrg(o.id));
   const count = (f: (o: (typeof real)[number]) => boolean) => real.filter(f).length;
   const tiles: [string, number, string][] = [
@@ -46,6 +55,28 @@ export default async function Page() {
       <PageTop title="Inscriptions" subtitle="Qui s'inscrit, qui connecte un outil, qui paie. Visible par vous seul." />
       <div className="grid g-3">
         {tiles.map(([t, n, s]) => <div key={t} className="card"><p className="muted small" style={{ margin: 0 }}>{t}</p><div style={{ fontFamily: "var(--f-display)", fontSize: 34, fontWeight: 700 }}>{n}</div><p className="muted small" style={{ margin: 0 }}>{s}</p></div>)}
+      </div>
+      <div className="card mt">
+        <h2>Affluence du site</h2>
+        <p className="muted small" style={{ margin: "0 0 12px" }}>Visites sur trustpipe.fr (un visiteur compté une fois par page et par onglet, sans cookie). Vos propres visites sont incluses.</p>
+        <table className="table">
+          <thead><tr><th>Page</th><th>Aujourd&apos;hui</th><th>7 jours</th><th>30 jours</th></tr></thead>
+          <tbody>{funnel.map(([label, k]) => <tr key={k}><td>{label}</td><td>{sum(k, today)}</td><td>{sum(k, week)}</td><td>{sum(k)}</td></tr>)}</tbody>
+        </table>
+        <p className="muted small" style={{ margin: "16px 0 6px" }}>Visites de l&apos;accueil, 14 derniers jours</p>
+        <div style={{ display: "flex", alignItems: "flex-end", gap: 4, height: 90 }} aria-label="Visites par jour">
+          {perDay.map((x) => (
+            <div key={x.day} title={`${x.day.slice(8)}/${x.day.slice(5, 7)} : ${x.n} visite(s)`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
+              <span className="small muted">{x.n || ""}</span>
+              <div style={{ width: "100%", height: `${Math.max(2, (x.n / maxDay) * 64)}px`, background: "var(--accent, #31D287)", borderRadius: 3, opacity: x.n ? 1 : 0.25 }} />
+              <span className="small muted">{x.day.slice(8)}</span>
+            </div>
+          ))}
+        </div>
+        <p className="muted small" style={{ margin: "16px 0 6px" }}>D&apos;où viennent les visiteurs (30 jours)</p>
+        {!sources.length ? <p className="muted small">Pas encore de visite comptée.</p> : (
+          <table className="table"><tbody>{sources.map(([src, n]) => <tr key={src}><td>{src === "direct" ? "Accès direct / lien copié" : src}</td><td>{n}</td></tr>)}</tbody></table>
+        )}
       </div>
       <div className="card mt">
         <h2>Derniers inscrits</h2>
