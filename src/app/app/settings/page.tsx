@@ -1,6 +1,6 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { changePassword, inviteTeammate, saveOffer } from "@/app/actions";
+import { changePassword, inviteTeammate, revokeMcpToken, saveOffer } from "@/app/actions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AlertSettings } from "@/components/AlertSettings";
@@ -11,6 +11,8 @@ export default async function Page() {
   const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId }, include: { members: { include: { user: true } } } });
   const me = org.members.find((m) => m.userId === scope.userId);
   const hasPassword = !!(await db.user.findUnique({ where: { id: scope.userId }, select: { passwordHash: true } }))?.passwordHash;
+  const mcp = await db.mcpToken.findMany({ where: { orgId: scope.orgId, revokedAt: null, refreshExpiresAt: { gt: new Date() } }, orderBy: { createdAt: "desc" }, take: 20 });
+  const mcpUrl = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/api/mcp`;
   return (
     <>
       <PageTop title="Réglages" subtitle="Votre activité et votre équipe" />
@@ -26,6 +28,16 @@ export default async function Page() {
           {scope.role === "owner" && <ActionForm action={inviteTeammate} submit="Inviter"><label className="full">Email<input className="input" type="email" name="email" required /></label></ActionForm>}
         </div>
         <AlertSettings digest={me?.digest ?? true} slack={org.slackWebhook} canSlack={scope.role === "owner"} />
+        <div className="card"><h2>Claude</h2><p className="sub">Branchez Claude sur Trustpipe : il lit vos relances et l&apos;historique de vos prospects, et planifie vos relances à votre place.</p>
+          <p className="small" style={{ margin: "0 0 6px" }}>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
+          <code className="small" style={{ display: "block", padding: "10px 12px", background: "var(--soft, #f4f6f8)", borderRadius: 8, userSelect: "all", wordBreak: "break-all" }}>{mcpUrl}</code>
+          <p className="small muted" style={{ margin: "8px 0 14px" }}>Claude vous demandera ensuite de vous connecter à Trustpipe et d&apos;autoriser l&apos;accès.</p>
+          {mcp.length ? <div className="list">{mcp.map((t) => (
+            <div key={t.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
+              <span className="who">{t.clientName || "Claude"}<span className="small muted"> · connecté le {t.createdAt.toLocaleDateString("fr-FR")}{t.lastUsedAt ? ` · utilisé le ${t.lastUsedAt.toLocaleDateString("fr-FR")}` : ""}</span></span>
+              <form action={revokeMcpToken}><input type="hidden" name="id" value={t.id} /><button className="btn sm" type="submit">Couper l&apos;accès</button></form>
+            </div>))}</div> : <p className="small muted" style={{ margin: 0 }}>Aucune connexion active.</p>}
+        </div>
         <div className="card"><h2>Mot de passe</h2><p className="sub">{hasPassword ? "Changez votre mot de passe de connexion." : "Définissez un mot de passe pour vous connecter sans attendre de lien par email."}</p>
           <ActionForm action={changePassword} submit={hasPassword ? "Changer le mot de passe" : "Enregistrer le mot de passe"}>
             {hasPassword && <label className="full">Mot de passe actuel<input className="input" type="password" name="current" required autoComplete="current-password" /></label>}

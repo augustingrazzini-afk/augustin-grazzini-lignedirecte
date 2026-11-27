@@ -98,6 +98,7 @@ const FAQ: [string, string][] = [
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Comment se passe le paiement ?", "Par carte, chaque mois, via Stripe : nous ne voyons jamais votre numéro de carte. Sans engagement : vous résiliez en un clic depuis la page Abonnement, et aucun autre prélèvement n'est fait."],
+  ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Dans Claude, ajoutez un connecteur personnalisé avec l'adresse https://trustpipe.fr/api/mcp, puis autorisez l'accès avec votre compte Trustpipe. Claude peut alors lister vos relances, en créer, les reporter ou les marquer comme faites, et relire l'historique d'appels d'un prospect. Vous coupez l'accès en un clic depuis vos réglages."],
   ["Et si je n'utilise pas Minari ?", "lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez l'adresse de son API et votre clé. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
@@ -220,6 +221,11 @@ export default async function Home() {
           <h2 className="st-h2">Branchez votre dialer. <span className="st-thin">Les appels arrivent.</span></h2>
           <p className="st-lead">Une clé à coller, ou un clic pour Minari. Vos appels remontent tout seuls, client par client, avec leur enregistrement.</p>
           <div className="st-dl">{DIALERS.map((d) => <span key={d}>{d}</span>)}<span className="x">+ votre outil (API) · Zapier · Make · n8n · CSV</span></div>
+          <div className="st-claude">
+            <span className="st-mono">NOUVEAU · CONNECTEUR CLAUDE</span>
+            <h3>Branchez aussi Claude sur Trustpipe.</h3>
+            <p>Ajoutez Trustpipe comme connecteur dans Claude : demandez-lui « quelles relances aujourd&apos;hui ? », « reporte Paul Morel à jeudi » ou « relis mon dernier appel avec Atelier Morel », il lit et gère vos relances pour vous.</p>
+          </div>
         </div>
       </section>
 

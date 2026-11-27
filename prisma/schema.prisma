@@ -335,3 +335,42 @@ model Conversation {
 
   @@index([owner, orgId, clientId, updatedAt])
 }
+
+/// Connecteur Claude (MCP) : applications enregistrées automatiquement (enregistrement dynamique OAuth).
+model McpClient {
+  id           String   @id // client_id public
+  name         String   @default("")
+  redirectUris String[]
+  createdAt    DateTime @default(now())
+}
+
+/// Code d'autorisation OAuth, à usage unique, valable 10 minutes (stocké haché, avec le défi PKCE).
+model McpCode {
+  codeHash    String    @id
+  clientId    String
+  userId      String
+  orgId       String
+  redirectUri String
+  challenge   String
+  expiresAt   DateTime
+  usedAt      DateTime?
+  createdAt   DateTime  @default(now())
+}
+
+/// Jetons d'accès du connecteur (hachés). L'accès est limité à l'organisation de l'utilisateur qui a autorisé.
+model McpToken {
+  id               String    @id @default(cuid())
+  tokenHash        String    @unique
+  refreshHash      String    @unique
+  clientId         String
+  clientName       String    @default("")
+  userId           String
+  orgId            String
+  expiresAt        DateTime
+  refreshExpiresAt DateTime
+  revokedAt        DateTime?
+  lastUsedAt       DateTime?
+  createdAt        DateTime  @default(now())
+
+  @@index([orgId])
+}

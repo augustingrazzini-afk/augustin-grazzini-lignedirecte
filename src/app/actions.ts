@@ -408,3 +408,10 @@ export async function requestCancel(f: FormData) {
   revalidatePath("/app/billing");
   redirect(undo ? "/app/billing?resumed=1" : "/app/billing?cancelled=1");
 }
+
+/** Coupe l'accès d'une connexion Claude (jeton du connecteur MCP) pour cet espace. */
+export async function revokeMcpToken(f: FormData) {
+  const scope = await requireOrgScope();
+  await db.mcpToken.updateMany({ where: { id: s(f, "id", 40), orgId: scope.orgId, revokedAt: null }, data: { revokedAt: new Date() } });
+  revalidatePath("/app/settings");
+}
