@@ -177,6 +177,7 @@ model Call {
   summary       String       @default("")
   aiSummary     String       @default("") // analyse rédigée par l'IA de Trustpipe (le résumé de l'outil d'appel reste dans summary)
   aiAnalyzedAt  DateTime?
+  aiMeeting     Boolean      @default(false) // l'IA pense qu'un RDV a été fixé : à confirmer, ne compte pas dans les chiffres
   objections    String[]     @default([])
   objDetails    Json         @default("[]")
   transcript    Json         @default("[]")

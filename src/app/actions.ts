@@ -286,6 +286,14 @@ export async function assignCall(f: FormData) {
   revalidatePath(`/app/calls/${s(f, "callId", 40)}`);
 }
 
+/** Confirme (ou retire) à la main un rendez-vous pris sur un appel : réservé à l'entreprise, pas au commercial invité. */
+export async function confirmMeeting(f: FormData) {
+  const { scope } = await writableOrg();
+  const callId = s(f, "callId", 40);
+  await db.call.updateMany({ where: { id: callId, orgId: scope.orgId, kind: "call" }, data: { meetingBooked: f.get("value") === "1", aiMeeting: false } });
+  revalidatePath(`/app/calls/${callId}`);
+}
+
 /* ---------- Équipe ---------- */
 export async function inviteTeammate(_: FormState, f: FormData): Promise<FormState> {
   try {

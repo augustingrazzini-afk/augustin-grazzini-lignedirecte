@@ -1,3 +1,4 @@
+import { bumpUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, scopeClientId } from "@/lib/access";
@@ -16,6 +17,8 @@ export async function POST(req: Request) {
   if (!scope) return jsonError("Accès refusé", 403);
   const blocked = (await assertActive(scope)) || (await assertPremium(scope));
   if (blocked) return blocked;
+  // Garde-fou de coût : plafond par espace et par jour.
+  if ((await bumpUsage(`coach:${scope.orgId}`)) > 30) return jsonError("Limite de 30 diagnostics par jour atteinte pour votre espace. Elle se remet à zéro demain.", 429);
   const calls = await windowCalls(scope, b.data.days);
   if (!calls.length) return jsonError("Pas encore d'appels sur cette période.", 404);
   const s = computeStats(calls, b.data.days);

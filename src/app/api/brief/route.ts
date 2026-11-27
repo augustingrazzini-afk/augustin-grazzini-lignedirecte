@@ -1,3 +1,4 @@
+import { bumpUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { apiScope, callScope, scopeClientId } from "@/lib/access";
@@ -16,6 +17,8 @@ export async function POST(req: Request) {
   if (!scope) return jsonError("Accès refusé", 403);
   const blocked = (await assertActive(scope)) || (await assertPremium(scope));
   if (blocked) return blocked;
+  // Garde-fou de coût : plafond par espace et par jour.
+  if ((await bumpUsage(`brief:${scope.orgId}`)) > 30) return jsonError("Limite de 30 briefs par jour atteinte pour votre espace. Elle se remet à zéro demain.", 429);
 
   const words = b.data.query.split(/\s+/).filter((w) => w.length > 1);
   const match = words.map((w) => ({ OR: [{ firstName: { contains: w, mode: "insensitive" as const } }, { lastName: { contains: w, mode: "insensitive" as const } }, { company: { contains: w, mode: "insensitive" as const } }] }));

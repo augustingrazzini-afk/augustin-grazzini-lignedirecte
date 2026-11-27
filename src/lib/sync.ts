@@ -12,12 +12,15 @@ const DETAIL_BUDGET = 40;
 const MIN_TRANSCRIBE_SEC = 8; // même seuil que la transcription Trustpipe (transcribe.ts)
 
 /** Synchronise une intégration. Première synchro : 90 jours. Ensuite : depuis la dernière, avec 2 h de recouvrement. */
-export async function syncIntegration(integrationId: string, opts: { full?: boolean } = {}) {
+export async function syncIntegration(integrationId: string, opts: { full?: boolean; lookbackDays?: number } = {}) {
   const integ = await db.integration.findUnique({ where: { id: integrationId } });
   if (!integ || integ.status === "paused") return { created: 0, updated: 0, skipped: true };
   const p = getProvider(integ.provider);
   const creds = open<Record<string, string>>(integ.credentials);
-  const since = !opts.full && integ.lastSyncAt ? new Date(integ.lastSyncAt.getTime() - 2 * 3600e3) : new Date(Date.now() - 90 * 864e5);
+  // lookbackDays (tâche de nuit) : on relit plusieurs jours pour rattraper les appels corrigés après coup dans l'outil (statut « RDV pris », notes…).
+  const recent = integ.lastSyncAt ? new Date(integ.lastSyncAt.getTime() - 2 * 3600e3) : null;
+  const wide = opts.lookbackDays ? new Date(Date.now() - opts.lookbackDays * 864e5) : null;
+  const since = !opts.full && recent ? (wide && wide < recent ? wide : recent) : new Date(Date.now() - 90 * 864e5);
   const startedAt = new Date();
   let created = 0, updated = 0;
   try {
@@ -109,8 +112,8 @@ export async function analyzeOrg(integrationId: string) {
  * Synchronise les intégrations actives (tâche planifiée), les plus anciennement synchronisées d'abord,
  * plusieurs en parallèle, jusqu'à `deadline`. Celles qui ne passent pas cette fois passent en tête la fois suivante.
  */
-export async function syncAll(opts: { limit?: number; concurrency?: number; deadline?: number } = {}) {
-  const { limit = 1000, concurrency = 6, deadline } = opts;
+export async function syncAll(opts: { limit?: number; concurrency?: number; deadline?: number; lookbackDays?: number } = {}) {
+  const { limit = 1000, concurrency = 6, deadline, lookbackDays } = opts;
   // On ne synchronise que les espaces dont l'essai ou l'abonnement est en cours.
   const list = await db.integration.findMany({
     where: { status: { not: "paused" }, provider: { not: "webhook" }, org: { OR: [{ subscriptionStatus: { in: ["active", "past_due"] } }, { subscriptionStatus: "trialing", trialEndsAt: { gt: new Date() } }] } },
@@ -119,7 +122,7 @@ export async function syncAll(opts: { limit?: number; concurrency?: number; dead
   let ok = 0, failed = 0;
   await runPool(list, concurrency, async (i) => {
     try {
-      await syncIntegration(i.id);
+      await syncIntegration(i.id, { lookbackDays });
       ok++;
     } catch {
       failed++; // l'erreur est enregistrée sur l'intégration

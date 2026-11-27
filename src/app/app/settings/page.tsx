@@ -28,6 +28,10 @@ export default async function Page() {
           {scope.role === "owner" && <ActionForm action={inviteTeammate} submit="Inviter"><label className="full">Email<input className="input" type="email" name="email" required /></label></ActionForm>}
         </div>
         <AlertSettings digest={me?.digest ?? true} slack={org.slackWebhook} canSlack={scope.role === "owner"} />
+        <div className="card"><h2>Vos données</h2><p className="sub">Vos appels vous appartiennent : téléchargez-les quand vous voulez (date, commercial, prospect, résultat, résumé, analyse IA et transcription), au format CSV lisible dans Excel.</p>
+          <a className="btn" href="/api/export/calls" download>Exporter tous mes appels (CSV)</a>
+          <p className="muted small" style={{ margin: "10px 0 0" }}>Après la fin d&apos;un abonnement, les données sont conservées 30 jours puis supprimées.</p>
+        </div>
         <div className="card"><h2>Claude</h2><p className="sub">Branchez Claude sur Trustpipe : il lit vos relances et l&apos;historique de vos prospects, et planifie vos relances à votre place.</p>
           <p className="small" style={{ margin: "0 0 6px" }}>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
           <code className="small" style={{ display: "block", padding: "10px 12px", background: "var(--panel)", border: "1px solid var(--stroke-2)", borderRadius: 4, userSelect: "all", wordBreak: "break-all" }}>{mcpUrl}</code>

@@ -18,7 +18,7 @@ export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET || "";
   if (!secret || !safeEqual(auth, `Bearer ${secret}`)) return NextResponse.json({ error: "unauthorized" }, { status: 401 });
   const t0 = Date.now();
-  const sync = await syncAll({ deadline: t0 + 170e3 });
+  const sync = await syncAll({ deadline: t0 + 170e3, lookbackDays: 7 }); // la nuit, on relit 7 jours pour rattraper les corrections
   const requeued = await requeueStaleAi();
   await processTranscriptions({ waitMs: 20_000 });
   await debriefPending({ limit: 30 });

@@ -12,7 +12,7 @@ import { saveConversation } from "@/lib/conversations";
 export const maxDuration = 120;
 
 const SHARE_DAILY_LIMIT = 30;
-const ORG_DAILY_LIMIT = 300;
+const ORG_DAILY_LIMIT = 100;
 
 
 const Body = z.object({

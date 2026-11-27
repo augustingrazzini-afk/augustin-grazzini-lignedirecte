@@ -57,3 +57,11 @@ test("inscription : l'acceptation des conditions générales est datée et versi
     assert.match(r!.user.termsVersion || "", /2026/);
   } finally { await db.loginToken.deleteMany({ where: { email: mail } }); await db.user.deleteMany({ where: { email: mail } }); }
 });
+
+test("export CSV : les cellules qui ressemblent à une formule sont neutralisées", async () => {
+  const { csvCell } = await import("../src/lib/csv");
+  assert.equal(csvCell('=HYPERLINK("http://x")'), `"'=HYPERLINK(""http://x"")"`);
+  for (const bad of ["+33 6", "-1", "@SUM(A1)", "\tx"]) assert.ok(csvCell(bad).startsWith(`"'`), bad);
+  assert.equal(csvCell("Paul; \"Morel\""), `"Paul; ""Morel"""`);
+  assert.equal(csvCell(null), `""`);
+});

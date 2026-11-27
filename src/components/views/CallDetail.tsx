@@ -10,7 +10,7 @@ import type { Debrief } from "@/lib/ai";
 import { transcribeEnabled } from "@/lib/transcribe";
 import { aiEnabled } from "@/lib/ai-config";
 import { needsRelay, signedAudioPath } from "@/lib/audio";
-import { assignCall } from "@/app/actions";
+import { assignCall, confirmMeeting } from "@/app/actions";
 import { hasRecordings } from "@/lib/listening";
 import { CallActions, CopyButton } from "../client/CallActions";
 
@@ -70,6 +70,15 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           ))}</div></div></div>
         )}
         {!det.length && c.objections.length > 0 && <div className="card"><div className="sec"><h4>Objections</h4><div className="row">{c.objections.map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}</div></div></div>}
+        {c.aiMeeting && !c.meetingBooked && c.kind === "call" && (
+          <div className="card"><div className="sec"><h4>Rendez-vous détecté par l&apos;IA</h4>
+            <p className="muted small" style={{ margin: "0 0 10px" }}>D&apos;après la transcription, un rendez-vous semble avoir été fixé, mais l&apos;outil d&apos;appel ne l&apos;indique pas. Il n&apos;est pas compté dans les chiffres tant qu&apos;il n&apos;est pas confirmé.</p>
+            {scope.kind === "org" && !readOnly ? <div className="row" style={{ gap: 8 }}>
+              <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="1" /><button className="btn sm primary">Confirmer le rendez-vous</button></form>
+              <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="0" /><button className="btn sm">Ce n&apos;est pas un rendez-vous</button></form>
+            </div> : <p className="muted small" style={{ margin: 0 }}>Marquez le rendez-vous dans votre outil d&apos;appel pour qu&apos;il soit compté.</p>}
+          </div></div>
+        )}
         {scope.kind === "org" && (
           <div className="card"><div className="sec"><h4>Commercial</h4>
             <form action={assignCall} className="row"><input type="hidden" name="callId" value={c.id} />
