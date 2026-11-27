@@ -125,7 +125,7 @@ export async function createOrganization(_: FormState, f: FormData): Promise<For
   const u = await requireUser();
   if (u.memberships.length) redirect("/app");
   const name = s(f, "name", 80);
-  if (name.length < 2) return { error: "Indiquez le nom de votre activité." };
+  if (name.length < 2) return { error: "Indiquez le nom de votre entreprise." };
   await db.organization.create({
     data: { name, offer: s(f, "offer", 2000), trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 864e5), members: { create: { userId: u.id, role: "owner" } } },
   });

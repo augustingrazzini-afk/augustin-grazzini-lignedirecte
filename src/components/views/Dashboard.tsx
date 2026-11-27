@@ -98,7 +98,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
         </div>
       </div>
 
-      {s.reps.length > 0 && (
+      {s.reps.length > 0 && scope.kind === "org" && (
         <div className="card mt"><h2>Par nom dans l&apos;outil d&apos;appel</h2><p className="sub">Noms des commerciaux tels qu&apos;ils apparaissent dans vos outils · pour les attribuer, ouvrez l&apos;onglet Commerciaux</p>
           <div className="scroll-x"><table><thead><tr><th>Commercial</th><th>Appels</th><th>Décroché</th><th>Conv.</th><th>RDV</th></tr></thead>
             <tbody>{s.reps.map((r) => <tr key={r.name}><td>{r.name}</td><td>{fmt(r.total)}</td><td>{pct(r.total ? (r.connected / r.total) * 100 : 0)}</td><td>{fmt(r.conversations)}</td><td>{fmt(r.meetings)}</td></tr>)}</tbody></table></div>

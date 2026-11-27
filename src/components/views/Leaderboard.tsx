@@ -5,8 +5,9 @@ import { fmt, fmtDuration, isConversation, pct } from "@/lib/format";
 export const KIND_LABEL: Record<string, string> = { interne: "Interne", freelance: "Freelance", agence: "Agence" };
 
 /** Classement des commerciaux de la boîte sur la période : appels, décrochés, conversations, rendez-vous. */
-export function Leaderboard({ calls, reps, href }: { calls: Call[]; reps: Client[]; href: (clientId: string) => string }) {
-  const rows = [...reps.map((r) => ({ id: r.id, name: r.name, sub: [KIND_LABEL[r.kind] || "", r.agency].filter(Boolean).join(" · ") })), { id: "", name: "Non attribués", sub: "Appels sans commercial" }]
+/** Classement des commerciaux : ceux de la boîte (par RDV puis conversations puis appels), puis « Non attribués » s'il y en a. */
+export function rankReps(calls: Pick<Call, "kind" | "clientId" | "connected" | "durationSec" | "meetingBooked">[], reps: Pick<Client, "id" | "name" | "kind" | "agency">[]) {
+  return [...reps.map((r) => ({ id: r.id, name: r.name, sub: [KIND_LABEL[r.kind] || "", r.agency].filter(Boolean).join(" · ") })), { id: "", name: "Non attribués", sub: "Appels sans commercial" }]
     .map((r) => {
       const mine = calls.filter((c) => c.kind !== "meeting" && (c.clientId || "") === r.id);
       const connected = mine.filter((c) => c.connected).length;
@@ -14,6 +15,10 @@ export function Leaderboard({ calls, reps, href }: { calls: Call[]; reps: Client
     })
     .filter((r) => r.id || r.total > 0)
     .sort((a, b) => Number(!a.id) - Number(!b.id) || b.rdv - a.rdv || b.conv - a.conv || b.total - a.total);
+}
+
+export function Leaderboard({ calls, reps, href }: { calls: Call[]; reps: Client[]; href: (clientId: string) => string }) {
+  const rows = rankReps(calls, reps);
   const top = Math.max(1, ...rows.map((r) => r.rdv));
   let rank = 0;
   return (
