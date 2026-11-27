@@ -18,7 +18,7 @@ export const PAID_PLANS = ["starter", "agency", "premium"] as const;
 /** Contenu de chaque formule (site, souscription, abonnement). `no` : ce qui manque, affiché barré. */
 export const PLAN_FEATURES: Record<"starter" | "agency" | "premium", { tag: string; yes: string[]; no: string[] }> = {
   starter: { tag: "Sans IA", yes: ["Jusqu'à 2 commerciaux", "Appels de vos commerciaux en direct", "Classement des commerciaux"], no: ["Résumé et analyse IA des appels", "Objections et relances automatiques", "Assistant IA"] },
-  agency: { tag: "Recommandé", yes: ["Jusqu'à 4 commerciaux", "Appels en direct et classement", "Transcription de chaque appel", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Assistant IA sur toute l'équipe"], no: ["Commerciaux illimités", "Connecteur Claude"] },
+  agency: { tag: "Recommandé", yes: ["Jusqu'à 4 commerciaux", "Appels en direct et classement", "Transcription et écoute de chaque appel", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Assistant IA sur toute l'équipe"], no: ["Commerciaux illimités", "Connecteur Claude"] },
   premium: { tag: "Illimité", yes: ["Commerciaux illimités", "Tout Essentiel", "Connecteur Claude", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des enregistrements"], no: [] },
 };
 /** Nombre maximal de commerciaux par formule : 2 en Découverte, 4 en Essentiel, illimité en Premium. */

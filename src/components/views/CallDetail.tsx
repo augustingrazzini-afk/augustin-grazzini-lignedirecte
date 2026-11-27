@@ -12,6 +12,7 @@ import { aiEnabled } from "@/lib/ai-config";
 import { needsRelay, signedAudioPath } from "@/lib/audio";
 import { assignCall, confirmMeeting } from "@/app/actions";
 import { hasRecordings } from "@/lib/listening";
+import { ListenPlayer } from "@/components/client/ListenPlayer";
 import { CallActions, CopyButton } from "../client/CallActions";
 
 /** `readOnly` : lien de suivi partagé (aucune action, aucun lien vers des pages réservées). */
@@ -20,7 +21,11 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   if (!c) notFound();
   const tr = (c.transcript as unknown as TranscriptLine[]) || [];
   const det = (c.objDetails as unknown as ObjDetail[]) || [];
-  const audio = c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : null;
+  // Lecture dans Trustpipe : fichier stocké chez nous, relais signé (outils dont l'audio demande une clé), sinon le lien de l'outil.
+  const recLink = c.recordingUrl && /^https:\/\//.test(c.recordingUrl) ? c.recordingUrl : null;
+  const audio = c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
+  // Secours si la lecture échoue ici : la page d'écoute de l'outil (jamais une adresse interne de relais).
+  const recFallback = recLink && !/^https:\/\/api[.-]/.test(recLink) && recLink !== audio ? recLink : null;
   const clients = scope.kind === "org" ? await db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }) : [];
   const trText = tr.map((l) => `${l.ts ? `[${l.ts}] ` : ""}${l.s ? l.s + " : " : ""}${l.t}`).join("\n");
   const clientParam = scope.kind === "client" ? scope.clientId : null;
@@ -45,14 +50,6 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
             <dt>Commercial</dt><dd>{c.repName || "–"}</dd>
             <dt>Source</dt><dd>{SOURCE_LABEL[c.provider] || c.provider}{c.listName ? ` · ${c.listName}` : ""}</dd>
           </dl>
-          {(audio || c.recordingUrl) && (
-            <div className="sec" style={{ marginTop: 16 }}><h4>Enregistrement</h4>
-              {audio ? <audio controls preload="metadata" src={audio} style={{ width: "100%" }} /> : <a className="btn" href={c.recordingUrl!} target="_blank" rel="noopener noreferrer">{c.provider === "minari" ? "Écouter sur Minari" : "Écouter l'enregistrement"}</a>}
-            </div>
-          )}
-          {!audio && !c.recordingUrl && !readOnly && scope.kind === "org" && c.connected && hasRecordings(c.provider) && (
-            <p className="muted small" style={{ margin: "16px 0 0" }}>🎧 Pas d&apos;enregistrement pour cet appel. <Link href="/app/sources#ecoute">Activez l&apos;écoute des appels</Link> dans {SOURCE_LABEL[c.provider] || "votre outil"} pour écouter vos appels ici.</p>
-          )}
           {!readOnly && <div className="row" style={{ marginTop: 16 }}>
             <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
             <Link className="btn" href={`${base}/contacts/${encodeURIComponent(c.contactKey)}`}>Fiche prospect</Link>
@@ -96,6 +93,19 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
             <p key={i} className={l.s === c.repName || /^commercial$/i.test(l.s) ? "rep" : ""}><span className="ts">{l.ts}</span><span>{l.s && <b>{l.s}</b>}{l.t}</span></p>
           ))}</div>
         ) : <div className="empty">{trMsg}</div>}
+        {audio ? (
+          <div className="listen">
+            <div><b>Écouter la conversation</b><span className="muted small">L&apos;enregistrement de l&apos;appel, en entier.</span></div>
+            <ListenPlayer src={audio} fallback={recFallback} tool={SOURCE_LABEL[c.provider] || "votre outil d'appel"} />
+          </div>
+        ) : c.connected && hasRecordings(c.provider) && (
+          <div className="listen off">
+            <div><b>🎧 Écoute non activée pour cet appel</b><span className="muted small">{!readOnly && scope.kind === "org"
+              ? <>Pour écouter vos conversations ici, autorisez le partage des enregistrements dans {SOURCE_LABEL[c.provider] || "votre outil d'appel"}. C&apos;est un réglage à faire une seule fois, de votre côté.</>
+              : <>L&apos;écoute se règle dans l&apos;outil d&apos;appel : demandez à l&apos;entreprise qui gère cet espace de l&apos;activer.</>}</span></div>
+            {!readOnly && scope.kind === "org" && <Link className="btn" href="/app/sources#ecoute">Activer l&apos;écoute</Link>}
+          </div>
+        )}
       </div>
     </div>
   );

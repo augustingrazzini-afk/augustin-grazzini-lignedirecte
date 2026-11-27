@@ -94,6 +94,7 @@ const FAQ: [string, string][] = [
   ["Mes commerciaux utilisent des outils différents, ça marche ?", "Oui, c'est fait pour ça. Votre équipe interne sur Aircall, un freelance sur Minari, une agence sur Ringover : chacun branche son outil et tous les appels arrivent dans votre espace, rangés par commercial."],
   ["Qu'est-ce que le commercial a à faire ?", "Presque rien. Il reçoit une invitation par email et branche son outil d'appel en 2 minutes (une clé à coller, ou un clic pour Minari). S'il appelle depuis votre outil, il n'a même rien à faire : vous indiquez son nom et ses appels lui sont attribués."],
   ["Le commercial voit-il les appels des autres ?", "Non. Chaque commercial a son espace et ne voit que ses propres appels, ses résumés et son assistant IA. Vous seul (et les managers que vous invitez) voyez toute l'équipe."],
+  ["Peut-on réécouter les appels ?", "Oui. Sous la transcription de chaque conversation, un lecteur permet d'écouter l'enregistrement, directement dans Trustpipe et quel que soit l'outil d'appel branché. Une condition : le partage des enregistrements doit être autorisé dans votre outil d'appel (dans Minari : Settings, puis « External call sharing »). C'est un réglage à faire une seule fois ; Trustpipe vous guide depuis la page Sources, et tant qu'il n'est pas fait, chaque appel vous le rappelle."],
   ["Combien ça coûte ?", "Le prix est par commercial suivi et par mois, sans engagement : Essentiel à 49,99 € HT (jusqu'à 4 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à 69,99 € HT (commerciaux illimités, connecteur Claude, briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à 19,99 € HT, limitée à 2 commerciaux. Les dirigeants et managers ne sont pas facturés."],
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
@@ -207,12 +208,12 @@ export default async function Home() {
               <div className="st-fh" style={{ padding: "0 0 14px" }}><span className="st-o">● TRANSCRIPTION COMPLÈTE</span><span>LÉA · ATELIER MOREL · 02:14</span></div>
               {TRANSCRIPT.map(([ts, who, txt, hi]) => <p key={ts}><span>{ts}</span><span><b>{who} :</b> {hi ? <mark>{txt}</mark> : txt}</span></p>)}
               <div className="st-player" aria-hidden="true"><span className="b">▶</span><span className="w">{Array.from({ length: 48 }, (_, i) => <i key={i} style={{ height: `${22 + Math.round(Math.abs(Math.sin(i / 4)) * 60 + (i * 37 % 17))}%` }} />)}</span><span className="t">02:14</span></div>
-              <small>Enregistrement à réécouter quand votre outil d&apos;appel le fournit.</small>
+              <small>Un bouton « Écouter » sous chaque transcription, une fois le partage des enregistrements activé dans votre outil d&apos;appel.</small>
             </div>
             <div className="st-trx-r">
               <h3>Chaque appel. <span className="st-thin">Mot pour mot.</span></h3>
               <p>Chaque conversation de chaque commercial est <b>transcrite en entier</b>, avec qui parle et à quel moment. Vous relisez ce qui s&apos;est vraiment dit, sans demander un compte rendu.</p>
-              <ul><li>La transcription complète, horodatée</li><li>Le résumé de l&apos;IA en quelques points</li><li>Les objections du prospect, repérées</li><li>Une recherche par prospect, entreprise ou mot-clé</li></ul>
+              <ul><li>La transcription complète, horodatée</li><li>L&apos;enregistrement à réécouter, sous la transcription</li><li>Le résumé de l&apos;IA en quelques points</li><li>Les objections du prospect, repérées</li><li>Une recherche par prospect, entreprise ou mot-clé</li></ul>
             </div>
           </div>
           <div className="st-trio">

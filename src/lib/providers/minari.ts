@@ -45,6 +45,19 @@ export const minari: Provider = {
     { key: "listIds", label: "Ne synchroniser que ces listes (ids séparés par des virgules)", optional: true },
   ],
   help: "Appels, résumés, objections et transcriptions. Pour du temps réel, ajoutez aussi l'URL de webhook dans Minari.",
+  /**
+   * Écoute dans Trustpipe : la page de partage Minari (activée par « External call sharing ») expose le fichier audio
+   * de l'appel via un lien signé de courte durée. On le relit à chaque écoute (voir /api/calls/[id]/audio).
+   */
+  async fetchAudio(_c, url, range) {
+    const id = /^https:\/\/app\.minari\.ai\/shared\/([0-9a-f-]{36})$/i.exec(url)?.[1];
+    if (!id) return null;
+    const meta = await fetch(`https://app.minari.ai/api/public/call/${id}`, { headers: { Accept: "application/json" }, signal: AbortSignal.timeout(20_000) });
+    if (!meta.ok) return null;
+    const rec = str(((await meta.json().catch(() => null)) as any)?.recordingPublicUrl);
+    if (!rec.startsWith("/api/")) return null;
+    return fetch(`https://app.minari.ai${rec}`, { headers: range ? { Range: range } : {}, signal: AbortSignal.timeout(60_000) });
+  },
   async test(c) {
     if (c.accessToken) { await callTool(c as McpCreds, "Minari", "list_workspaces", {}); return; }
     const end = new Date(Date.now() + 864e5), start = new Date(Date.now() - 864e5);

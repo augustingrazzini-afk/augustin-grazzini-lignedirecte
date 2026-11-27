@@ -7,11 +7,11 @@ export type ListeningHelp = { title: string; steps: string[]; kind: "link" | "au
 const HELP: Record<string, ListeningHelp> = {
   minari: {
     title: "Activez le partage externe des appels dans Minari",
-    kind: "link",
+    kind: "audio",
     steps: [
       "Dans Minari, ouvrez les réglages de votre entreprise (Settings).",
       "Activez le partage externe des appels (« External call sharing »).",
-      "Revenez ici et cliquez sur « Récupérer les enregistrements » : chaque appel aura son bouton Écouter.",
+      "Revenez ici et cliquez sur « Récupérer les enregistrements » : chaque conversation aura son lecteur audio, sous la transcription.",
     ],
   },
 };
@@ -21,7 +21,7 @@ const GENERIC: ListeningHelp = {
   kind: "audio",
   steps: [
     "Dans les réglages de votre outil d'appel, vérifiez que l'enregistrement des appels (ou leur partage) est activé.",
-    "Revenez ici et cliquez sur « Récupérer les enregistrements » : chaque appel aura son lecteur audio.",
+    "Revenez ici et cliquez sur « Récupérer les enregistrements » : chaque conversation aura son lecteur audio, sous la transcription.",
   ],
 };
 
