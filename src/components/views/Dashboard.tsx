@@ -50,8 +50,8 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
           <div className="chart">
             <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
               <defs>
-                <linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#2E5BFF" stopOpacity=".22" /><stop offset="1" stopColor="#2E5BFF" stopOpacity="0" /></linearGradient>
-                <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stopColor="#2E5BFF" /><stop offset="1" stopColor="#1FA2E6" /></linearGradient>
+                <linearGradient id="ga" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stopColor="#FF5A1F" stopOpacity=".28" /><stop offset="1" stopColor="#FF5A1F" stopOpacity="0" /></linearGradient>
+                <linearGradient id="gl" x1="0" x2="1"><stop offset="0" stopColor="#FF5A1F" /><stop offset="1" stopColor="#FF8A4C" /></linearGradient>
               </defs>
               {[0.25, 0.5, 0.75].map((g) => <line key={g} x1="0" x2={W} y1={y(mx * g)} y2={y(mx * g)} stroke="rgba(11,18,47,.08)" strokeDasharray="4 6" vectorEffect="non-scaling-stroke" />)}
               <path d={`${line} L${W},${H} L0,${H} Z`} fill="url(#ga)" />

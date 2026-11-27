@@ -31,15 +31,15 @@ export async function ChannelOverview({ scope, days, base }: { scope: Scope; day
   return (
     <div className="stack" style={{ marginBottom: 16 }}>
       <div className="grid" style={{ gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))" }}>
-        {card(`${base}/calls`, "Appels", "linear-gradient(135deg,#1FB985,#0F9F6E)", [["appels", fmt(o.call.total)], ["conversations", fmt(o.call.conversations)], ["taux RDV", pct(o.call.conversations ? (o.call.meetings / o.call.conversations) * 100 : 0)]], o.call.meetings)}
-        {o.hasEmail && card(`${base}/emails`, "Emails", "linear-gradient(135deg,#4A72FF,#2E5BFF)", [["prospects", fmt(o.email.contacts)], ["réponses", pct(o.email.replyRate)], ["positives", fmt(o.email.positive)]], o.email.meetings)}
+        {card(`${base}/calls`, "Appels", "linear-gradient(135deg,#FF8A4C,#FF5A1F)", [["appels", fmt(o.call.total)], ["conversations", fmt(o.call.conversations)], ["taux RDV", pct(o.call.conversations ? (o.call.meetings / o.call.conversations) * 100 : 0)]], o.call.meetings)}
+        {o.hasEmail && card(`${base}/emails`, "Emails", "linear-gradient(135deg,#B9A6FF,#8FA8FF)", [["prospects", fmt(o.email.contacts)], ["réponses", pct(o.email.replyRate)], ["positives", fmt(o.email.positive)]], o.email.meetings)}
         {o.hasLinkedin && card(`${base}/linkedin`, "LinkedIn", "linear-gradient(135deg,#0A66C2,#004182)", [["invitations", fmt(o.linkedin.invites)], ["acceptées", pct(o.linkedin.acceptRate)], ["réponses", pct(o.linkedin.replyRate)]], o.linkedin.meetings)}
       </div>
       <div className="card"><h2>D&apos;où viennent les rendez-vous</h2><p className="sub">{periodText(days)}, tous canaux confondus</p>
         <div style={{ display: "flex", height: 14, borderRadius: 99, overflow: "hidden", background: "rgba(11,18,47,.06)" }}>
-          {[[o.call.meetings, "#0F9F6E"], [o.email.meetings, "#2E5BFF"], [o.linkedin.meetings, "#0A66C2"]].map(([n, c], i) => (n as number) > 0 && <i key={i} style={{ width: `${((n as number) / total) * 100}%`, background: c as string }} />)}
+          {[[o.call.meetings, "#FF5A1F"], [o.email.meetings, "#8FA8FF"], [o.linkedin.meetings, "#0A66C2"]].map(([n, c], i) => (n as number) > 0 && <i key={i} style={{ width: `${((n as number) / total) * 100}%`, background: c as string }} />)}
         </div>
-        <div className="legend" style={{ marginTop: 10 }}><span><i style={{ background: "#0F9F6E" }} />Appels · {o.call.meetings}</span><span><i style={{ background: "#2E5BFF" }} />Emails · {o.email.meetings}</span><span><i style={{ background: "#0A66C2" }} />LinkedIn · {o.linkedin.meetings}</span></div>
+        <div className="legend" style={{ marginTop: 10 }}><span><i style={{ background: "#FF5A1F" }} />Appels · {o.call.meetings}</span><span><i style={{ background: "#8FA8FF" }} />Emails · {o.email.meetings}</span><span><i style={{ background: "#0A66C2" }} />LinkedIn · {o.linkedin.meetings}</span></div>
       </div>
     </div>
   );

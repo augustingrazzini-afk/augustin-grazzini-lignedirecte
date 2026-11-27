@@ -33,7 +33,7 @@ export function TaskRow({ t, base, clientId }: { t: Task; base: string; clientId
       <span className="sum" style={{ WebkitLineClamp: 3 }}>{t.reason}<span style={{ color: "var(--dim)" }}> · {SRC[t.source] || t.source}</span></span>
       {t.suggestion && (
         <details className="tags" style={{ display: "block" }}><summary className="muted small" style={{ cursor: "pointer" }}>Message proposé</summary>
-          <div className="row" style={{ marginTop: 8, alignItems: "flex-start" }}><p className="small" style={{ margin: 0, flex: 1, whiteSpace: "pre-line", background: "#F7F9FE", border: "1px solid var(--stroke)", borderRadius: 10, padding: "10px 12px" }}>{t.suggestion}</p><CopyButton text={t.suggestion} /></div>
+          <div className="row" style={{ marginTop: 8, alignItems: "flex-start" }}><p className="small" style={{ margin: 0, flex: 1, whiteSpace: "pre-line", background: "var(--panel)", border: "1px solid var(--stroke)", borderRadius: 10, padding: "10px 12px" }}>{t.suggestion}</p><CopyButton text={t.suggestion} /></div>
         </details>
       )}
       <span className="tags"><span className="spacer" /><TaskActions id={t.id} status={t.status} clientId={clientId} /></span>

@@ -44,30 +44,15 @@ const WORDS = ["Bonjour", "je vous appelle au sujet de vos coûts d'énergie", "
 const NOW = "jeudi, je vous donne un quart d'heure";
 const AFTER = ["parfait, 15 h 30 ?", "ça me va", "je vous envoie l'invitation"];
 
-type Clip = { left: number; width: number; kind: "c" | "v" | "k" | "r"; label?: string };
-const LANES: { name: string; sub: string }[] = [
-  { name: "Énergie · artisans", sub: "412 contacts" },
-  { name: "Énergie · PME", sub: "280 contacts" },
-  { name: "Rappels", sub: "du jour" },
-  { name: "Nouveaux", sub: "import du matin" },
-];
-/** Pistes de la journée : chaque case est un appel (exemple fictif). */
-function laneClips(i: number): Clip[] {
-  const r = rng(101 + i * 17), out: Clip[] = [];
-  let x = r() * 3;
-  while (x < 60) {
-    const t = r();
-    let w = 1.2 + r() * 3.3, kind: Clip["kind"] = "c", label: string | undefined;
-    if (t > 0.72) { kind = "v"; w = 4 + r() * 4; label = `conv. ${1 + Math.floor(r() * 3)}:${String(10 + Math.floor(r() * 49))}`; }
-    if (t > 0.93) { kind = "k"; w = 5; label = "rappel"; }
-    out.push({ left: x, width: w, kind, label });
-    x += w + 0.6 + r() * 1.6;
-  }
-  const rdv: Clip | null = i === 0 ? { left: 46, width: 12, kind: "r", label: "RDV · Atelier Morel" } : i === 1 ? { left: 12, width: 12, kind: "r", label: "RDV · Nova Habitat" } : null;
-  if (!rdv) return out;
-  // Le rendez-vous prend sa place : on retire les appels qui le chevaucheraient.
-  return [...out.filter((c) => c.left + c.width < rdv.left - 0.6 || c.left > rdv.left + rdv.width + 0.6), rdv];
-}
+/** Fil d'appels d'exemple (données fictives) : ce que le client voit sur son lien de suivi. */
+const FEED = [
+  { time: "09:41", name: "Paul Morel", company: "Atelier Morel", kind: "rdv", summary: "Intéressé par l'offre, rendez-vous téléphonique jeudi à 15 h 30.", dur: "2 min 14" },
+  { time: "09:38", name: "Sophie Lemaire", company: "Solaris Énergie", kind: "rappel", summary: "En réunion, demande à être rappelée à 14 h.", dur: "0 min 41" },
+  { time: "09:36", name: "Marc Duval", company: "Bati Sud", kind: "refus", summary: "Déjà équipé, pas de projet cette année.", dur: "1 min 02" },
+  { time: "09:33", name: "Julie Martin", company: "Elec Pro 34", kind: "conv", summary: "Curieuse, veut une plaquette par email avant d'aller plus loin.", dur: "1 min 48" },
+  { time: "09:30", name: "Thomas Roux", company: "Nova Habitat", kind: "absent", summary: "Pas de réponse, relance proposée pour demain matin.", dur: "—" },
+] as const;
+const RESULT: Record<string, string> = { rdv: "RDV PRIS", rappel: "À RAPPELER", refus: "PAS INTÉRESSÉ", conv: "À SUIVRE", absent: "PAS DE RÉPONSE" };
 
 const CLIENT = [
   ["Il suit ses appels en direct", "Chaque appel passé pour lui apparaît dans la minute : qui a été appelé, ce qui s'est dit, ce qui a été obtenu."],
@@ -163,21 +148,22 @@ export default async function Home() {
       </section>
 
       <section id="session" className="st-sec">
-        <div className="st-side"><div className="st-n">01</div><small>La session<br />de votre client</small></div>
+        <div className="st-side"><div className="st-n">01</div><small>Ce que voit<br />votre client</small></div>
         <div className="st-body">
-          <h2 className="st-h2">Sa journée de prospection, <span className="st-thin">piste par piste.</span></h2>
-          <p className="st-lead">Chaque appel est une piste. Les conversations ressortent, les rendez-vous s&apos;allument. Votre client voit en un coup d&apos;œil le travail fait pour lui.</p>
-          <div className="st-daw" aria-hidden="true">
-            <div className="st-ruler"><span>Listes</span><div className="st-ticks">{Array.from({ length: 10 }, (_, h) => <span key={h}>{8 + h} h</span>)}</div></div>
-            {LANES.map((l, i) => (
-              <div key={l.name} className="st-lane">
-                <div className="st-ln">{l.name}<small>{l.sub}</small></div>
-                <div className="st-tr">{laneClips(i).map((c, j) => <div key={j} className={`st-clip ${c.kind}`} style={{ left: `${c.left.toFixed(1)}%`, width: `${c.width.toFixed(1)}%` }}>{c.label}<i /></div>)}</div>
+          <h2 className="st-h2">Ce que voit votre client. <span className="st-thin">En direct.</span></h2>
+          <p className="st-lead">Chaque appel s&apos;affiche dès que vous raccrochez : qui a été appelé, ce qu&apos;il a répondu, le résultat. Les rendez-vous ressortent en orange.</p>
+          <div className="st-feed" aria-label="Exemple : le fil d'appels que voit votre client">
+            <div className="st-fh"><span className="st-o">● EN DIRECT</span><span>CLIENT MYSTÈRE · AUJOURD&apos;HUI</span><span>MIS À JOUR IL Y A 12 S</span></div>
+            {FEED.map((f, i) => (
+              <div key={f.name} className={`st-fr${f.kind === "rdv" ? " rdv" : ""}${i === 0 ? " new" : ""}`}>
+                <span className="st-ft">{f.time}</span>
+                <div className="st-fp"><b>{f.name}</b><small>{f.company}</small></div>
+                <span className={`st-fk ${f.kind}`}>{RESULT[f.kind]}</span>
+                <p className="st-fs">{f.summary}</p>
+                <span className="st-fd">{f.dur}</span>
               </div>
             ))}
-            <div className="st-playh" />
           </div>
-          <div className="st-legend"><span><i style={{ background: "#2A2824", border: "1px solid #3A3731" }} />Pas de réponse</span><span><i style={{ background: "rgba(237,233,225,.25)" }} />Conversation</span><span><i style={{ background: "rgba(198,255,61,.35)" }} />À rappeler</span><span><i style={{ background: "var(--o)" }} />Rendez-vous</span></div>
           <div className="st-trio">
             <div><div className="st-big">1</div><h4>Un lien.<br />Aucun compte.</h4><p>Votre client clique et suit tout. Rien à installer, désactivable en un clic.</p></div>
             <div><div className="st-big">IA</div><h4>Chaque appel résumé et transcrit.</h4><p>Le résumé, les objections et la prochaine étape, écrits dès que vous raccrochez.</p></div>

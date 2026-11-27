@@ -203,7 +203,7 @@ export function CsvImport({ clientId, kind = "call", shareToken }: { clientId: s
   const mapped = fields.filter(([k]) => st.map?.[k]);
   return (
     <div className="card">
-      <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#34D6A0,#1FB985)" }}>CSV</span><div><h2>{isMeeting ? "Importer vos rendez-vous (CSV)" : "Import CSV"}</h2><span className="muted small">{isMeeting ? "Export de votre outil d'enregistrement (Modjo, tl;dv, Gong, Fireflies…) avec une colonne transcription ou lien d'enregistrement : l'IA fait le débrief de chaque rendez-vous." : "Exports de n'importe quel outil : les colonnes sont reconnues automatiquement."} Réimporter le même fichier ne crée pas de doublons.</span></div></div>
+      <div className="row"><span className="logo-src" style={{ background: "linear-gradient(135deg,#FF8A4C,#FF5A1F)" }}>CSV</span><div><h2>{isMeeting ? "Importer vos rendez-vous (CSV)" : "Import CSV"}</h2><span className="muted small">{isMeeting ? "Export de votre outil d'enregistrement (Modjo, tl;dv, Gong, Fireflies…) avec une colonne transcription ou lien d'enregistrement : l'IA fait le débrief de chaque rendez-vous." : "Exports de n'importe quel outil : les colonnes sont reconnues automatiquement."} Réimporter le même fichier ne crée pas de doublons.</span></div></div>
       {mode === "activity" && (
         <details className="csv-help" style={{ marginTop: 12 }}>
           <summary>Où trouver mon fichier LinkedIn ou email ?</summary>

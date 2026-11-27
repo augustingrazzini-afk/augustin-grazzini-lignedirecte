@@ -68,7 +68,7 @@ export default async function Page() {
           {perDay.map((x) => (
             <div key={x.day} title={`${x.day.slice(8)}/${x.day.slice(5, 7)} : ${x.n} visite(s)`} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 2 }}>
               <span className="small muted">{x.n || ""}</span>
-              <div style={{ width: "100%", height: `${Math.max(2, (x.n / maxDay) * 64)}px`, background: "var(--accent, #31D287)", borderRadius: 3, opacity: x.n ? 1 : 0.25 }} />
+              <div style={{ width: "100%", height: `${Math.max(2, (x.n / maxDay) * 64)}px`, background: "var(--blue)", borderRadius: 3, opacity: x.n ? 1 : 0.25 }} />
               <span className="small muted">{x.day.slice(8)}</span>
             </div>
           ))}
