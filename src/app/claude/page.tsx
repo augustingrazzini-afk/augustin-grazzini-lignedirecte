@@ -104,7 +104,7 @@ export default function Page() {
 
       <section className="st-end">
         <div className="st-endrow">
-          <p>Une question sur le connecteur ? Écrivez-nous : <a href="mailto:bonjour@trustpipe.fr" style={{ color: "var(--o)" }}>bonjour@trustpipe.fr</a></p>
+          <p>Une question sur le connecteur ? Écrivez-nous : <a href={`mailto:${LEGAL.email}`} style={{ color: "var(--o)" }}>{LEGAL.email}</a></p>
           <Link className="st-btn p" href="/inscription">CRÉER MON COMPTE <span aria-hidden="true">→</span></Link>
         </div>
       </section>

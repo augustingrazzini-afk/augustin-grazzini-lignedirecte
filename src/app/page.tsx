@@ -272,7 +272,7 @@ export default async function Home() {
 
       <footer className="st-foot">
         <span>© {new Date().getFullYear()} {LEGAL.brand.toUpperCase()} · DONNÉES DE DÉMONSTRATION FICTIVES SUR CETTE PAGE</span>
-        <nav aria-label="Informations légales"><Link href="/mentions-legales">MENTIONS LÉGALES</Link><Link href="/cgv">CONDITIONS GÉNÉRALES</Link><Link href="/confidentialite">CONFIDENTIALITÉ</Link><a href="mailto:bonjour@trustpipe.fr">BONJOUR@TRUSTPIPE.FR</a></nav>
+        <nav aria-label="Informations légales"><Link href="/mentions-legales">MENTIONS LÉGALES</Link><Link href="/cgv">CONDITIONS GÉNÉRALES</Link><Link href="/confidentialite">CONFIDENTIALITÉ</Link><a href={`mailto:${LEGAL.email}`}>{LEGAL.email.toUpperCase()}</a></nav>
       </footer>
     </div>
   );

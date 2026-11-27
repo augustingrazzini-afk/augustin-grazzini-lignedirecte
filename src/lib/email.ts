@@ -1,3 +1,4 @@
+import { CONTACT_EMAIL } from "./legal";
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 
 export type LinkPurpose = "login" | "verify" | "reset";
@@ -25,7 +26,7 @@ export async function sendLoginEmail(to: string, link: string, intro?: string, p
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM, to, subject, text, html }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM, reply_to: CONTACT_EMAIL, to, subject, text, html }),
   });
   if (!r.ok) throw new Error(`Envoi de l'email impossible (${r.status})`);
 }
@@ -40,7 +41,7 @@ export async function sendEmail(to: string, subject: string, html: string, text:
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM, to, subject, text, html }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM, reply_to: CONTACT_EMAIL, to, subject, text, html }),
   });
   if (!r.ok) throw new Error(`Envoi de l'email impossible (${r.status})`);
 }

@@ -1,6 +1,9 @@
 // Informations légales de l'éditeur. À compléter : tant qu'un champ vaut TODO, la page l'affiche « à compléter ».
 export const TODO = "[à compléter]";
 
+/** Adresse de contact affichée sur le site et adresse de réponse des emails envoyés par Trustpipe. */
+export const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "augustingrazzini@lignedirecte.io";
+
 export const LEGAL = {
   brand: "Trustpipe",
   site: "trustpipe.fr",
@@ -13,7 +16,7 @@ export const LEGAL = {
   vat: "FR15131650632", // numéro de TVA intracommunautaire, ou « TVA non applicable, art. 293 B du CGI »
   address: "93 boulevard Jeanne d'Arc, 13005 Marseille, France",
   publisher: "Augustin Grazzini", // directeur de la publication (personne physique)
-  email: "augustingrazzini@gmail.com", // contact et exercice des droits RGPD
+  email: CONTACT_EMAIL, // contact et exercice des droits RGPD
   // Hébergement et sous-traitants (connus)
   host: { name: "Vercel Inc.", address: "440 N Barranca Ave #4133, Covina, CA 91723, États-Unis", site: "vercel.com" },
   processors: [
