@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { bumpUsage } from "@/lib/usage";
 
 /** Pages publiques comptées (affluence du site). Rien d'autre n'est accepté. */
-const PAGES = new Set(["/", "/inscription", "/essai", "/login", "/cgv", "/confidentialite"]);
+const PAGES = new Set(["/", "/inscription", "/essai", "/login", "/cgv", "/confidentialite", "/assistant", "/claude"]);
 const BOT = /bot|crawl|spider|slurp|preview|facebookexternalhit|linkedinbot|headless|lighthouse/i;
 
 /**

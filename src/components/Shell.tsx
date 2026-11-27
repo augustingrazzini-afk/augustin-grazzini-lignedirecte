@@ -44,7 +44,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
   const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/rendez-vous`, `${base}/coach`].includes(it.href)) : all;
   // L'espace client (portail et lien de suivi) est en clair ; l'espace commercial reste en sombre.
   return (
-    <div className={isOrg ? undefined : "theme-light"}>
+    <div className="theme-light">
       <header className="mtop">
         <Logo size={20} onDark />
       </header>

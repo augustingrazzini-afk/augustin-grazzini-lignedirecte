@@ -6,6 +6,7 @@ import { LogoMark } from "@/components/Logo";
 import { currentUser } from "@/lib/session";
 import { PAID_PLANS, PLANS, euros } from "@/lib/billing";
 import { LEGAL } from "@/lib/legal";
+import { AI_CAN } from "@/lib/assistant-content";
 
 /**
  * Page d'accueil « Studio / On Air » : la journée de prospection présentée comme une session d'enregistrement.
@@ -63,15 +64,6 @@ const CLIENT = [
   ["Il comprend son marché", "Ce qui bloque, quand les prospects décrochent, ce qu'ils disent : il pose la question, l'assistant répond."],
 ] as const;
 
-const AI_CAN = [
-  ["Prépare les rendez-vous", "Qui est le prospect, ce qu'il a dit, ce qui peut bloquer et les questions pour ouvrir."],
-  ["Répond sur la campagne", "« Combien de rendez-vous cette semaine ? », « Qui faut-il rappeler ? » : réponse chiffrée, à partir des vrais appels."],
-  ["Explique les objections", "Ce que disent les prospects, ce qui revient le plus, et comment y répondre."],
-  ["Débriefe les visios", "Collez la transcription d'un rendez-vous : ce qui a marché, ce qui a manqué, la suite à donner."],
-  ["Trouve les bons créneaux", "Les heures et les jours où les prospects décrochent le plus."],
-  ["Garde l'historique", "Chaque conversation avec l'assistant est conservée, on reprend où on s'était arrêté."],
-] as const;
-
 const DIALERS = ["Minari", "lemlist", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "HubSpot", "Skipcall"];
 
 /** Arguments de confiance : uniquement ce qui est réellement en place. */
@@ -124,7 +116,7 @@ export default async function Home() {
             <div className="st-hrow">
               <div>
                 <p>Votre client ouvre un lien et suit sa prospection en direct : <b>chaque appel, chaque résumé, chaque rendez-vous</b>, au moment où vous raccrochez. Le reporting ne s&apos;écrit plus : il se regarde.</p>
-                <a className="st-aipill" href="#assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA inclus.</b> Il connaît chaque appel : votre client et vous lui posez vos questions, il prépare les rendez-vous.</span><span aria-hidden="true">→</span></a>
+                <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA inclus.</b> Il connaît chaque appel : votre client et vous lui posez vos questions, il prépare les rendez-vous.</span><span aria-hidden="true">→</span></Link>
                 <p className="st-note">SANS ENGAGEMENT · PRÊT EN 2 MINUTES · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
@@ -199,6 +191,7 @@ export default async function Home() {
           <div className="st-secg">
             {AI_CAN.map(([t, d]) => <div key={t}><b>{t}</b><p>{d}</p></div>)}
           </div>
+          <Link className="st-btn g" href="/assistant" style={{ marginTop: 32, maxWidth: 460 }}>TOUT SAVOIR SUR L&apos;ASSISTANT IA <span aria-hidden="true">→</span></Link>
         </div>
       </section>
 
