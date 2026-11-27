@@ -36,7 +36,7 @@ export async function GettingStarted({ orgId, userId }: { orgId: string; userId:
   if (doneCount === steps.length) return null;
   const next = steps.findIndex((s) => !s.done);
   return (
-    <Dismissible storeKey={`tp-gs-${orgId}`} className="card gs">
+    <Dismissible storeKey={`tp-gs2-${orgId}`} className="card gs">
       <div className="gs-head">
         <div>
           <h2>Premiers pas</h2>
