@@ -31,11 +31,12 @@ export async function POST(req: Request) {
       if (s.client_reference_id && customer) await db.organization.update({ where: { id: s.client_reference_id }, data: { stripeCustomerId: customer } }).catch(() => {});
       if (subId) await applySubscription(await stripe().subscriptions.retrieve(subId));
     } else if (s.client_reference_id) {
-      // Lien de paiement : essai de 14 jours avec carte enregistrée, la formule vient des métadonnées du lien.
+      // Lien de paiement : abonnement actif dès le paiement, la formule vient des métadonnées du lien.
+      // (Les notifications customer.subscription.* qui suivent corrigent le statut si le lien inclut encore un essai.)
       const plan = s.metadata?.plan === "agency" ? "agency" : s.metadata?.plan === "solo" ? "solo" : null;
       await db.organization.update({
         where: { id: s.client_reference_id },
-        data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() + 14 * 864e5) },
+        data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), subscriptionStatus: "active" },
       }).catch((e) => console.error("webhook lien de paiement", e));
     }
   } else if (event.type.startsWith("customer.subscription.")) {

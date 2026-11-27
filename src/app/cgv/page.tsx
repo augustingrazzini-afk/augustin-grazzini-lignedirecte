@@ -1,6 +1,6 @@
 import { LegalPage, V } from "@/components/LegalPage";
 import { LEGAL } from "@/lib/legal";
-import { PLANS, TRIAL_DAYS, euros } from "@/lib/billing";
+import { PLANS, euros } from "@/lib/billing";
 
 export const metadata = { title: "Conditions générales" };
 export default function Page() {
@@ -13,8 +13,8 @@ export default function Page() {
       <p>Le Service est réservé aux professionnels (SDR indépendants, entreprises, équipes commerciales) agissant dans le cadre de leur activité. Le droit de rétractation du Code de la consommation ne s&apos;applique pas.</p>
       <h2>3. Compte et accès</h2>
       <p>La connexion se fait par lien envoyé par email. L&apos;utilisateur est responsable de l&apos;accès à sa boîte email et des personnes qu&apos;il invite (membres de son équipe, clients). Le lien de suivi partagé avec un client donne accès, sans compte, aux données de ce client : l&apos;utilisateur choisit de le créer, le partage sous sa responsabilité et peut le désactiver à tout moment.</p>
-      <h2>4. Essai gratuit</h2>
-      <p>Tout nouvel espace bénéficie d&apos;un essai gratuit de {TRIAL_DAYS} jours. L&apos;essai démarre avec l&apos;enregistrement d&apos;une carte bancaire sur Stripe, qui n&apos;est pas débitée pendant l&apos;essai. Sauf résiliation avant la fin de l&apos;essai (en un clic depuis la page Abonnement), l&apos;abonnement choisi démarre automatiquement et la carte est débitée du premier mois. Un même professionnel ne bénéficie que d&apos;un seul essai gratuit.</p>
+      <h2>4. Souscription</h2>
+      <p>L&apos;accès à Trustpipe démarre avec la souscription d&apos;une formule : la carte bancaire, enregistrée sur Stripe, est débitée du premier mois à la souscription. Les espaces ouverts avant le 27 novembre 2026 avec un essai gratuit le conservent jusqu&apos;à son terme.</p>
       <h2>5. Prix et paiement</h2>
       <p>Formules : {PLANS.solo.name} à {euros(PLANS.solo.price)} € HT par mois ({PLANS.solo.maxClients} clients suivis) et {PLANS.agency.name} à {euros(PLANS.agency.price)} € HT par mois (clients illimités). Les prix applicables sont ceux affichés au moment de la souscription. Le paiement est mensuel, par carte, via Stripe ; l&apos;abonnement se renouvelle tacitement chaque mois. En cas d&apos;échec de paiement, l&apos;accès peut être suspendu après relance. Toute modification de prix est annoncée au moins 30 jours à l&apos;avance et s&apos;applique au renouvellement suivant.</p>
       <h2>6. Résiliation</h2>

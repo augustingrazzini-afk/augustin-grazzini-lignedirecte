@@ -13,7 +13,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
   const q = next ? `?next=${encodeURIComponent(next)}` : "";
   return (
     <AuthCard title="Connexion" subtitle="Heureux de vous revoir."
-      footer={<>Pas encore de compte ? <Link href={`/inscription${q}`}><b>Créer un compte</b></Link> · 14 jours d&apos;essai gratuit</>}>
+      footer={<>Pas encore de compte ? <Link href={`/inscription${q}`}><b>Créer un compte</b></Link> · sans engagement</>}>
       {sp.error === "expired" && <div className="banner err">Ce lien a expiré ou a déjà servi. Demandez-en un nouveau.</div>}
       <ActionForm action={loginPassword} submit="Se connecter" hidden={next ? { next } : undefined}>
         <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus /></label>

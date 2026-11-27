@@ -24,7 +24,7 @@ export function SignupForm() {
         <ol>
           <li>Ouvrez l&apos;email « Trustpipe : confirmez votre adresse email »</li>
           <li>Cliquez sur <b>Confirmer mon email</b></li>
-          <li>Choisissez votre formule et démarrez votre essai de 14 jours</li>
+          <li>Choisissez votre formule et activez votre abonnement</li>
         </ol>
         {webmail && <a className="btn primary" href={webmail.href} target="_blank" rel="noopener noreferrer">{webmail.label} ↗</a>}
         <p className="muted small">Rien reçu après 2 minutes ? Regardez dans les spams ou les promotions.</p>

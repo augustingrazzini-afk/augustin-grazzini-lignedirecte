@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { currentUser } from "@/lib/session";
-import { PLANS, TRIAL_DAYS, euros } from "@/lib/billing";
+import { PLANS, euros } from "@/lib/billing";
 import { Logo } from "@/components/Logo";
 import { BRAND_LOGOS } from "@/lib/brand-logos";
 import { LegalFooter } from "@/components/LegalPage";
@@ -88,7 +88,7 @@ const FAQ: [string, string][] = [
   ["Mon client voit-il tout ce que je fais ?", "Non. Il ne voit que les appels rangés chez lui, c'est-à-dire ceux de ses listes d'appels. Vos autres clients et vos réglages restent invisibles."],
   ["L'IA garde-t-elle mes appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer mes données ?", "Oui. Vous déconnectez un outil ou désactivez un lien en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
-  ["Faut-il une carte bancaire pour l'essai ?", "Oui, elle est enregistrée sur Stripe, qui gère le paiement : nous ne voyons jamais votre numéro de carte. Rien n'est débité pendant les 14 jours d'essai, et vous résiliez en un clic depuis la page Abonnement."],
+  ["Comment se passe le paiement ?", "Par carte, chaque mois, via Stripe : nous ne voyons jamais votre numéro de carte. Sans engagement : vous résiliez en un clic depuis la page Abonnement, et aucun autre prélèvement n'est fait."],
   ["Et si je n'utilise pas Minari ?", "lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez simplement l'adresse de son API et votre clé : Trustpipe reconnaît vos appels automatiquement. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
@@ -101,7 +101,7 @@ export default async function Home() {
         <div className="row" style={{ gap: 8 }}>
           <a className="btn lp-hide-sm" href="#tarifs">Tarifs</a>
           <Link className="btn lp-hide-sm" href={u ? "/app" : "/login"}>{u ? "Ouvrir mon espace" : "Connexion"}</Link>
-          {!u && <Link className="btn primary" href="/inscription">Essai gratuit</Link>}
+          {!u && <Link className="btn primary" href="/inscription">Commencer</Link>}
         </div>
       </header>
 
@@ -111,7 +111,7 @@ export default async function Home() {
         <p className="lp-sub">Fini les reportings clients faits à la main.</p>
         <p className="lead">Envoyez un lien à votre client : il suit <b>en direct</b> chaque appel passé pour lui, lit les transcriptions et les résumés, voit ses résultats et <b>prépare ses rendez-vous avec l&apos;assistant IA intégré à son espace</b>. Le reporting se fait tout seul : plus rien à remplir, plus rien à envoyer.</p>
         <div className="row" style={{ marginTop: 24, gap: 10, flexWrap: "wrap" }}>
-          <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
+          <Link className="btn primary lp-cta" href="/inscription">Commencer maintenant</Link>
           <a className="btn lp-cta" href="#clients">Voir ce que fait votre client</a>
         </div>
         <p className="lp-note">Prêt en 2 minutes : connectez votre outil d&apos;appel, envoyez le lien. Rien à installer, rien à préparer.</p>
@@ -179,7 +179,7 @@ export default async function Home() {
             <source src="/video/trustpipe-presentation.mp4" type="video/mp4" />
           </video>
         </figure>
-        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Commencer l&apos;essai gratuit</Link><span className="lp-note">{TRIAL_DAYS} jours gratuits, aucun débit pendant l&apos;essai</span></div>
+        <div className="lp-cta-row"><Link className="btn primary lp-cta" href="/inscription">Commencer maintenant</Link><span className="lp-note">Sans engagement, résiliable en un clic</span></div>
       </section>
 
       <div id="produit">
@@ -190,7 +190,7 @@ export default async function Home() {
               <h2>{s.title}</h2>
               <p>{s.text}</p>
               <ul>{s.points.map((p) => <li key={p}>{p}</li>)}</ul>
-              <Link className="btn primary lp-cta-inline" href="/inscription">Commencer l&apos;essai gratuit</Link>
+              <Link className="btn primary lp-cta-inline" href="/inscription">Commencer maintenant</Link>
             </div>
             <figure className={`lp-shot${s.narrow ? " narrow" : ""}`}>
               <img src={s.img} alt={s.title} loading="lazy" />
@@ -238,7 +238,7 @@ export default async function Home() {
 
       <section id="tarifs" className="lp-pricing">
         <h2 className="lp-h2">Un prix simple</h2>
-        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>{TRIAL_DAYS} jours d&apos;essai gratuit, sans engagement.</p>
+        <p className="lead" style={{ margin: "0 auto 28px", textAlign: "center" }}>Sans engagement, résiliable en un clic.</p>
         <div className="grid g-2e">
           {(["solo", "agency"] as const).map((id) => (
             <div key={id} className={`card price${id === "agency" ? " lp-best" : ""}`}>
@@ -252,7 +252,7 @@ export default async function Home() {
                 <li>Relances et brief pré-meeting</li>
                 {id === "agency" ? <li>Toute l&apos;équipe commerciale</li> : <li>Pour un SDR freelance</li>}
               </ul>
-              <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/inscription" style={{ marginTop: 8 }}>Commencer l&apos;essai</Link>
+              <Link className={`btn${id === "agency" ? " primary" : ""}`} href="/inscription" style={{ marginTop: 8 }}>Choisir {PLANS[id].name}</Link>
             </div>
           ))}
         </div>
@@ -261,7 +261,7 @@ export default async function Home() {
       <section className="lp-final">
         <p className="lp-sub">Vos clients suivent vos appels en direct. Vous gagnez leur confiance.</p>
         <h2 className="lp-h2">Le reporting d&apos;appels de chaque client, et l&apos;intelligence terrain en plus.</h2>
-        <Link className="btn primary lp-cta" href="/inscription">Essayer {TRIAL_DAYS} jours gratuitement</Link>
+        <Link className="btn primary lp-cta" href="/inscription">Commencer maintenant</Link>
       </section>
       <p className="lp-foot">Captures réalisées avec des données de démonstration fictives.</p>
       <LegalFooter />
