@@ -14,6 +14,7 @@ import { Contact } from "./views/Contact";
 import { AlertSettings } from "./AlertSettings";
 import { BriefPanel } from "./client/BriefPanel";
 import { Assistant } from "./client/Assistant";
+import { CopyButton } from "./client/CallActions";
 import { pickDays } from "@/lib/period";
 
 export { pickDays } from "@/lib/period";
@@ -63,13 +64,45 @@ export async function BriefPage({ scope, q }: { scope: Scope; q?: string }) {
   );
 }
 
+/** Mise en avant du connecteur Claude, en tête des relances : c'est la façon la plus rapide de les traiter. */
+async function ClaudeConnect({ orgId, userId }: { orgId: string; userId: string }) {
+  const [org, linked] = await Promise.all([
+    db.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+    db.mcpToken.count({ where: { orgId, userId, revokedAt: null, refreshExpiresAt: { gt: new Date() } } }),
+  ]);
+  const url = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/api/mcp`;
+  const premium = !org || hasPremium(org);
+  if (linked) return (
+    <div className="card claude-cta ok"><span className="claude-ic" aria-hidden="true">✳</span>
+      <div><b>Claude est connecté à vos relances.</b> <span className="muted">Demandez-lui : « Quelles relances sont en retard ? », « Reporte Paul Morel à jeudi », « Prépare ma journée ».</span></div>
+      <a className="btn sm" href="https://claude.ai" target="_blank" rel="noreferrer">Ouvrir Claude</a></div>
+  );
+  return (
+    <div className="card claude-cta"><span className="claude-ic" aria-hidden="true">✳</span>
+      <div className="claude-body">
+        <h2>Traitez vos relances depuis Claude</h2>
+        <p className="muted" style={{ margin: "4px 0 12px" }}>Branchez Trustpipe sur Claude en 1 minute : vous lui demandez « quelles relances aujourd&apos;hui ? », il les liste avec le contexte de chaque prospect, les reporte ou les clôture pour vous.</p>
+        {premium ? <>
+          <ol className="claude-steps"><li>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b></li><li>Collez cette adresse :</li></ol>
+          <div className="row" style={{ gap: 8, flexWrap: "wrap", margin: "6px 0 10px" }}>
+            <input className="input" readOnly value={url} style={{ flex: "1 1 280px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
+            <CopyButton text={url} label="Copier l'adresse" />
+            <a className="btn primary" href="/claude" target="_blank" rel="noreferrer">Voir le guide</a>
+          </div>
+          <p className="muted small" style={{ margin: 0 }}>Claude vous demandera ensuite de vous connecter à Trustpipe et d&apos;autoriser l&apos;accès. Vous le coupez quand vous voulez dans Réglages.</p>
+        </> : <div className="row" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}><Link className="btn primary" href="/app/billing">Passer en Premium pour brancher Claude</Link><a className="btn" href="/claude" target="_blank" rel="noreferrer">Voir ce que ça permet</a></div>}
+      </div>
+    </div>
+  );
+}
+
 export async function RelancesPage({ scope, base }: { scope: Scope; base: string }) {
   let alerts: React.ReactNode = null;
   if (scope.kind === "client") {
     const [cm, client] = await Promise.all([db.clientMember.findFirst({ where: { clientId: scope.clientId, userId: scope.userId } }), db.client.findUnique({ where: { id: scope.clientId } })]);
     alerts = <AlertSettings digest={cm?.digest ?? false} slack={client?.slackWebhook ?? null} clientId={scope.clientId} canSlack={!!cm} />;
   }
-  return (<><PageTop title="Relances" subtitle="Les rappels à faire, quand" /><Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
+  return (<><PageTop title="Relances" subtitle="Les rappels à faire, quand" />{scope.kind === "org" && <ClaudeConnect orgId={scope.orgId} userId={scope.userId} />}<Relances scope={scope} base={base} />{alerts && <div className="mt">{alerts}</div>}</>);
 }
 
 export async function CoachPage({ scope }: { scope: Scope; base: string; sp: Record<string, string | undefined> }) {
