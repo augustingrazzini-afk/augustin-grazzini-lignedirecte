@@ -3,7 +3,8 @@ import { db } from "@/lib/db";
 import { ago } from "@/lib/format";
 import { getProvider, providerList } from "@/lib/providers";
 import { storageEnabled } from "@/lib/storage";
-import { deleteIntegration, syncNow } from "@/app/actions";
+import { deleteIntegration, fetchRecordings, syncNow } from "@/app/actions";
+import { hasRecordings, listeningHelp } from "@/lib/listening";
 import type { ProviderInfo } from "../client/IntegrationForm";
 import { providerColor } from "@/lib/provider-colors";
 import { Connectors } from "../client/Connectors";
@@ -18,6 +19,8 @@ export async function Sources({ scope }: { scope: Scope }) {
     include: { client: true, _count: { select: { calls: true, activities: true } } },
     orderBy: { createdAt: "asc" },
   });
+  const withAudio = integrations.length ? await db.call.groupBy({ by: ["integrationId"], where: { integrationId: { in: integrations.map((i) => i.id) }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] }, _count: { _all: true } }) : [];
+  const audioCount = new Map(withAudio.map((x) => [x.integrationId, x._count._all]));
   const CH: Record<string, string> = { call: "appels", email: "email", linkedin: "LinkedIn" };
   const providers: ProviderInfo[] = providerList.filter((p) => ["minari", "skipcall", "lemlist", "aircall", "ringover", "justcall", "allo", "dialpad", "close", "salesloft", "apollo", "gong", "hubspot", "custom", "webhook"].includes(p.id)).map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
   const app = process.env.APP_URL || "http://localhost:3000";
@@ -50,6 +53,20 @@ export async function Sources({ scope }: { scope: Scope }) {
                         <p style={{ margin: "6px 0 0" }}>Le libellé d&apos;événement de votre outil est aussi compris (« emailsReplied », « Connection accepted »…). Gardez cette URL secrète.</p>
                       </div>
                     ) : <p className="muted small" style={{ margin: "6px 0 0" }}>À coller dans {p.label} (réglages API / webhooks). Gardez-la secrète.</p>}</details>
+                  {hasRecordings(i.provider) && i._count.calls > 0 && (() => {
+                    const n = audioCount.get(i.id) || 0, h = listeningHelp(i.provider, p.label);
+                    return (
+                      <details id="ecoute" style={{ flex: "1 1 100%" }} open={n === 0}>
+                        <summary className="small" style={{ cursor: "pointer" }}>{n > 0 ? <>🎧 Écoute des appels : <b>{n}</b> appel(s) écoutable(s) sur {i._count.calls}</> : <b>🎧 Écoute des appels : à activer</b>}</summary>
+                        <div className="banner" style={{ margin: "8px 0 0", display: "block" }}>
+                          <b>{h.title}</b>
+                          <ol className="small" style={{ margin: "6px 0 10px", paddingLeft: 18, lineHeight: 1.6 }}>{h.steps.map((st) => <li key={st}>{st}</li>)}</ol>
+                          <form action={fetchRecordings}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm primary">Récupérer les enregistrements</button></form>
+                          <p className="muted small" style={{ margin: "6px 0 0" }}>Trustpipe relit les 90 derniers jours : comptez quelques minutes, puis rechargez la page. Vos clients pourront aussi écouter leurs appels.</p>
+                        </div>
+                      </details>
+                    );
+                  })()}
                   {!universal && <form action={syncNow}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm">Synchroniser</button></form>}
                   <form action={deleteIntegration}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm danger">Déconnecter</button></form>
                 </span>

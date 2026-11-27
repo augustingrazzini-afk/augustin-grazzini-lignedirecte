@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { Dismissible } from "@/components/client/Dismissible";
+import { getProvider } from "@/lib/providers";
+import { hasRecordings, listeningHelp } from "@/lib/listening";
 
 /**
  * « Premiers pas » : le mini-tutoriel de l'espace commercial. Chaque étape se coche toute seule
@@ -8,16 +10,23 @@ import { Dismissible } from "@/components/client/Dismissible";
  * ou quand l'utilisateur le masque.
  */
 export async function GettingStarted({ orgId, userId }: { orgId: string; userId: string }) {
-  const [integrations, calls, clients, shared, convs] = await Promise.all([
+  const [integrations, calls, clients, shared, convs, recorded, firstInteg] = await Promise.all([
     db.integration.count({ where: { orgId } }),
     db.call.count({ where: { orgId } }),
     db.client.findMany({ where: { orgId }, orderBy: { createdAt: "asc" }, select: { id: true }, take: 1 }),
     db.client.count({ where: { orgId, shareToken: { not: null } } }),
     db.conversation.count({ where: { orgId, owner: userId } }),
+    db.call.count({ where: { orgId, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] } }),
+    db.integration.findFirst({ where: { orgId }, orderBy: { createdAt: "asc" }, select: { provider: true } }),
   ]);
+  // Écoute des appels : ce qu'il faut activer dans l'outil connecté (ex. le partage externe des appels chez Minari).
+  const prov = firstInteg && hasRecordings(firstInteg.provider) ? firstInteg.provider : null;
+  const label = prov ? (() => { try { return getProvider(prov).label; } catch { return prov; } })() : "votre outil d'appel";
+  const listen = listeningHelp(prov || "", label);
   const firstClient = clients[0]?.id;
   const steps = [
     { done: integrations > 0 || calls > 0, title: "Connectez votre outil d'appel", text: "Minari, lemlist, Aircall, Ringover… Une clé à coller (ou un clic pour Minari), et vos appels arrivent tout seuls.", href: "/app/sources", cta: "Connecter un outil" },
+    { done: recorded > 0, title: "Activez l'écoute de vos appels", text: `${listen.title} : chaque appel aura son bouton Écouter, pour vous et pour vos clients. Puis cliquez sur « Récupérer les enregistrements ».`, href: "/app/sources#ecoute", cta: "Activer l'écoute" },
     { done: clients.length > 0, title: "Créez votre premier client", text: "Donnez-lui un nom et indiquez ses listes d'appels : ses appels sont rangés chez lui automatiquement.", href: "/app/clients", cta: "Créer un client" },
     { done: shared > 0, title: "Envoyez-lui son lien de suivi", text: "Sur la fiche du client, créez le lien et envoyez-le. Il suit vos appels en direct, sans compte ni mot de passe.", href: firstClient ? `/app/clients/${firstClient}` : "/app/clients", cta: "Partager le lien" },
     { done: calls > 0, title: "Regardez vos appels arriver", text: "Chaque appel est résumé par l'IA, avec la transcription et les objections. Le tableau de bord se met à jour en continu.", href: "/app/calls", cta: "Voir mes appels" },
@@ -31,7 +40,7 @@ export async function GettingStarted({ orgId, userId }: { orgId: string; userId:
       <div className="gs-head">
         <div>
           <h2>Premiers pas</h2>
-          <p className="muted small" style={{ margin: "2px 0 0" }}>5 étapes, environ 2 minutes. Elles se cochent toutes seules.</p>
+          <p className="muted small" style={{ margin: "2px 0 0" }}>{steps.length} étapes, environ 3 minutes. Elles se cochent toutes seules.</p>
         </div>
         <span className="gs-count">{doneCount}/{steps.length}</span>
       </div>

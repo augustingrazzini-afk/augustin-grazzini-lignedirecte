@@ -415,3 +415,15 @@ export async function revokeMcpToken(f: FormData) {
   await db.mcpToken.updateMany({ where: { id: s(f, "id", 40), orgId: scope.orgId, revokedAt: null }, data: { revokedAt: new Date() } });
   revalidatePath("/app/settings");
 }
+
+/** Relit tout l'historique de l'outil (90 jours) pour récupérer les enregistrements / liens d'écoute, après activation du partage. */
+export async function fetchRecordings(f: FormData) {
+  const integ = await ownedIntegration(f);
+  const { bumpUsage } = await import("@/lib/usage");
+  if ((await bumpUsage(`recfetch:${integ.id}`)) > 5) return; // 5 relectures complètes par jour au plus
+  after(async () => {
+    try { await syncIntegration(integ.id, { full: true }); } catch { /* l'erreur est enregistrée sur l'intégration */ }
+    revalidatePath("/", "layout");
+  });
+  revalidatePath("/", "layout");
+}

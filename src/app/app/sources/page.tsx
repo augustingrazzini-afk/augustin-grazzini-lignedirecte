@@ -2,6 +2,8 @@ import { requireOrgScope } from "@/lib/access";
 import { SourcesPage } from "@/components/pages";
 import { MCP_SERVERS } from "@/lib/mcp";
 export const metadata = { title: "Sources" };
+// « Récupérer les enregistrements » relit tout l'historique de l'outil : on laisse le temps de finir.
+export const maxDuration = 300;
 export default async function Page({ searchParams }: { searchParams: Promise<{ erreur?: string; connecte?: string }> }) {
   const sp = await searchParams;
   const ok = sp.connecte && MCP_SERVERS[sp.connecte]?.label;

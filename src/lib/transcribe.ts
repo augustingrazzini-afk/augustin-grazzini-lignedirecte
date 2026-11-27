@@ -73,7 +73,9 @@ export async function processTranscriptions(opts: { orgId?: string; waitMs?: num
   try {
     // 1. Nouvelles transcriptions : conversations avec un enregistrement mais sans texte.
     const todo = await db.call.findMany({
-      where: { ...scope, transcriptStatus: "none", durationSec: { gte: MIN_SEC }, transcript: { equals: [] }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] },
+      where: { ...scope, transcriptStatus: "none", durationSec: { gte: MIN_SEC }, transcript: { equals: [] }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }],
+        // Minari ne fournit qu'une page d'écoute (pas de fichier audio) : rien à transcrire.
+        NOT: { provider: "minari", recordingKey: null } },
       orderBy: { startedAt: "desc" },
       take: MAX_SUBMIT,
       select: { id: true, provider: true, recordingUrl: true, recordingKey: true },

@@ -11,6 +11,7 @@ import { transcribeEnabled } from "@/lib/transcribe";
 import { aiEnabled } from "@/lib/ai-config";
 import { needsRelay, signedAudioPath } from "@/lib/audio";
 import { assignCall } from "@/app/actions";
+import { hasRecordings } from "@/lib/listening";
 import { CallActions, CopyButton } from "../client/CallActions";
 
 /** `readOnly` : lien de suivi partagé (aucune action, aucun lien vers des pages réservées). */
@@ -26,7 +27,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   const debrief = c.kind === "meeting" ? (c.debrief as unknown as Debrief | null) : null;
   const trMsg = c.transcriptStatus === "pending" ? "Transcription en cours : elle apparaît ici dans quelques minutes."
     : c.transcriptStatus === "failed" ? "La transcription automatique n'a pas pu être faite pour cet enregistrement."
-    : (c.recordingUrl || c.recordingKey) && c.durationSec >= 8 && transcribeEnabled() ? "Transcription prévue à la prochaine synchronisation."
+    : (c.recordingKey || (c.recordingUrl && c.provider !== "minari")) && c.durationSec >= 8 && transcribeEnabled() ? "Transcription prévue à la prochaine synchronisation."
     : c.kind === "meeting" ? "Pas de transcription pour ce rendez-vous." : "Pas de transcription pour cet appel.";
 
   return (
@@ -46,8 +47,11 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           </dl>
           {(audio || c.recordingUrl) && (
             <div className="sec" style={{ marginTop: 16 }}><h4>Enregistrement</h4>
-              {audio ? <audio controls preload="metadata" src={audio} style={{ width: "100%" }} /> : <a className="btn" href={c.recordingUrl!} target="_blank" rel="noopener noreferrer">Écouter l&apos;enregistrement</a>}
+              {audio ? <audio controls preload="metadata" src={audio} style={{ width: "100%" }} /> : <a className="btn" href={c.recordingUrl!} target="_blank" rel="noopener noreferrer">{c.provider === "minari" ? "Écouter sur Minari" : "Écouter l'enregistrement"}</a>}
             </div>
+          )}
+          {!audio && !c.recordingUrl && !readOnly && scope.kind === "org" && c.connected && hasRecordings(c.provider) && (
+            <p className="muted small" style={{ margin: "16px 0 0" }}>🎧 Pas d&apos;enregistrement pour cet appel. <Link href="/app/sources#ecoute">Activez l&apos;écoute des appels</Link> dans {SOURCE_LABEL[c.provider] || "votre outil"} pour écouter vos appels ici.</p>
           )}
           {!readOnly && <div className="row" style={{ marginTop: 16 }}>
             <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
