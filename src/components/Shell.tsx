@@ -69,7 +69,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
           {children}
         </main>
       </div>
-      <nav className="tabbar"><NavLinks items={items} variant="tab" /></nav>
+      <nav className="tabbar"><NavLinks items={items} variant="tab" footer={!share && <form action={logout} className="tab-out"><button type="submit">Se déconnecter</button></form>} /></nav>
       <LiveRefresh />
       {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} shareToken={widget.shareToken} />}
     </div>

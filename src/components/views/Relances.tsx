@@ -26,7 +26,7 @@ const SRC: Record<string, string> = { ai: "IA", rule: "Règle", manual: "Manuel"
 export function TaskRow({ t, base, clientId }: { t: Task; base: string; clientId: string | null }) {
   const due = dueLabel(t.dueAt);
   return (
-    <div className="item" style={{ gridTemplateColumns: "38px minmax(0,1fr) auto" }}>
+    <div className="item task">
       <span className={`av ${t.channel === "linkedin" ? "" : t.channel === "email" ? "" : "win"}`} title={CHANNEL_LABEL[t.channel]} style={{ fontSize: 11 }}>{t.channel === "linkedin" ? "in" : t.channel === "email" ? "@" : "☎"}</span>
       <Link className="who" href={`${base}/contacts/${encodeURIComponent(t.contactKey)}`} style={{ color: "inherit", textDecoration: "none" }}>{t.contactName || t.company || "Prospect"}{t.company && t.contactName && <span> · {t.company}</span>}</Link>
       <span className="row" style={{ gap: 6 }}>{t.status === "open" ? <span className={`pill ${due.cls}`}>{due.text}</span> : <span className="pill win">{t.status === "done" ? "Faite" : "Ignorée"}</span>}<span className="pill src">{CHANNEL_LABEL[t.channel]}</span></span>
