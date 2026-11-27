@@ -107,6 +107,7 @@ export default async function Home() {
         <nav className="st-links" aria-label="Sections">
           <a href="#equipe">Votre équipe</a>
           <a href="#assistant">Assistant IA</a>
+          <a href="#claude">Claude</a>
           <a href="#integrations">Intégrations</a>
           <a href="#tarifs">Tarifs</a>
           {!u && <Link className="st-push st-keep" href="/login">Connexion</Link>}
@@ -124,6 +125,7 @@ export default async function Home() {
               <div>
                 <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
                 <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
+                <Link className="st-aipill" href="#claude" style={{ marginTop: 10 }}><span className="st-aiic" aria-hidden="true">✳</span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
                 <p className="st-note">SANS ENGAGEMENT · PRIX PAR COMMERCIAL SUIVI · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
@@ -209,24 +211,38 @@ export default async function Home() {
         </div>
       </section>
 
+      <section id="claude" className="st-sec">
+        <div className="st-side"><div className="st-n">03</div><small>Connecteur<br />Claude</small></div>
+        <div className="st-body">
+          <span className="st-aitag"><span className="st-dot" />CONNECTEUR CLAUDE · FORMULE PREMIUM</span>
+          <h2 className="st-h2">Trustpipe. <span className="st-thin">Dans Claude.</span></h2>
+          <p className="st-lead">Vous utilisez déjà Claude ? Branchez-y Trustpipe en une minute. Vous lui parlez comme d&apos;habitude, et il lit vos appels et gère vos relances : plus besoin d&apos;ouvrir un tableau de bord pour savoir qui rappeler.</p>
+          <div className="st-ai">
+            <div className="q"><div className="st-prompt">
+              {["Quelles relances sont en retard ?", "Prépare ma journée, avec le contexte de chaque prospect.", "Reporte la relance de Paul Morel à jeudi 10 h.", "Relis le dernier appel avec Atelier Morel."].map((a) => <div key={a}><span className="u1">vous ~ </span>{a}</div>)}<span className="st-cur" /></div></div>
+            <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● CLAUDE, AVEC VOS DONNÉES TRUSTPIPE</span><b>3 relances en retard.</b><ol><li><b>Paul Morel</b> (Atelier Morel) : confirmer le rendez-vous de jeudi. Dernier appel mardi, il attend l&apos;invitation.</li><li><b>Julie Martin</b> (Elec Pro 34) : envoyer la plaquette demandée.</li><li><b>Sophie Lemaire</b> (Solaris Énergie) : rappeler à 14 h, comme convenu.</li></ol></div>
+          </div>
+          <div className="st-trio">
+            <div><div className="st-big">1</div><h4>Une adresse à coller.</h4><p>Dans Claude : Réglages › Connecteurs › Ajouter un connecteur. Vous autorisez l&apos;accès, c&apos;est tout.</p></div>
+            <div><div className="st-big">5</div><h4>Outils, rien de plus.</h4><p>Lister, créer et modifier vos relances, relire l&apos;historique d&apos;un prospect, voir vos commerciaux.</p></div>
+            <div><div className="st-big st-o">0</div><h4>Mot de passe partagé.</h4><p>Connexion sécurisée, limitée à votre espace, coupée en un clic depuis vos réglages.</p></div>
+          </div>
+          <Link className="st-btn p" href="/claude" style={{ marginTop: 32, maxWidth: 460 }}>BRANCHER CLAUDE SUR TRUSTPIPE <span aria-hidden="true">→</span></Link>
+        </div>
+      </section>
+
       <section id="integrations" className="st-sec">
-        <div className="st-side"><div className="st-n">03</div><small>Les outils<br />compatibles</small></div>
+        <div className="st-side"><div className="st-n">04</div><small>Les outils<br />compatibles</small></div>
         <div className="st-body">
           <h2 className="st-h2">Chacun garde son outil. <span className="st-thin">Tout arrive chez vous.</span></h2>
           <p className="st-lead">Vous invitez un commercial, il branche son outil d&apos;appel en 2 minutes : une clé à coller, ou un clic pour Minari. Votre équipe partage un outil ? Vous le branchez une fois, et chaque appel est attribué au bon commercial.</p>
           <p className="st-lead" style={{ fontSize: 15 }}>Minari est utilisé chaque jour en production. Les autres connecteurs suivent la documentation officielle de chaque outil : si le vôtre remonte mal, écrivez-nous, nous le corrigeons en priorité.</p>
           <div className="st-dl">{DIALERS.map((d) => <span key={d}>{d}</span>)}<span className="x">+ tout outil (API) · Zapier · Make · n8n · CSV</span></div>
-          <div className="st-claude">
-            <span className="st-mono">CONNECTEUR CLAUDE</span>
-            <h3>Branchez aussi Claude sur Trustpipe.</h3>
-            <p>Ajoutez Trustpipe comme connecteur dans Claude : demandez-lui « quelles relances aujourd&apos;hui ? » ou « relis le dernier appel avec Atelier Morel », il lit vos données Trustpipe directement dans la conversation.</p>
-            <Link className="st-btn g" href="/claude" style={{ marginTop: 18, maxWidth: 420 }}>INSTALLER LE CONNECTEUR CLAUDE <span aria-hidden="true">→</span></Link>
-          </div>
         </div>
       </section>
 
       <section id="securite" className="st-sec">
-        <div className="st-side"><div className="st-n">04</div><small>Sécurité<br />et RGPD</small></div>
+        <div className="st-side"><div className="st-n">05</div><small>Sécurité<br />et RGPD</small></div>
         <div className="st-body">
           <h2 className="st-h2">Vos données restent <span className="st-thin">en France.</span></h2>
           <div className="st-badges"><span>Hébergé en France</span><span>Chiffrement AES-256</span><span>Contrat de sous-traitance RGPD</span></div>
@@ -235,7 +251,7 @@ export default async function Home() {
       </section>
 
       <section id="tarifs" className="st-sec">
-        <div className="st-side"><div className="st-n">05</div><small>Tarifs<br />sans engagement</small></div>
+        <div className="st-side"><div className="st-n">06</div><small>Tarifs<br />sans engagement</small></div>
         <div className="st-body">
           <h2 className="st-h2">Par commercial suivi. <span className="st-thin">Résiliable en un clic.</span></h2>
           <div className="st-pr">
@@ -256,7 +272,7 @@ export default async function Home() {
       </section>
 
       <section id="faq" className="st-sec">
-        <div className="st-side"><div className="st-n">06</div><small>Vos<br />questions</small></div>
+        <div className="st-side"><div className="st-n">07</div><small>Vos<br />questions</small></div>
         <div className="st-body">
           <h2 className="st-h2">Questions <span className="st-thin">fréquentes.</span></h2>
           <div className="st-faq">{FAQ.map(([q, a]) => <details key={q}><summary>{q}</summary><p>{a}</p></details>)}</div>
