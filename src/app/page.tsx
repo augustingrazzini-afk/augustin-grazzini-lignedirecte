@@ -105,6 +105,7 @@ export default async function Home() {
       <header className="st-rail">
         <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><LogoMark size={30} />TRUSTPIPE</Link>
         <nav className="st-links" aria-label="Sections">
+          <a href="#demo">Démo</a>
           <a href="#equipe">Votre équipe</a>
           <a href="#assistant">Assistant IA</a>
           <a href="#claude">Claude</a>
@@ -156,6 +157,18 @@ export default async function Home() {
         <div><small>Appels</small><b>289</b></div>
         <div><small>Conversations</small><b>32</b></div>
         <div><small>Rendez-vous</small><b className="st-o">07</b></div>
+      </section>
+
+      <section id="demo" className="st-sec">
+        <div className="st-side"><div className="st-n">▶</div><small>La démo<br />en 1 minute</small></div>
+        <div className="st-body">
+          <h2 className="st-h2">Trustpipe, <span className="st-thin">en une minute.</span></h2>
+          <figure className="st-video" style={{ margin: "40px 0 0" }}>
+            <video controls playsInline preload="none" poster="/video/trustpipe-entreprises.jpg" width={1920} height={1080} aria-label="Démonstration de Trustpipe : tous vos commerciaux sur un seul écran, en direct (données fictives)">
+              <source src="/video/trustpipe-entreprises.mp4" type="video/mp4" />
+            </video>
+          </figure>
+        </div>
       </section>
 
       <section id="equipe" className="st-sec">
