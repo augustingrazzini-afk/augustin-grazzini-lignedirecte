@@ -42,8 +42,9 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
       : []),
   ];
   const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/rendez-vous`, `${base}/coach`].includes(it.href)) : all;
+  // L'espace client (portail et lien de suivi) est en clair ; l'espace commercial reste en sombre.
   return (
-    <>
+    <div className={isOrg ? undefined : "theme-light"}>
       <header className="mtop">
         <Logo size={20} onDark />
       </header>
@@ -71,7 +72,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
       <nav className="tabbar"><NavLinks items={items} variant="tab" /></nav>
       <LiveRefresh />
       {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} shareToken={widget.shareToken} />}
-    </>
+    </div>
   );
 }
 
