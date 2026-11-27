@@ -4,6 +4,8 @@ import "@fontsource-variable/outfit";
 import "@fontsource-variable/inter";
 import "@fontsource/jetbrains-mono/400.css";
 import "@fontsource/jetbrains-mono/500.css";
+import "@fontsource-variable/unbounded";
+import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
 

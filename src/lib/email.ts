@@ -13,9 +13,9 @@ export async function sendLoginEmail(to: string, link: string, intro?: string, p
   const subject = intro && purpose === "login" ? `${app} : votre accès` : c.subject(app);
   const text = `${intro ? intro + "\n\n" : ""}${c.lead} (lien valable ${c.validity}) :\n${link}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.`;
   const html = `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#0B122F">
-<p style="font-size:20px;font-weight:700;margin:0 0 16px"><span style="color:#0C3D2F">Trust</span><span style="color:#31D287">pipe</span></p>${intro ? `<p>${esc(intro)}</p>` : ""}
+<p style="font-size:20px;font-weight:900;letter-spacing:.02em;margin:0 0 16px;font-family:'Arial Black',Arial,sans-serif;color:#140700"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#FF5A1F;margin-right:8px;vertical-align:1px"></span>TRUSTPIPE</p>${intro ? `<p>${esc(intro)}</p>` : ""}
 <p>${esc(c.lead)}</p>
-<p><a href="${esc(link)}" style="display:inline-block;background:#0C3D2F;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">${esc(c.cta)}</a></p>
+<p><a href="${esc(link)}" style="display:inline-block;background:#FF5A1F;color:#140700;padding:12px 20px;border-radius:4px;text-decoration:none;font-weight:700">${esc(c.cta)}</a></p>
 <p style="color:#59628A;font-size:13px">Lien valable ${c.validity}. Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.</p></div>`;
   if (!process.env.RESEND_API_KEY) {
     if (process.env.NODE_ENV === "production") throw new Error("RESEND_API_KEY manquant : impossible d'envoyer l'email de connexion");

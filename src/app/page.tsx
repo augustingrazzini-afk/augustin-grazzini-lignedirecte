@@ -1,9 +1,8 @@
 import Link from "next/link";
-import "@fontsource-variable/unbounded";
 import "@fontsource/ibm-plex-mono/400.css";
-import "@fontsource/ibm-plex-mono/500.css";
 import "./studio.css";
 import { VisitBeacon } from "@/components/client/VisitBeacon";
+import { LogoMark } from "@/components/Logo";
 import { currentUser } from "@/lib/session";
 import { PLANS, euros } from "@/lib/billing";
 import { LEGAL } from "@/lib/legal";
@@ -111,7 +110,7 @@ export default async function Home() {
       <VisitBeacon page="/" />
 
       <header className="st-rail">
-        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><span className="st-dot" aria-hidden="true" />TRUSTPIPE</Link>
+        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><LogoMark size={30} />TRUSTPIPE</Link>
         <nav className="st-links" aria-label="Sections">
           <a href="#session">Vue client</a>
           <a href="#assistant">Assistant</a>

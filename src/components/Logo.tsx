@@ -1,29 +1,32 @@
-// Logo Trustpipe : le symbole « tp » (t vert foncé, p vert menthe) et le mot « Trust » + « pipe ».
+// Logo Trustpipe (direction « Studio / On Air ») : un carré orange électrique avec le point REC
+// et une onde sonore, suivi du mot TRUSTPIPE en Unbounded.
+export const TP_ORANGE = "#FF5A1F";
+export const TP_INK = "#140700";
+// Anciennes couleurs, gardées pour les éléments qui les utilisent encore.
 export const TP_DARK = "#0C3D2F";
 export const TP_MINT = "#31D287";
 
-/** Le symbole seul. `onDark` : le t passe en blanc pour rester lisible sur fond foncé. */
-export function LogoMark({ size = 36, onDark = false }: { size?: number; onDark?: boolean }) {
+/** Le symbole seul. */
+export function LogoMark({ size = 36 }: { size?: number; onDark?: boolean }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 360 370" role="img" aria-label="Trustpipe" style={{ flex: "none" }}>
-      <g fill="none" strokeLinecap="round" strokeLinejoin="round" strokeWidth="56">
-        <path d="M111 80 V232 Q111 295 168 295" stroke={onDark ? "#fff" : TP_DARK} />
-        <path d="M72 143 H160" stroke={onDark ? "#fff" : TP_DARK} />
-        <path d="M232 160 V335" stroke={TP_MINT} />
-      </g>
-      <path fillRule="evenodd" fill={TP_MINT} d="M232 160 Q232 128 290 128 Q352 128 352 207 Q352 287 290 287 L232 287 Z M268 182 Q268 175 285 175 Q305 175 305 207 Q305 238 285 238 Q268 238 268 232 Z" />
+    <svg width={size} height={size} viewBox="0 0 360 360" role="img" aria-label="Trustpipe" style={{ flex: "none" }}>
+      <rect width="360" height="360" rx="84" fill={TP_ORANGE} />
+      <circle cx="110" cy="180" r="48" fill={TP_INK} />
+      <rect x="186" y="118" width="32" height="124" rx="16" fill={TP_INK} />
+      <rect x="232" y="74" width="32" height="212" rx="16" fill={TP_INK} />
+      <rect x="278" y="138" width="32" height="84" rx="16" fill={TP_INK} />
     </svg>
   );
 }
 
-/** Symbole + mot « Trustpipe », signé « by LigneDirecte ». `onDark` pour la barre latérale ; `by={false}` pour le masquer. */
+/** Symbole + mot « TRUSTPIPE », signé « by LigneDirecte ». `onDark` pour les fonds sombres ; `by={false}` pour masquer la signature. */
 export function Logo({ size = 22, onDark = false, by = true }: { size?: number; onDark?: boolean; by?: boolean }) {
   return (
     <span className="tp-logo" style={{ fontSize: size }}>
-      <LogoMark size={Math.round(size * 1.55)} onDark={onDark} />
+      <LogoMark size={Math.round(size * 1.55)} />
       <span className="tp-name">
-        <span className="tp-word"><span style={{ color: onDark ? "#fff" : TP_DARK }}>Trust</span><span style={{ color: TP_MINT }}>pipe</span></span>
-        {by && <span className="tp-by" style={{ color: onDark ? "rgba(255,255,255,.62)" : "#59628A" }}>by LigneDirecte</span>}
+        <span className="tp-word" style={{ color: onDark ? "#EDE9E1" : TP_INK, fontFamily: "\"Unbounded Variable\", \"Arial Black\", sans-serif", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".01em", fontSize: ".82em" }}>Trustpipe</span>
+        {by && <span className="tp-by" style={{ color: onDark ? "rgba(237,233,225,.6)" : "#59628A", fontFamily: "\"IBM Plex Mono\", ui-monospace, monospace", textTransform: "uppercase", letterSpacing: ".12em" }}>by LigneDirecte</span>}
       </span>
     </span>
   );
