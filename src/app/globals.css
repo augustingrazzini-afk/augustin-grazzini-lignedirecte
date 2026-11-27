@@ -699,7 +699,7 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
    aux rendez-vous et au bouton principal. Le site vitrine (studio.css) reste en noir et orange.
    ========================================================================== */
 .theme-light {
-  --bg: #F4F0E8; --surface: #FFFDF9; --panel: rgba(20,7,0,.035); --stroke: #E6E0D5; --stroke-2: #D6CFC2;
+  --bg: #EEE5D6; --surface: #F8F1E5; --panel: rgba(20,7,0,.035); --stroke: #E2D7C5; --stroke-2: #D3C6B1;
   --ink: #16130F; --muted: #5E5850; --dim: #8D877D; --navy: #0B0B0A;
   --blue: #FF5A1F; --sky: #FF8A4C; --mint: #3E8E2F; --amber: #B7791F; --rose: #D63C5A;
   --o-soft: rgba(255,90,31,.1);
@@ -806,6 +806,10 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 /* Assistant IA, connecteurs, débrief */
 .theme-light .as-avatar { background: #0B0B0A; color: #fff; border-radius: 6px; }
 .theme-light .as-msg.user .as-bubble { background: #0B0B0A; color: #fff; }
+.theme-light .as-input { background: #F3EADB; }
+.theme-light .as-input textarea { background: #FFFBF4; color: var(--ink); border: 1px solid var(--stroke-2); border-radius: 8px; }
+.theme-light .as-bar { padding: 14px 20px 6px; }
+.theme-light .as-sugg .chip { background: #F3EADB; border-color: var(--stroke-2); }
 .theme-light .as-input textarea:focus { outline: 2px solid rgba(22,19,15,.25); }
 .theme-light .as-hrow.on { border-color: var(--ink); }
 .theme-light .cx-tile:hover { border-color: var(--ink); }

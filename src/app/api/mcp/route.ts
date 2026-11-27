@@ -28,11 +28,18 @@ async function handle(m: Rpc, ctx: { orgId: string; userId: string }) {
   const id = m.id;
   switch (m.method) {
     case "initialize": {
+      const base = (process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "");
       const asked = String(m.params?.protocolVersion || "");
       return ok(id, {
         protocolVersion: VERSIONS.includes(asked) ? asked : VERSIONS[0],
         capabilities: { tools: { listChanged: false } },
-        serverInfo: { name: "trustpipe", title: "Trustpipe", version: "1.0.0" },
+        serverInfo: {
+          name: "trustpipe", title: "Trustpipe", version: "1.0.0", websiteUrl: base,
+          icons: [
+            { src: `${base}/icon-512.png`, mimeType: "image/png", sizes: ["512x512"] },
+            { src: `${base}/trustpipe-mark.svg`, mimeType: "image/svg+xml", sizes: ["any"] },
+          ],
+        },
         instructions: "Trustpipe gère les relances de prospection d'un commercial : rappels de prospects après un appel, rendez-vous à préparer. Utilisez lister_relances pour voir ce qui est à faire (en retard, aujourd'hui, cette semaine), historique_prospect pour relire les derniers appels avant de relancer, creer_relance et modifier_relance pour planifier ou clôturer. Dates en heure de Paris.",
       });
     }
