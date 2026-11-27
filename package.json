@@ -38,7 +38,7 @@
   "devDependencies": {
     "@types/node": "^22.16.0",
     "@types/papaparse": "^5.3.16",
-    "@types/react": "^19.1.8",
+    "@types/react": "19.3.3",
     "prisma": "^6.11.1",
     "tsx": "^4.20.3",
     "typescript": "^5.8.3"

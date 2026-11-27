@@ -9,8 +9,14 @@ const secret = () => new TextEncoder().encode(process.env.AUTH_SECRET || "");
 
 export async function createSession(userId: string) {
   if ((process.env.AUTH_SECRET || "").length < 32) throw new Error("AUTH_SECRET manquant ou trop court");
-  const jwt = await new SignJWT({ sub: userId }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${MAX_AGE}s`).sign(secret());
+  const u = await db.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
+  const jwt = await new SignJWT({ sub: userId, v: u?.sessionVersion ?? 0 }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${MAX_AGE}s`).sign(secret());
   (await cookies()).set(COOKIE, jwt, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: MAX_AGE });
+}
+
+/** Invalide toutes les sessions ouvertes de l'utilisateur (déconnexion, nouveau mot de passe). */
+export async function revokeSessions(userId: string) {
+  await db.user.update({ where: { id: userId }, data: { sessionVersion: { increment: 1 } } });
 }
 
 export async function destroySession() {
@@ -24,13 +30,16 @@ export const currentUser = cache(async () => {
   try {
     const { payload } = await jwtVerify(token, secret(), { algorithms: ["HS256"] });
     if (!payload.sub) return null;
-    return await db.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: payload.sub },
       include: {
         memberships: { include: { org: true } },
         clientAccess: { include: { client: { include: { org: true } } } },
       },
     });
+    // Session révoquée (déconnexion, changement de mot de passe) : le jeton ne vaut plus rien.
+    if (!user || Number(payload.v ?? 0) !== user.sessionVersion) return null;
+    return user;
   } catch {
     return null;
   }

@@ -19,6 +19,7 @@ model User {
   emailVerifiedAt DateTime? // adresse confirmée (lien cliqué)
   failedLogins    Int       @default(0)
   lockedUntil     DateTime? // blocage temporaire après trop d'essais ratés
+  sessionVersion  Int       @default(0) // augmente à chaque déconnexion ou changement de mot de passe : révoque les sessions
   createdAt    DateTime       @default(now())
   memberships  Membership[]
   clientAccess ClientMember[]

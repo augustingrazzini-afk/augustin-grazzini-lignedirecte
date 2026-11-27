@@ -53,6 +53,10 @@ export async function POST(req: Request) {
   if (!scope) return jsonError("Accès refusé", 403);
   const blocked = await assertActive(scope);
   if (blocked) return blocked;
+  // Commercial invité (pas membre de l'entreprise) : il peut déposer ses rendez-vous à débriefer, jamais des appels.
+  // Ses appels viennent uniquement de son outil d'appel : le classement vu par le dirigeant reste fiable.
+  if (!share && scope.kind === "client" && !(await db.membership.count({ where: { orgId: scope.orgId, userId: scope.userId } })) && rows.some((r) => r.kind !== "meeting"))
+    return jsonError("Les appels viennent uniquement de votre outil d'appel. Vous pouvez ajouter ici vos rendez-vous à débriefer.", 403);
   const clientId = scopeClientId(scope);
 
   for (const r of rows) if (r.recordingKey && !r.recordingKey.startsWith(scope.orgId + "/")) return jsonError("Fichier d'enregistrement invalide", 403);

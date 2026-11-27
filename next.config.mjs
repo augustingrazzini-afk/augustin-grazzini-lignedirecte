@@ -2,11 +2,19 @@
 const nextConfig = {
   poweredByHeader: false,
   experimental: { serverActions: { bodySizeLimit: "10mb" } },
-  // Liens de suivi fusionnés : l'ancien lien d'un client regroupé renvoie vers l'espace commun.
-  async redirects() {
+  // En-têtes de sécurité : pas d'affichage dans un cadre tiers, pas de devinette de type, référent limité.
+  async headers() {
+    const base = [
+      { key: "X-Frame-Options", value: "DENY" },
+      { key: "Content-Security-Policy", value: "frame-ancestors 'none'; base-uri 'self'; object-src 'none'" },
+      { key: "X-Content-Type-Options", value: "nosniff" },
+      { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
+      { key: "Permissions-Policy", value: "camera=(), geolocation=(), payment=()" },
+    ];
     return [
-      { source: "/suivi/V_fs0PnUrDiSNhTNnz8qOp2DNoNGuA0n", destination: "/suivi/0LrXRXwJpuJrjv_F5ZmCtuUvo4DlcgRu", permanent: false },
-      { source: "/suivi/V_fs0PnUrDiSNhTNnz8qOp2DNoNGuA0n/:path*", destination: "/suivi/0LrXRXwJpuJrjv_F5ZmCtuUvo4DlcgRu/:path*", permanent: false },
+      { source: "/:path*", headers: base },
+      // Le jeton d'un lien de suivi ne doit jamais partir dans l'en-tête Referer.
+      { source: "/suivi/:path*", headers: [{ key: "Referrer-Policy", value: "no-referrer" }] },
     ];
   },
 };

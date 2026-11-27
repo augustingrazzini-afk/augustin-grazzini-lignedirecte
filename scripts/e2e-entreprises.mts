@@ -14,7 +14,7 @@ async function page(userId: string) {
   await ctx.addCookies([{ name: "cockpit_session", value: await jwtFor(userId), url: BASE }]);
   const p = await ctx.newPage();
   p.on("pageerror", (e) => issues.push("JS " + p.url() + " " + e.message));
-  p.on("console", (m) => { if (m.type() === "error" && !/favicon|Failed to load resource.*(404|401)/.test(m.text())) issues.push("console " + p.url() + " " + m.text().slice(0, 200)); });
+  p.on("console", (m) => { if (m.type() === "error" && !/_vercel\/insights|favicon|Failed to load resource.*(404|401)/.test(m.text())) issues.push("console " + p.url() + " " + m.text().slice(0, 200)); });
   p.on("response", (r) => { if (r.status() >= 500) issues.push("HTTP " + r.status() + " " + r.url()); });
   return p;
 }

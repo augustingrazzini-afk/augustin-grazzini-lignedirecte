@@ -76,8 +76,9 @@ export async function Sources({ scope }: { scope: Scope }) {
         </div>
       )}
       <Connectors providers={providers} clientId={clientId} connected={[...new Set(integrations.map((i) => i.provider))]} />
-      <CsvImport clientId={clientId} />
-      <ManualAdd clientId={clientId} uploads={storageEnabled()} />
+      {/* Saisie manuelle et CSV : réservés à l'entreprise, pour que les chiffres d'un commercial viennent de son outil. */}
+      {scope.kind === "org" && <><CsvImport clientId={clientId} />
+      <ManualAdd clientId={clientId} uploads={storageEnabled()} /></>}
       <div className="card"><h2>Où vont vos données</h2><p className="sub" style={{ marginBottom: 0 }}>
         {scope.kind === "client" ? "Les appels de l'outil que vous branchez arrivent dans votre espace, et l'entreprise pour qui vous prospectez les suit en direct. " : "Chaque appel est attribué à un commercial (l'outil qu'il a branché, ou les règles de l'onglet Commerciaux) : un commercial ne voit jamais les appels d'un autre. "}
         Les clés API sont chiffrées. Les numéros de téléphone ne sont pas conservés (seulement les 4 derniers chiffres).</p></div>

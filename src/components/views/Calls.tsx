@@ -43,7 +43,7 @@ export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: 
         <input type="hidden" name="days" value={days} /><input type="hidden" name="f" value={filter} />{current && <input type="hidden" name="client" value={current} />}
         <input className="input" style={{ flex: "1 1 260px" }} type="search" name="q" defaultValue={q} placeholder="Prospect, entreprise, mot-clé…" aria-label="Rechercher" />
         <button className="btn">Rechercher</button>
-        {!readOnly && <Link className="btn primary" href={`${base}/sources#ajout`}>+ Ajouter un appel</Link>}
+        {!readOnly && isBoss && <Link className="btn primary" href={`${base}/sources#ajout`}>+ Ajouter un appel</Link>}
       </form>
       {isBoss && reps.length > 0 && (
         <div className="filters" aria-label="Commercial">

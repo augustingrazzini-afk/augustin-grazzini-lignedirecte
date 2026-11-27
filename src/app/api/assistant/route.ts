@@ -12,6 +12,7 @@ import { saveConversation } from "@/lib/conversations";
 export const maxDuration = 120;
 
 const SHARE_DAILY_LIMIT = 30;
+const ORG_DAILY_LIMIT = 300;
 
 
 const Body = z.object({
@@ -38,6 +39,8 @@ export async function POST(req: Request) {
   if (!scope) return jsonError("Accès refusé", 403);
   const blocked = (await assertActive(scope)) || (await assertPremium(scope));
   if (blocked) return blocked;
+  // Garde-fou de coût : plafond de questions par jour et par espace (hors liens de suivi, déjà limités).
+  if (!b.data.shareToken && (await bumpUsage(`assistant:${scope.orgId}`)) > ORG_DAILY_LIMIT) return jsonError(`Limite de ${ORG_DAILY_LIMIT} questions par jour atteinte pour votre espace. Elle se remet à zéro demain.`, 429);
   const clientId = scopeClientId(scope);
   const [org, client] = await Promise.all([
     db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }),

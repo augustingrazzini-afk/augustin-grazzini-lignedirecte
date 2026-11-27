@@ -5,9 +5,10 @@ import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
 import { db } from "@/lib/db";
-import { isEmail, loginWithPassword, normEmail, resetPasswordWithToken, sendMagicLink } from "@/lib/auth";
+import { isEmail, loginWithPassword, normEmail, resetPasswordWithToken, safeRedirect, sendMagicLink } from "@/lib/auth";
+import { headers } from "next/headers";
 import { hashPassword, passwordProblem, verifyPassword } from "@/lib/password";
-import { createSession, destroySession } from "@/lib/session";
+import { createSession, destroySession, revokeSessions } from "@/lib/session";
 import { requireOrgScope, requireUser } from "@/lib/access";
 import { TRIAL_DAYS, isActive, maxClients } from "@/lib/billing";
 import { randomToken, seal } from "@/lib/crypto";
@@ -20,7 +21,16 @@ export type FormState = { ok?: string; error?: string } | null;
 const s = (f: FormData, k: string, max = 300) => String(f.get(k) ?? "").trim().slice(0, max);
 
 /* ---------- Connexion ---------- */
+/** Limite par adresse IP sur les formulaires qui envoient un email (en plus de la limite par adresse email). */
+async function tooManyFromIp(what: string, max: number) {
+  const ip = ((await headers()).get("x-forwarded-for") || "").split(",")[0].trim() || "inconnue";
+  const { bumpUsage } = await import("@/lib/usage");
+  return (await bumpUsage(`ip:${what}:${ip}`)) > max;
+}
+const TOO_MANY = { error: "Trop de demandes depuis votre connexion aujourd'hui. Réessayez demain ou écrivez-nous." };
+
 export async function requestLogin(_: FormState, f: FormData): Promise<FormState> {
+  if (await tooManyFromIp("login-link", 30)) return TOO_MANY;
   const email = s(f, "email", 254);
   if (!isEmail(normEmail(email))) return { error: "Adresse email invalide." };
   try {
@@ -31,7 +41,7 @@ export async function requestLogin(_: FormState, f: FormData): Promise<FormState
   return { ok: "Lien envoyé. Ouvrez votre boîte mail et cliquez sur le lien (valable 30 minutes)." };
 }
 
-const nextPath = (v: string) => (v.startsWith("/") && !v.startsWith("//") ? v : "/app");
+const nextPath = (v: string) => safeRedirect(v) || "/app";
 
 /** Fautes de frappe fréquentes sur les domaines d'email (gmai.com, hotmial.fr…). */
 const DOMAIN_FIX: Record<string, string> = {
@@ -53,6 +63,7 @@ export async function signup(_: FormState, f: FormData): Promise<FormState> {
   const typo = emailTypo(email);
   if (typo) return { error: `Vérifiez votre adresse : vouliez-vous dire ${typo} ?` };
   if (f.get("accept") !== "on") return { error: "Acceptez les conditions générales pour continuer." };
+  if (await tooManyFromIp("signup", 20)) return TOO_MANY;
   const problem = passwordProblem(pw, email);
   if (problem) return { error: problem };
   try {
@@ -62,17 +73,8 @@ export async function signup(_: FormState, f: FormData): Promise<FormState> {
       await sendMagicLink(email, { intro: "Vous avez déjà un compte Trustpipe avec cette adresse. Utilisez ce lien pour vous connecter, ou « Mot de passe oublié » si besoin." });
     } else {
       const hash = await hashPassword(pw);
-      try {
-        await sendMagicLink(email, { purpose: "verify", payload: hash, redirect: "/onboarding" });
-      } catch (e) {
-        // L'email de confirmation n'a pas pu partir (service d'envoi indisponible) : pour une adresse encore jamais
-        // utilisée, on ouvre le compte tout de suite plutôt que de bloquer l'inscription. L'adresse reste « non confirmée ».
-        if (existing || !(e instanceof Error) || !e.message.startsWith("Envoi de l'email impossible")) throw e;
-        console.error("inscription sans email de confirmation", e.message);
-        const user = await db.user.create({ data: { email, passwordHash: hash } });
-        await createSession(user.id);
-        redirect("/onboarding");
-      }
+      // L'adresse doit être confirmée avant toute ouverture de compte : si l'email ne part pas, on demande de réessayer.
+      await sendMagicLink(email, { purpose: "verify", payload: hash, redirect: "/onboarding" });
     }
   } catch (e) { if (isRedirectError(e)) throw e; return fail(e); }
   return { ok: email }; // l'écran de confirmation affiche l'adresse
@@ -88,6 +90,7 @@ export async function loginPassword(_: FormState, f: FormData): Promise<FormStat
 export async function forgotPassword(_: FormState, f: FormData): Promise<FormState> {
   const email = normEmail(s(f, "email", 254));
   if (!isEmail(email)) return { error: "Adresse email invalide." };
+  if (await tooManyFromIp("reset", 20)) return TOO_MANY;
   try {
     if (await db.user.findUnique({ where: { email }, select: { id: true } })) await sendMagicLink(email, { purpose: "reset" });
   } catch (e) { return fail(e); }
@@ -112,10 +115,17 @@ export async function changePassword(_: FormState, f: FormData): Promise<FormSta
   const problem = passwordProblem(pw, me.email);
   if (problem) return { error: problem };
   await db.user.update({ where: { id: u.id }, data: { passwordHash: await hashPassword(pw), failedLogins: 0, lockedUntil: null } });
+  // Nouveau mot de passe : toutes les sessions ouvertes ailleurs sont coupées, celle-ci est recréée.
+  await revokeSessions(u.id);
+  await createSession(u.id);
   return { ok: me.passwordHash ? "Mot de passe modifié." : "Mot de passe enregistré : vous pouvez maintenant vous connecter avec." };
 }
 
 export async function logout() {
+  // Se déconnecter invalide le jeton lui-même (et les autres sessions) : un cookie copié ne sert plus à rien.
+  const { currentUser } = await import("@/lib/session");
+  const me = await currentUser();
+  if (me) await revokeSessions(me.id);
   await destroySession();
   redirect("/login");
 }
@@ -307,6 +317,8 @@ export async function addIntegration(_: FormState, f: FormData): Promise<FormSta
     let orgId: string;
     if (clientId && u.clientAccess.some((a) => a.clientId === clientId)) {
       orgId = u.clientAccess.find((a) => a.clientId === clientId)!.client.orgId;
+      // Un commercial invité branche un vrai outil d'appel : pas de source libre où l'on pourrait pousser de faux appels.
+      if (["webhook", "custom"].includes(providerId) && !u.memberships.some((m) => m.orgId === orgId)) return { error: "Cette source est réservée à l'entreprise. Branchez votre outil d'appel (Minari, Aircall, Ringover…)." };
     } else {
       const { scope } = await writableOrg();
       orgId = scope.orgId;

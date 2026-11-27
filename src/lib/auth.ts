@@ -7,7 +7,8 @@ export const normEmail = (e: string) => e.trim().toLowerCase();
 export const isEmail = (e: string) => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e) && e.length <= 254;
 
 const APP = () => process.env.APP_URL || "http://localhost:3000";
-const safeRedirect = (r?: string | null) => (r && r.startsWith("/") && !r.startsWith("//") ? r : null);
+/** Chemin interne uniquement : refuse « // », « /\ » et tout caractère de contrôle (redirection ouverte). */
+export const safeRedirect = (r?: string | null) => (r && /^\/(?![\/\\])[^\\\u0000-\u001f]*$/.test(r) ? r : null);
 
 /**
  * Crée un lien à usage unique et l'envoie par email.
@@ -72,6 +73,6 @@ export async function resetPasswordWithToken(token: string, pw: string): Promise
   const upd = await db.loginToken.updateMany({ where: { id: row.id, usedAt: null }, data: { usedAt: new Date() } });
   if (upd.count !== 1) return { error: "Ce lien a déjà servi." };
   const passwordHash = await hashPassword(pw);
-  const user = await db.user.upsert({ where: { email: row.email }, update: { passwordHash, emailVerifiedAt: new Date(), failedLogins: 0, lockedUntil: null }, create: { email: row.email, passwordHash, emailVerifiedAt: new Date() } });
+  const user = await db.user.upsert({ where: { email: row.email }, update: { passwordHash, emailVerifiedAt: new Date(), failedLogins: 0, lockedUntil: null, sessionVersion: { increment: 1 } }, create: { email: row.email, passwordHash, emailVerifiedAt: new Date() } });
   return { userId: user.id };
 }
