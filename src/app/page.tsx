@@ -63,6 +63,15 @@ const CLIENT = [
   ["Il comprend son marché", "Ce qui bloque, quand les prospects décrochent, ce qu'ils disent : il pose la question, l'assistant répond."],
 ] as const;
 
+const AI_CAN = [
+  ["Prépare les rendez-vous", "Qui est le prospect, ce qu'il a dit, ce qui peut bloquer et les questions pour ouvrir."],
+  ["Répond sur la campagne", "« Combien de rendez-vous cette semaine ? », « Qui faut-il rappeler ? » : réponse chiffrée, à partir des vrais appels."],
+  ["Explique les objections", "Ce que disent les prospects, ce qui revient le plus, et comment y répondre."],
+  ["Débriefe les visios", "Collez la transcription d'un rendez-vous : ce qui a marché, ce qui a manqué, la suite à donner."],
+  ["Trouve les bons créneaux", "Les heures et les jours où les prospects décrochent le plus."],
+  ["Garde l'historique", "Chaque conversation avec l'assistant est conservée, on reprend où on s'était arrêté."],
+] as const;
+
 const DIALERS = ["Minari", "lemlist", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "HubSpot", "Skipcall"];
 
 /** Arguments de confiance : uniquement ce qui est réellement en place. */
@@ -98,7 +107,7 @@ export default async function Home() {
         <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><LogoMark size={30} />TRUSTPIPE</Link>
         <nav className="st-links" aria-label="Sections">
           <a href="#session">Vue client</a>
-          <a href="#assistant">Assistant</a>
+          <a href="#assistant">Assistant IA</a>
           <a href="#demo">Démo</a>
           <a href="#integrations">Intégrations</a>
           <a href="#tarifs">Tarifs</a>
@@ -114,7 +123,8 @@ export default async function Home() {
             <h1 className="st-h1">Chaque appel.<br /><span className="st-thin">Chez votre client.</span><br /><span className="st-o">À la seconde.</span></h1>
             <div className="st-hrow">
               <div>
-                <p>Votre client ouvre un lien et suit sa prospection en direct : <b>chaque appel, chaque résumé, chaque rendez-vous</b>, au moment où vous raccrochez. Et l&apos;assistant IA intégré prépare ses rendez-vous. Le reporting ne s&apos;écrit plus : il se regarde.</p>
+                <p>Votre client ouvre un lien et suit sa prospection en direct : <b>chaque appel, chaque résumé, chaque rendez-vous</b>, au moment où vous raccrochez. Le reporting ne s&apos;écrit plus : il se regarde.</p>
+                <a className="st-aipill" href="#assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA inclus.</b> Il connaît chaque appel : votre client et vous lui posez vos questions, il prépare les rendez-vous.</span><span aria-hidden="true">→</span></a>
                 <p className="st-note">SANS ENGAGEMENT · PRÊT EN 2 MINUTES · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
@@ -176,14 +186,18 @@ export default async function Home() {
       </section>
 
       <section id="assistant" className="st-sec">
-        <div className="st-side"><div className="st-n">02</div><small>L&apos;assistant<br />intégré</small></div>
+        <div className="st-side"><div className="st-n">02</div><small>Assistant IA<br />inclus</small></div>
         <div className="st-body">
-          <h2 className="st-h2">Il a écouté toutes les pistes. <span className="st-thin">Votre client lui parle.</span></h2>
-          <p className="st-lead">L&apos;assistant est intégré à l&apos;espace de votre client : pas d&apos;outil en plus, pas de copier-coller. Il connaît chaque appel passé pour lui.</p>
+          <span className="st-aitag"><span className="st-dot" />ASSISTANT IA · INCLUS DANS TOUTES LES FORMULES</span>
+          <h2 className="st-h2">Un assistant IA. <span className="st-thin">Il a écouté chaque appel.</span></h2>
+          <p className="st-lead">Dans Trustpipe, un assistant IA connaît tous les appels passés : résumés, transcriptions, objections, rendez-vous. <b>Votre client</b> lui pose ses questions depuis son lien de suivi, <b>vous</b> depuis votre espace. Pas d&apos;outil en plus, pas de copier-coller : on lui écrit comme à un collègue.</p>
           <div className="st-ai">
             <div className="q"><div className="st-prompt"><span className="u1">client-mystere ~</span><br />prépare mon rendez-vous de jeudi avec Atelier Morel<span className="st-cur" /></div>
               <div className="st-chips"><span>brief pré-rendez-vous</span><span>objections de la semaine</span><span>débrief de visio</span><span>meilleur créneau</span><span>historique des conversations</span></div></div>
-            <div className="st-ans"><b>Atelier Morel, gérant.</b> Il veut réduire ses coûts et a accepté quand vous avez parlé de délai. Objection probable : le timing. Trois questions pour ouvrir :<ol><li>Combien vous coûte l&apos;énergie aujourd&apos;hui ?</li><li>Qu&apos;est-ce qui bloquait jusqu&apos;ici ?</li><li>Qui décide avec vous ?</li></ol></div>
+            <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● RÉPONSE DE L&apos;ASSISTANT IA</span><b>Atelier Morel, gérant.</b> Il veut réduire ses coûts et a accepté quand vous avez parlé de délai. Objection probable : le timing. Trois questions pour ouvrir :<ol><li>Combien vous coûte l&apos;énergie aujourd&apos;hui ?</li><li>Qu&apos;est-ce qui bloquait jusqu&apos;ici ?</li><li>Qui décide avec vous ?</li></ol></div>
+          </div>
+          <div className="st-secg">
+            {AI_CAN.map(([t, d]) => <div key={t}><b>{t}</b><p>{d}</p></div>)}
           </div>
         </div>
       </section>
