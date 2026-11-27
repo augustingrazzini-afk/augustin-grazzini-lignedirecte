@@ -31,7 +31,7 @@ export default async function Page() {
         <div className="card"><h2>Claude</h2><p className="sub">Branchez Claude sur Trustpipe : il lit vos relances et l&apos;historique de vos prospects, et planifie vos relances à votre place.</p>
           <p className="small" style={{ margin: "0 0 6px" }}>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
           <code className="small" style={{ display: "block", padding: "10px 12px", background: "var(--soft, #f4f6f8)", borderRadius: 8, userSelect: "all", wordBreak: "break-all" }}>{mcpUrl}</code>
-          <p className="small muted" style={{ margin: "8px 0 14px" }}>Claude vous demandera ensuite de vous connecter à Trustpipe et d&apos;autoriser l&apos;accès.</p>
+          <p className="small muted" style={{ margin: "8px 0 14px" }}>Claude vous demandera ensuite de vous connecter à Trustpipe et d&apos;autoriser l&apos;accès. <a href="/claude" target="_blank" rel="noreferrer">Guide et exemples</a>.</p>
           {mcp.length ? <div className="list">{mcp.map((t) => (
             <div key={t.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
               <span className="who">{t.clientName || "Claude"}<span className="small muted"> · connecté le {t.createdAt.toLocaleDateString("fr-FR")}{t.lastUsedAt ? ` · utilisé le ${t.lastUsedAt.toLocaleDateString("fr-FR")}` : ""}</span></span>

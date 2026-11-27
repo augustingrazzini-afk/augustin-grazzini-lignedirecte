@@ -54,7 +54,7 @@ export const TOOLS = [
       recherche: { type: "string", description: "Nom du prospect ou de l'entreprise (facultatif)" },
       limite: { type: "integer", minimum: 1, maximum: 100, description: "Par défaut : 30" },
     } },
-    annotations: { readOnlyHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: "creer_relance",
@@ -68,6 +68,7 @@ export const TOOLS = [
       canal: { type: "string", enum: ["call", "email", "linkedin"], description: "Par défaut : call" },
       client: { type: "string", description: "Nom ou identifiant du client concerné (facultatif)" },
     } },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: false, openWorldHint: false },
   },
   {
     name: "modifier_relance",
@@ -80,6 +81,7 @@ export const TOOLS = [
       nouvelle_date: { type: "string", description: "Pour reporter : AAAA-MM-JJ ou date-heure ISO" },
       motif: { type: "string", description: "Nouveau motif (facultatif)" },
     } },
+    annotations: { readOnlyHint: false, destructiveHint: false, idempotentHint: true, openWorldHint: false },
   },
   {
     name: "historique_prospect",
@@ -89,14 +91,14 @@ export const TOOLS = [
       recherche: { type: "string", description: "Nom du prospect ou de l'entreprise" },
       limite: { type: "integer", minimum: 1, maximum: 20, description: "Nombre d'appels, par défaut 5" },
     } },
-    annotations: { readOnlyHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false },
   },
   {
     name: "lister_clients",
     title: "Lister les clients",
     description: "Liste les clients de l'espace Trustpipe, avec le nombre d'appels des 7 derniers jours et de relances à faire.",
     inputSchema: { type: "object", properties: {} },
-    annotations: { readOnlyHint: true },
+    annotations: { readOnlyHint: true, openWorldHint: false },
   },
 ] as const;
 

@@ -106,6 +106,15 @@ test("MCP : créer, lister, reporter, terminer une relance — sans jamais voir 
   assert.match((await tool("lister_clients")).content[0].text, /Atelier Morel SAS/);
 });
 
+test("MCP : abonnement expiré → outils bloqués", async () => {
+  await db.organization.update({ where: { id: orgA.id }, data: { subscriptionStatus: "canceled" } });
+  const r = await tool("lister_relances");
+  assert.equal(r.isError, true);
+  assert.match(r.content[0].text, /abonnement/);
+  await db.organization.update({ where: { id: orgA.id }, data: { subscriptionStatus: "active" } });
+  assert.notEqual((await tool("lister_clients")).isError, true);
+});
+
 test("OAuth : renouvellement avec rotation, puis révocation", async () => {
   const r = await exchangeToken(new URLSearchParams({ grant_type: "refresh_token", refresh_token: refresh }));
   assert.equal(r.ok, true);

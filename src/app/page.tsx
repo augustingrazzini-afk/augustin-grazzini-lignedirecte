@@ -224,6 +224,7 @@ export default async function Home() {
             <span className="st-mono">NOUVEAU · CONNECTEUR CLAUDE</span>
             <h3>Branchez aussi Claude sur Trustpipe.</h3>
             <p>Ajoutez Trustpipe comme connecteur dans Claude : demandez-lui « quelles relances aujourd&apos;hui ? », « reporte Paul Morel à jeudi » ou « relis mon dernier appel avec Atelier Morel », il lit et gère vos relances pour vous.</p>
+            <Link className="st-btn g" href="/claude" style={{ marginTop: 18, maxWidth: 420 }}>INSTALLER LE CONNECTEUR CLAUDE <span aria-hidden="true">→</span></Link>
           </div>
         </div>
       </section>

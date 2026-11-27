@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { baseUrl, cors, verifyAccess } from "@/lib/mcp-server";
 import { TOOLS, callTool } from "@/lib/mcp-tools";
+import { db } from "@/lib/db";
+import { isActive } from "@/lib/billing";
 
 /**
  * Serveur MCP de Trustpipe (transport HTTP « streamable », réponses JSON, sans session).
@@ -39,6 +41,9 @@ async function handle(m: Rpc, ctx: { orgId: string; userId: string }) {
     case "tools/call": {
       const name = String(m.params?.name || "");
       const args = (m.params?.arguments && typeof m.params.arguments === "object" ? m.params.arguments : {}) as Record<string, unknown>;
+      // Comme dans l'application : un espace sans abonnement actif ne peut plus utiliser le connecteur.
+      const org = await db.organization.findUnique({ where: { id: ctx.orgId }, select: { subscriptionStatus: true, trialEndsAt: true } });
+      if (!org || !isActive(org)) return ok(id, { content: [{ type: "text", text: "L'abonnement Trustpipe de cet espace n'est plus actif. Réactivez-le sur https://trustpipe.fr/app/billing pour utiliser le connecteur." }], isError: true });
       try {
         const out = await callTool(name, args, ctx);
         if (!out) return err(id, -32602, `Outil inconnu : ${name}`);
