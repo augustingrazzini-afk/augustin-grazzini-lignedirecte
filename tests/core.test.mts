@@ -60,7 +60,7 @@ test("une intégration connectée par un client range tout chez lui, sans regard
 
 test("réimporter le même appel met à jour sans doublon", async () => {
   const r = await upsertCalls({ orgId: orgA, provider: "minari" }, [call("c1", { listName: "Nova Q1", summary: "- nouveau résumé" })]);
-  assert.deepEqual(r, { created: 0, updated: 1 });
+  assert.deepEqual(r, { created: 0, updated: 1, unchanged: 0 });
   assert.equal(await db.call.count({ where: { orgId: orgA, externalId: "c1" } }), 1);
 });
 

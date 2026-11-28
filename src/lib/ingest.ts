@@ -44,14 +44,29 @@ export function contactKey(provider: string, c: { firstName?: string; lastName?:
 
 type Target = { orgId: string; provider: string; integrationId?: string | null; clientId?: string | null };
 
-/** Enregistre (ou met à jour) des appels normalisés. Renvoie le nombre de nouveaux appels. */
-export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{ created: number; updated: number }> {
-  if (!calls.length) return { created: 0, updated: 0 };
+/** Empreinte d'un appel tel que l'outil l'envoie (et du commercial à qui il revient). */
+export const callHash = (c: NormalizedCall, clientId: string | null | undefined) => sha256(JSON.stringify([2, clientId ?? null, c])).slice(0, 32);
+
+/**
+ * Enregistre (ou met à jour) des appels normalisés. Renvoie le nombre de nouveaux appels.
+ * Les appels déjà connus sont lus en une seule requête, et un appel inchangé depuis la dernière synchro n'est ni
+ * réécrit ni retraité (les outils renvoient toute la journée à chaque passage). `partial` : complément d'un appel
+ * (transcription…), toujours appliqué et sans toucher à l'empreinte.
+ */
+export async function upsertCalls(t: Target, calls: NormalizedCall[], opts: { partial?: boolean } = {}): Promise<{ created: number; updated: number; unchanged: number }> {
+  if (!calls.length) return { created: 0, updated: 0, unchanged: 0 };
   const rules = t.clientId ? [] : await db.clientRule.findMany({ where: { orgId: t.orgId } });
-  let created = 0, updated = 0;
+  const known = new Map((await db.call.findMany({
+    where: { orgId: t.orgId, provider: t.provider, externalId: { in: calls.map((c) => c.externalId).filter(Boolean) } },
+    select: { id: true, externalId: true, aiStatus: true, clientId: true, syncHash: true },
+  })).map((r) => [r.externalId, r]));
+  let created = 0, updated = 0, unchanged = 0;
   for (const c of calls) {
     if (!c.externalId) continue;
     const clientId = routeClient(c, t.provider, rules, t.clientId);
+    const existing = known.get(c.externalId);
+    const hash = opts.partial ? undefined : callHash(c, clientId);
+    if (existing && hash && existing.syncHash === hash) { unchanged++; continue; }
     const hasTr = (c.transcript?.length || 0) > 0;
     const needsAi = hasTr && !(c.objections?.length) ? "pending" : c.summary || c.objections?.length ? "done" : "none";
     const data: Prisma.CallUncheckedUpdateInput = {
@@ -80,8 +95,7 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{
       ...(hasTr ? { transcript: c.transcript as unknown as Prisma.InputJsonValue } : {}),
       ...(c.recordingUrl ? { recordingUrl: c.recordingUrl } : {}),
     };
-    const where = { orgId_provider_externalId: { orgId: t.orgId, provider: t.provider, externalId: c.externalId } };
-    const existing = await db.call.findUnique({ where, select: { id: true, aiStatus: true, clientId: true } });
+    if (hash) data.syncHash = hash;
     let saved;
     if (existing) {
       saved = await db.call.update({
@@ -95,9 +109,10 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{
       });
       created++;
     }
+    known.set(c.externalId, { id: saved.id, externalId: c.externalId, aiStatus: saved.aiStatus, clientId: saved.clientId, syncHash: saved.syncHash });
     await afterCall(saved);
   }
-  return { created, updated };
+  return { created, updated, unchanged };
 }
 
 /** Réapplique les règles aux appels existants non rangés (après création d'une règle). */
@@ -131,6 +146,10 @@ export async function afterCall(c: Awaited<ReturnType<typeof db.call.findFirstOr
 export async function upsertActivities(t: Target, items: NormalizedActivity[]): Promise<{ created: number; updated: number }> {
   if (!items.length) return { created: 0, updated: 0 };
   const rules = t.clientId ? [] : await db.clientRule.findMany({ where: { orgId: t.orgId } });
+  const known = new Map((await db.activity.findMany({
+    where: { orgId: t.orgId, provider: t.provider, externalId: { in: items.map((a) => a.externalId).filter(Boolean) } },
+    select: { id: true, externalId: true, clientId: true, type: true, occurredAt: true, subject: true, body: true, campaign: true, contactKey: true, repName: true, sentiment: true },
+  })).map((r) => [r.externalId, r]));
   let created = 0, updated = 0;
   for (const a of items) {
     if (!a.externalId) continue;
@@ -143,8 +162,10 @@ export async function upsertActivities(t: Target, items: NormalizedActivity[]): 
       subject: (a.subject || "").slice(0, 300), body: (a.body || "").slice(0, 8000),
       ...(a.sentiment ? { sentiment: a.sentiment } : {}),
     };
-    const where = { orgId_provider_externalId: { orgId: t.orgId, provider: t.provider, externalId: a.externalId } };
-    const existing = await db.activity.findUnique({ where, select: { id: true, clientId: true } });
+    const existing = known.get(a.externalId);
+    // Événement déjà enregistré à l'identique : rien à réécrire.
+    if (existing && existing.type === data.type && existing.occurredAt.getTime() === data.occurredAt.getTime() && existing.subject === data.subject && existing.body === data.body
+      && existing.campaign === data.campaign && existing.contactKey === data.contactKey && existing.repName === data.repName && (clientId ?? existing.clientId) === existing.clientId && (!a.sentiment || a.sentiment === existing.sentiment)) continue;
     let saved;
     if (existing) {
       saved = await db.activity.update({ where: { id: existing.id }, data: { ...data, clientId: clientId ?? existing.clientId } });

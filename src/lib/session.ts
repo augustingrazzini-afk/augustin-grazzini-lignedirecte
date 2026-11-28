@@ -32,6 +32,7 @@ export const currentUser = cache(async () => {
     if (!payload.sub) return null;
     const user = await db.user.findUnique({
       where: { id: payload.sub },
+      relationLoadStrategy: "join", // une seule requête SQL au lieu de cinq
       include: {
         memberships: { include: { org: true } },
         clientAccess: { include: { client: { include: { org: true } } } },
@@ -43,5 +44,11 @@ export const currentUser = cache(async () => {
   } catch {
     return null;
   }
+});
+/** L'organisation d'un espace, sans nouvelle requête quand elle vient d'être lue avec la session. */
+export const orgOf = cache(async (orgId: string) => {
+  const u = await currentUser();
+  const known = u?.memberships.find((m) => m.orgId === orgId)?.org ?? u?.clientAccess.find((a) => a.client.orgId === orgId)?.client.org;
+  return known ?? (await db.organization.findUnique({ where: { id: orgId } }));
 });
 export type SessionUser = NonNullable<Awaited<ReturnType<typeof currentUser>>>;

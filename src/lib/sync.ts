@@ -74,7 +74,7 @@ async function fillDetails(integrationId: string, orgId: string, provider: strin
         status: base.status, connected: base.connected, meetingBooked: base.meetingBooked, firstName: base.firstName, lastName: base.lastName,
         company: base.company, jobTitle: base.jobTitle, repName: base.repName, listName: base.listName, campaign: base.campaign, tags: base.tags,
         ...d, externalId: t.externalId,
-      }]);
+      }], { partial: true });
       // L'outil n'a pas de transcription : si un enregistrement exploitable existe, Trustpipe le transcrira ;
       // sinon on ne redemande plus (évite de reprendre les mêmes appels à chaque synchro).
       const after = await db.call.findUnique({ where: { orgId_provider_externalId: { orgId, provider, externalId: t.externalId } }, select: { id: true, transcript: true, recordingUrl: true, recordingKey: true, durationSec: true } });

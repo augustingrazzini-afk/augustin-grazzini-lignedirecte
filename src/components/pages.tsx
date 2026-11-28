@@ -1,4 +1,5 @@
 // Pages partagées entre l'espace SDR (/app) et le portail client (/portal/[id]).
+import { orgOf } from "@/lib/session";
 import type { Scope } from "@/lib/access";
 import { db } from "@/lib/db";
 import Link from "next/link";
@@ -41,7 +42,7 @@ export function CallPage({ scope, base, id }: { scope: Scope; base: string; id: 
 
 /** Encart « inclus en Premium » à la place d'une fonction IA avancée. */
 async function premiumGate(scope: Scope, what: string, fromEssentiel = false): Promise<React.ReactNode | null> {
-  const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { plan: true } });
+  const org = await orgOf(scope.orgId);
   if (!org || (fromEssentiel ? hasAi(org) : hasPremium(org))) return null;
   if (fromEssentiel) return (
     <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
@@ -78,7 +79,7 @@ export async function BriefPage({ scope, q }: { scope: Scope; q?: string }) {
 /** Mise en avant du connecteur Claude, en tête des relances : c'est la façon la plus rapide de les traiter. */
 async function ClaudeConnect({ orgId, userId }: { orgId: string; userId: string }) {
   const [org, linked] = await Promise.all([
-    db.organization.findUnique({ where: { id: orgId }, select: { plan: true } }),
+    orgOf(orgId),
     db.mcpToken.count({ where: { orgId, userId, revokedAt: null, refreshExpiresAt: { gt: new Date() } } }),
   ]);
   const url = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/api/mcp`;
