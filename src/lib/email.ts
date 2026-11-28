@@ -8,10 +8,11 @@ const COPY: Record<LinkPurpose, { subject: (app: string) => string; lead: string
   reset: { subject: (a) => `${a} : réinitialisez votre mot de passe`, lead: "Vous avez demandé à changer votre mot de passe. Cliquez pour en choisir un nouveau.", cta: "Choisir un nouveau mot de passe", validity: "30 minutes" },
 };
 
-export async function sendLoginEmail(to: string, link: string, intro?: string, purpose: LinkPurpose = "login") {
+/** `invite` : invitation envoyée par une entreprise (objet à son nom, bouton « Ouvrir mon espace », lien valable 7 jours). */
+export async function sendLoginEmail(to: string, link: string, intro?: string, purpose: LinkPurpose = "login", invite?: { from: string }) {
   const app = process.env.APP_NAME || "Trustpipe";
-  const c = COPY[purpose];
-  const subject = intro && purpose === "login" ? `${app} : votre accès` : c.subject(app);
+  const c = invite ? { ...COPY[purpose], lead: "Cliquez pour ouvrir votre espace, sans mot de passe à créer.", cta: "Ouvrir mon espace", validity: "7 jours" } : COPY[purpose];
+  const subject = invite ? `${invite.from} vous invite sur ${app}` : intro && purpose === "login" ? `${app} : votre accès` : c.subject(app);
   const text = `${intro ? intro + "\n\n" : ""}${c.lead} (lien valable ${c.validity}) :\n${link}\n\nSi vous n'êtes pas à l'origine de cette demande, ignorez cet email.`;
   const html = `<div style="font-family:Inter,Arial,sans-serif;max-width:520px;margin:auto;padding:24px;color:#0B122F">
 <p style="font-size:20px;font-weight:900;letter-spacing:.02em;margin:0 0 16px;font-family:'Arial Black',Arial,sans-serif;color:#140700"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#FF5A1F;margin-right:8px;vertical-align:1px"></span>TRUSTPIPE<sup style="font-size:9px;font-weight:700;margin-left:2px">TM</sup></p>${intro ? `<p>${esc(intro)}</p>` : ""}

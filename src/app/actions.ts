@@ -214,7 +214,7 @@ export async function createClient(_: FormState, f: FormData): Promise<FormState
     if (email) {
       const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
       await db.clientMember.upsert({ where: { clientId_userId: { clientId: c.id, userId: user.id } }, update: {}, create: { clientId: c.id, userId: user.id } });
-      await sendMagicLink(email, { redirect: `/portal/${c.id}/sources`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace, avec leurs résumés et un assistant IA.` }).catch(() => {});
+      await sendMagicLink(email, { invitedBy: org.name, redirect: `/portal/${c.id}/bienvenue`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace, avec leurs résumés et un assistant IA.` }).catch(() => {});
     }
     revalidatePath("/app/clients");
     redirect(`/app/clients/${c.id}`);
@@ -243,7 +243,7 @@ export async function inviteClientUser(_: FormState, f: FormData): Promise<FormS
     if (!isEmail(email)) return { error: "Adresse email invalide." };
     const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
     await db.clientMember.upsert({ where: { clientId_userId: { clientId, userId: user.id } }, update: {}, create: { clientId, userId: user.id } });
-    await sendMagicLink(email, { redirect: `/portal/${clientId}/bienvenue`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace « ${client.name} », avec leurs résumés et un assistant IA.` });
+    await sendMagicLink(email, { invitedBy: org.name, redirect: `/portal/${clientId}/bienvenue`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace « ${client.name} », avec leurs résumés et un assistant IA.` });
     revalidatePath(`/app/clients/${clientId}`);
     return { ok: `Invitation envoyée à ${email}.` };
   } catch (e) { return fail(e); }
@@ -406,7 +406,7 @@ export async function inviteTeammate(_: FormState, f: FormData): Promise<FormSta
     const other = await db.membership.findFirst({ where: { userId: user.id, NOT: { orgId: scope.orgId } } });
     if (other) return { error: "Cette personne a déjà son propre espace." };
     await db.membership.upsert({ where: { orgId_userId: { orgId: scope.orgId, userId: user.id } }, update: {}, create: { orgId: scope.orgId, userId: user.id, role: "member" } });
-    await sendMagicLink(email, { redirect: "/app", intro: `${org.name} vous invite dans son espace.` });
+    await sendMagicLink(email, { invitedBy: org.name, redirect: "/app", intro: `${org.name} vous invite dans son espace.` });
     revalidatePath("/app/settings");
     return { ok: `Invitation envoyée à ${email}.` };
   } catch (e) { return fail(e); }

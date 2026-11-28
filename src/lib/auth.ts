@@ -17,17 +17,18 @@ export const safeRedirect = (r?: string | null) => (r && /^\/(?![\/\\])[^\\\u000
  * - verify : confirmation d'inscription (24 h) ; `payload` = mot de passe chiffré, appliqué seulement au clic
  * - reset  : mot de passe oublié (30 min), ouvre /reinitialiser
  */
-export async function sendMagicLink(rawEmail: string, opts: { redirect?: string; intro?: string; purpose?: LinkPurpose; payload?: string } = {}) {
+export async function sendMagicLink(rawEmail: string, opts: { redirect?: string; intro?: string; purpose?: LinkPurpose; payload?: string; invitedBy?: string } = {}) {
   const email = normEmail(rawEmail);
   if (!isEmail(email)) throw new Error("Adresse email invalide");
   const recent = await db.loginToken.count({ where: { email, createdAt: { gt: new Date(Date.now() - 15 * 60e3) } } });
   if (recent >= 5) throw new Error("Trop de demandes. Réessayez dans quelques minutes.");
   const purpose = opts.purpose || "login";
   const token = randomToken();
-  const ttl = purpose === "verify" ? 24 * 3600e3 : 30 * 60e3;
+  // Une invitation n'est pas toujours ouverte dans la demi-heure : son lien reste valable 7 jours.
+  const ttl = opts.invitedBy ? 7 * 24 * 3600e3 : purpose === "verify" ? 24 * 3600e3 : 30 * 60e3;
   await db.loginToken.create({ data: { email, tokenHash: sha256(token), redirect: safeRedirect(opts.redirect), purpose, payload: opts.payload ?? null, expiresAt: new Date(Date.now() + ttl) } });
   const link = purpose === "reset" ? `${APP()}/reinitialiser?token=${encodeURIComponent(token)}` : `${APP()}/api/auth/verify?token=${encodeURIComponent(token)}`;
-  await sendLoginEmail(email, link, opts.intro, purpose);
+  await sendLoginEmail(email, link, opts.intro, purpose, opts.invitedBy ? { from: opts.invitedBy } : undefined);
 }
 
 /**
