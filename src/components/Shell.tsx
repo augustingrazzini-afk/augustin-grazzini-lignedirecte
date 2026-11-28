@@ -15,6 +15,8 @@ export type ShellProps = {
   clientName?: string;
   /** Autres espaces de la même personne (commercial suivi par plusieurs entreprises, ou qui a aussi sa propre entreprise). */
   spaces?: { href: string; label: string; current?: boolean }[];
+  /** Dernière synchro des outils (« il y a 2 min »), affichée en bas du menu ; null = aucun outil synchronisé. */
+  lastSync?: string | null;
   isOrg: boolean;
   email: string;
   followUps?: number;
@@ -30,18 +32,19 @@ export type ShellProps = {
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, spaces = [], isOrg, email, followUps, banner, share = false, admin = false, locked = {}, widget, children }: ShellProps) {
+export function Shell({ base, orgName, clientName, spaces = [], lastSync, isOrg, email, followUps, banner, share = false, admin = false, locked = {}, widget, children }: ShellProps) {
+  // Menu rangé par usage : suivre l'activité, agir, puis l'équipe et les réglages.
   const all: NavItem[] = [
-    { href: base, label: "Pilotage", icon: "pilotage" },
+    { href: base, label: "Pilotage", icon: "pilotage", group: "Suivre" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
     { href: `${base}/rendez-vous`, label: share || clientName ? "Mes rendez-vous" : "Rendez-vous", icon: "meetings" },
+    { href: `${base}/relances`, label: "Relances", icon: "relances", badge: followUps, group: "Agir" },
     { href: `${base}/brief`, label: "Brief pré-meeting", icon: "brief" },
-    { href: `${base}/relances`, label: "Relances", icon: "relances", badge: followUps },
     { href: `${base}/coach`, label: "Assistant IA", icon: "coach" },
-    { href: `${base}/sources`, label: "Sources", icon: "sources", sep: true },
+    ...(isOrg ? [{ href: `${base}/clients`, label: "Commerciaux", icon: "clients", group: "Équipe et réglages" }] : []),
+    { href: `${base}/sources`, label: "Sources", icon: "sources", ...(isOrg ? {} : { group: "Réglages" }) },
     ...(isOrg
       ? [
-          { href: `${base}/clients`, label: "Commerciaux", icon: "clients" },
           { href: `${base}/settings`, label: "Réglages", icon: "settings" },
           { href: `${base}/billing`, label: "Abonnement", icon: "billing" },
           ...(admin ? [{ href: `${base}/inscriptions`, label: "Inscriptions", icon: "clients" }] : []),
@@ -51,7 +54,9 @@ export function Shell({ base, orgName, clientName, spaces = [], isOrg, email, fo
   for (const it of all) if (locked[it.icon]) { it.locked = locked[it.icon]; it.badge = undefined; }
   const anyLocked = Object.keys(locked).length > 0;
   const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/rendez-vous`, `${base}/coach`].includes(it.href)) : all;
-  // L'espace client (portail et lien de suivi) est en clair ; l'espace commercial reste en sombre.
+  // Dans le menu latéral, l'abonnement est rangé dans le profil, en bas (il reste dans « Plus » sur téléphone).
+  const sideItems = items.filter((it) => it.icon !== "billing");
+  const initials = (email.split("@")[0].match(/[a-z0-9]+/gi) || ["?"]).slice(0, 2).map((w) => w[0]).join("").toUpperCase();
   return (
     <div className="theme-light">
       <header className="mtop">
@@ -61,22 +66,27 @@ export function Shell({ base, orgName, clientName, spaces = [], isOrg, email, fo
         <aside className="side">
           <Link className="brand" href={base}>
             <div>
-              <Logo size={19} onDark />
+              <Logo size={19} />
               <span className="client-tag">{clientName ? <>Espace <b>{clientName}</b></> : <b>{orgName}</b>}</span>
             </div>
           </Link>
-          <nav className="nav"><NavLinks items={items} variant="side" />
+          <nav className="nav"><NavLinks items={sideItems} variant="side" />
             {anyLocked && !share && (isOrg ? <Link className="nav-up" href={`${base}/billing#changer`}>Pour aller plus loin : changer de formule →</Link> : <span className="nav-up">Fonctions grisées : non incluses dans la formule de votre entreprise.</span>)}</nav>
           <div className="side-foot">
-            {share && <span>Lien de suivi en lecture seule</span>}
-            {clientName && <span>Suivi par <b>{orgName}</b></span>}
-            {spaces.length > 1 && (
-              <div className="spaces"><small>Vos espaces</small>
-                {spaces.map((sp) => sp.current ? <b key={sp.href}>● {sp.label}</b> : <Link key={sp.href} href={sp.href}>{sp.label}</Link>)}
-              </div>
+            {lastSync !== undefined && <span className="side-sync"><i className={lastSync ? "ok" : ""} />{lastSync ? `Synchro ${lastSync}` : "Aucun outil synchronisé"}</span>}
+            {share ? <span>Lien de suivi en lecture seule</span> : (
+              <details className="me">
+                <summary><span className="me-av">{initials}</span><span className="me-id"><b>{email}</b><small>{clientName ? `Suivi par ${orgName}` : orgName}</small></span><span className="me-ch" aria-hidden="true">⌄</span></summary>
+                <div className="me-menu">
+                  {spaces.length > 1 && <div className="spaces"><small>Vos espaces</small>
+                    {spaces.map((sp) => sp.current ? <b key={sp.href}>● {sp.label}</b> : <Link key={sp.href} href={sp.href}>{sp.label}</Link>)}
+                  </div>}
+                  {isOrg && <Link href={`${base}/billing`}>Abonnement</Link>}
+                  {widget && <FeedbackLink />}
+                  <form action={logout}><button type="submit">Se déconnecter</button></form>
+                </div>
+              </details>
             )}
-            {widget && !share && <FeedbackLink />}
-            {!share && <form action={logout}><button type="submit">Se déconnecter</button></form>}
           </div>
         </aside>
         <main className="main">

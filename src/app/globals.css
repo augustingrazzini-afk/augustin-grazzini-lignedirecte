@@ -1022,3 +1022,40 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 @media (prefers-reduced-motion: reduce) { .skel-x, .nav-fade > * { animation: none; } }
 /* Coordonnées du prospect dans la liste des appels */
 .item .coord { grid-column: 2/-1; font-family: var(--f-mono, ui-monospace, monospace); font-size: 12px; color: var(--ink); opacity: .8; overflow-wrap: anywhere; }
+
+/* ---------- Menu latéral clair, rangé par usage (Suivre / Agir / Équipe et réglages) ---------- */
+.theme-light .side { background: var(--surface, #F8F1E5); color: #4F4A41; border-right: 1px solid var(--stroke); gap: 18px; }
+.theme-light .client-tag { color: #8A8274; }
+.theme-light .client-tag b { color: var(--ink); }
+.nav-grp { font-family: var(--f-mono); font-size: 10px; letter-spacing: .16em; text-transform: uppercase; color: #8A8274; margin: 14px 12px 4px; }
+.nav > span:first-child .nav-grp { margin-top: 0; }
+.theme-light .nav a { color: #4F4A41; font-family: var(--f-body, inherit); font-size: 14px; letter-spacing: 0; text-transform: none; font-weight: 500; border-radius: 4px; padding: 8px 12px; }
+.theme-light .nav a:hover { color: var(--ink); background: rgba(22,19,15,.06); }
+.theme-light .nav a[aria-current="page"] { color: var(--surface, #F8F1E5); background: var(--ink); }
+.theme-light .nav a[aria-current="page"]::before { display: none; }
+.theme-light .nav .badge { background: var(--blue); color: #140700; border-radius: 3px; font-weight: 600; }
+.theme-light .nav .nav-locked { color: #A39B8D; font-family: var(--f-body, inherit); font-size: 14px; letter-spacing: 0; text-transform: none; padding: 8px 12px; }
+.theme-light .nav .nav-up { border-color: var(--stroke); color: var(--ink) !important; }
+.theme-light .side-foot { background: transparent; border: 0; padding: 0; color: #8A8274; gap: 8px; }
+.side-sync { display: flex; align-items: center; gap: 7px; font-family: var(--f-mono); font-size: 11px; padding: 0 6px; }
+.side-sync i { width: 7px; height: 7px; border-radius: 50%; background: #B9AF9E; flex: none; }
+.side-sync i.ok { background: var(--mint); }
+.me { position: relative; }
+.me > summary { list-style: none; display: flex; align-items: center; gap: 10px; padding: 8px; border: 1px solid var(--stroke); border-radius: 4px; cursor: pointer; background: transparent; }
+.me > summary::-webkit-details-marker { display: none; }
+.me > summary:hover, .me[open] > summary { background: rgba(22,19,15,.05); }
+.me-av { width: 30px; height: 30px; border-radius: 50%; background: var(--blue); color: #140700; display: grid; place-items: center; font-weight: 700; font-size: 11px; flex: none; }
+.me-id { min-width: 0; display: grid; }
+.me-id b { color: var(--ink); font-weight: 600; font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-id small { font-size: 11px; color: #8A8274; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.me-ch { margin-left: auto; color: #8A8274; transition: transform .15s; }
+.me[open] .me-ch { transform: rotate(180deg); }
+.me-menu { position: absolute; left: 0; right: 0; bottom: calc(100% + 6px); display: grid; gap: 2px; padding: 6px; background: var(--surface, #F8F1E5); border: 1px solid var(--stroke); border-radius: 4px; box-shadow: 0 10px 30px rgba(22,19,15,.12); z-index: 5; }
+.me-menu > a, .me-menu .side-avis, .me-menu form button, .me-menu .spaces a { display: block; width: 100%; padding: 8px 10px; border: 0; border-radius: 3px; background: none; color: var(--ink); font: inherit; font-size: 13px; text-align: left; text-decoration: none; cursor: pointer; margin: 0; }
+.me-menu > a:hover, .me-menu .side-avis:hover, .me-menu form button:hover, .me-menu .spaces a:hover { background: rgba(22,19,15,.06); }
+.theme-light .side-foot .spaces { border-color: var(--stroke); border-top: 0; padding: 4px 0 6px; margin: 0 0 4px; }
+.theme-light .side-foot .spaces small, .theme-light .side-foot .spaces b { padding: 4px 10px; display: block; }
+.theme-light .side-foot .spaces b { color: var(--ink); font-size: 13px; }
+.theme-light .side-foot .me-id b { color: var(--ink); }
+.theme-light .side-foot .me-menu > a, .theme-light .side-foot .me-menu .side-avis, .theme-light .side-foot .me-menu form button, .theme-light .side-foot .me-menu .spaces a { color: var(--ink); text-decoration: none; background: none; }
+.theme-light .side-foot .me-menu > a:hover, .theme-light .side-foot .me-menu .side-avis:hover, .theme-light .side-foot .me-menu form button:hover, .theme-light .side-foot .me-menu .spaces a:hover { background: rgba(22,19,15,.06); }

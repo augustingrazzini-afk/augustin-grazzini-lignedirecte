@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { navStart } from "./client/NavStage";
 import { Icon } from "./icons";
 
-export type NavItem = { href: string; label: string; icon: string; badge?: number; sep?: boolean; /** Nom de la formule qui ouvre cette page, si elle n'est pas incluse. */ locked?: string };
+export type NavItem = { href: string; label: string; icon: string; badge?: number; /** Titre du groupe ouvert par cette entrée (menu latéral). */ group?: string; /** Nom de la formule qui ouvre cette page, si elle n'est pas incluse. */ locked?: string };
 
 /** Les 4 écrans du quotidien, toujours visibles en bas sur téléphone ; le reste est rangé dans « Plus ». */
 const MAIN = ["pilotage", "appels", "relances", "coach"];
@@ -67,7 +67,7 @@ export function NavLinks({ items, variant, footer }: { items: NavItem[]; variant
     <>
       {items.map((i) => (
         <span key={i.href} style={{ display: "contents" }}>
-          {variant === "side" && i.sep && <div className="sep" />}
+          {variant === "side" && i.group && <div className="nav-grp">{i.group}</div>}
           {i.locked ? (
             <span className="nav-locked" aria-disabled="true" title={`Inclus dans la formule ${i.locked}`}>
               <Icon name={i.icon} /><span>{variant === "tab" ? i.label.split(" ")[0] : i.label}</span><em className="lock-pill">{i.locked}</em>
