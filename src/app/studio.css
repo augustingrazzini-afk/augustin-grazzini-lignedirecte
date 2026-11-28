@@ -60,17 +60,54 @@
 .st-btns { display: flex; flex-direction: column; gap: 10px; }
 .st-hrow .st-note, .st-note { margin: 18px 0 0; line-height: 1.6; font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--dim); }
 
-/* Onde sonore */
-.st-wave { position: relative; margin-top: 56px; height: 300px; border-top: 1px solid var(--line); overflow: hidden; }
-.st-wave svg { position: absolute; left: 64px; right: 64px; top: 0; height: 300px; width: calc(100% - 128px); }
-.st-who { position: absolute; top: 14px; left: 64px; font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--dim); }
-.st-who b { color: var(--bone); font-weight: 500; }
-.st-ph { position: absolute; top: 0; bottom: 0; left: 64px; width: 2px; background: var(--o); box-shadow: 0 0 20px var(--o); animation: st-play 14s linear infinite; }
-.st-ph::before { content: ""; position: absolute; top: -1px; left: -6px; border: 7px solid transparent; border-top-color: var(--o); }
-.st-words { position: absolute; left: 0; right: 0; bottom: 22px; overflow: hidden; mask-image: linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent); }
-.st-words div { display: inline-flex; gap: 14px; white-space: nowrap; font-family: var(--mono); font-size: 15px; padding-left: 64px; animation: st-marquee 26s linear infinite; }
-.st-words span { color: #9A9285; }
-.st-words .now { color: var(--bone); background: rgba(255, 90, 31, .14); border: 1px solid rgba(255, 90, 31, .5); padding: 1px 8px; }
+/* Appel simulé en direct (sous le titre) */
+.st-live { margin-top: 56px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--panel); }
+.st-lv-head { display: flex; align-items: center; gap: 18px; padding: 14px 64px; border-bottom: 1px solid var(--line); font-family: var(--mono); font-size: 12px; letter-spacing: .1em; color: var(--dim); }
+.st-lv-state { display: inline-flex; align-items: center; gap: 8px; color: var(--o); font-weight: 600; min-width: 168px; }
+.st-lv-state i { width: 9px; height: 9px; border-radius: 50%; background: var(--o); animation: st-blink 1s steps(2) infinite; }
+.st-lv-state i.ok { background: var(--ok); animation: none; }
+.st-live.done .st-lv-state { color: var(--ok); }
+.st-lv-who { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.st-lv-who b { color: var(--bone); font-weight: 500; }
+.st-lv-time { font-variant-numeric: tabular-nums; color: var(--bone); font-size: 14px; }
+.st-lv-body { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(0, 1fr); }
+.st-lv-call { padding: 22px 28px 22px 64px; border-right: 1px solid var(--line); min-width: 0; }
+.st-lv-bars { display: flex; align-items: center; gap: 3px; height: 54px; margin-bottom: 14px; }
+.st-lv-bars i { flex: 1; height: 8%; min-height: 3px; border-radius: 2px; background: var(--line2); transform-origin: center; transition: background .25s, height .3s; }
+.st-lv-bars.rep i, .st-lv-bars.pro i { animation: st-lv-voice 700ms ease-in-out infinite alternate; }
+.st-lv-bars.rep i { background: var(--o); }
+.st-lv-bars.pro i { background: var(--bone); }
+@keyframes st-lv-voice { from { height: 10%; } to { height: 96%; } }
+.st-lv-feed { height: 200px; overflow: hidden; display: flex; flex-direction: column; gap: 9px; scroll-behavior: smooth; }
+.st-lv-feed p { margin: 0; display: grid; grid-template-columns: 96px minmax(0, 1fr); gap: 12px; font-size: 15px; line-height: 1.45; animation: st-lv-in .25s ease-out; }
+.st-lv-feed b { font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; font-weight: 500; padding-top: 4px; color: var(--dim); }
+.st-lv-feed .rep b { color: var(--o2); }
+.st-lv-feed .pro span { color: var(--soft); }
+.st-lv-caret { display: inline-block; width: 7px; height: 1em; margin-left: 2px; vertical-align: -2px; background: var(--o); animation: st-blink .7s steps(2) infinite; }
+@keyframes st-lv-in { from { opacity: 0; transform: translateY(6px); } }
+.st-lv-out { padding: 22px 64px 22px 28px; display: flex; flex-direction: column; min-width: 0; }
+.st-lv-out small { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--dim); }
+.st-lv-out ul { list-style: none; margin: 14px 0 0; padding: 0; display: grid; gap: 8px; }
+.st-lv-out li { display: flex; align-items: center; gap: 10px; font-size: 15px; color: var(--dim); opacity: .45; transition: opacity .3s, color .3s, background .3s, transform .3s; padding: 7px 10px; border: 1px solid transparent; }
+.st-lv-out li i { display: grid; place-items: center; width: 20px; height: 20px; border: 1px solid var(--line2); border-radius: 50%; font-style: normal; font-size: 12px; flex: none; }
+.st-lv-out li.on { opacity: 1; color: var(--bone); }
+.st-lv-out li.on i { background: var(--bone); color: var(--panel); border-color: var(--bone); }
+.st-lv-out li.rdv.on { background: var(--o); color: var(--ink); font-family: var(--disp); font-weight: 700; font-size: 14px; text-transform: uppercase; transform: scale(1.02); animation: st-glow 1.6s ease-in-out 2; }
+.st-lv-out li.rdv.on i { background: var(--ink); color: var(--o); border-color: var(--ink); }
+.st-lv-out p { margin: 14px 0 0; font-size: 14px; line-height: 1.5; color: var(--soft); opacity: 0; transform: translateY(6px); transition: opacity .4s, transform .4s; }
+.st-lv-out p.on { opacity: 1; transform: none; }
+@media (max-width: 900px) {
+  .st-lv-head { padding: 12px 24px; gap: 10px; flex-wrap: wrap; }
+  .st-lv-who { flex-basis: 100%; order: 3; }
+  .st-lv-state { min-width: 0; flex: 1; }
+  .st-lv-body { grid-template-columns: 1fr; }
+  .st-lv-call { padding: 18px 24px; border-right: 0; border-bottom: 1px solid var(--line); }
+  .st-lv-out { padding: 18px 24px; }
+  .st-lv-feed { height: 330px; }
+  .st-lv-feed p { grid-template-columns: 1fr; gap: 2px; font-size: 14px; }
+  .st-live { margin-top: 40px; }
+}
+@media (prefers-reduced-motion: reduce) { .st-lv-bars i, .st-lv-state i, .st-lv-caret, .st-lv-out li.rdv.on { animation: none !important; } }
 
 /* Compteurs */
 .st-cnt { display: grid; grid-template-columns: 260px repeat(4, 1fr); border-bottom: 1px solid var(--line); }

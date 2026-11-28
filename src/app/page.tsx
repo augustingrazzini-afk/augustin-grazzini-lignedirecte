@@ -1,3 +1,4 @@
+import { LiveCall } from "@/components/client/LiveCall";
 import { SitePrices } from "@/components/client/PlanCards";
 import Link from "next/link";
 import "@fontsource/ibm-plex-mono/400.css";
@@ -19,33 +20,6 @@ import { AI_CAN } from "@/lib/assistant-content";
 function rng(seed: number) {
   return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 }
-
-/** Onde sonore d'un appel : orange pour la partie déjà « jouée », gris pour la suite. */
-function Wave() {
-  const r = rng(11), W = 1180, H = 300, n = 236, bw = W / n;
-  const bars = Array.from({ length: n }, (_, i) => {
-    let env = 0.25 + 0.75 * Math.abs(Math.sin(i / 9)) * (0.6 + 0.4 * Math.sin(i / 31));
-    if (i % 47 < 6) env *= 0.15;
-    const h = Math.max(3, env * (0.55 + r() * 0.45) * 230);
-    return { x: i * bw + 1, y: H / 2 - h / 2, h };
-  });
-  const rects = (fill: string) => bars.map((b, i) => <rect key={i} x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={(bw - 2).toFixed(1)} height={b.h.toFixed(1)} rx="1.5" fill={fill} />);
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
-      <defs><clipPath id="st-played"><rect x="0" y="0" height={H} width="0"><animate attributeName="width" values={`0;${W}`} dur="14s" repeatCount="indefinite" /></rect></clipPath></defs>
-      <g>{rects("#3A3731")}</g>
-      <g clipPath="url(#st-played)">{rects("#FF5A1F")}</g>
-      <line x1="0" x2="0" y1="0" y2={H} stroke="#FF5A1F" strokeWidth="2" vectorEffect="non-scaling-stroke">
-        <animate attributeName="x1" values={`0;${W}`} dur="14s" repeatCount="indefinite" />
-        <animate attributeName="x2" values={`0;${W}`} dur="14s" repeatCount="indefinite" />
-      </line>
-    </svg>
-  );
-}
-
-const WORDS = ["Bonjour", "je vous appelle au sujet de vos coûts d'énergie", "on en parle souvent avec les artisans", "si vous pouvez me montrer ça"];
-const NOW = "jeudi, je vous donne un quart d'heure";
-const AFTER = ["parfait, 15 h 30 ?", "ça me va", "je vous envoie l'invitation"];
 
 /** Fil d'appels d'exemple (données fictives) : ce que voit le dirigeant, tous commerciaux confondus. */
 const FEED = [
@@ -152,19 +126,7 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <div className="st-wave">
-            <span className="st-who">LÉA · INTERNE · <b>ATELIER MOREL</b> · 02:14</span>
-            <Wave />
-            <div className="st-words" aria-hidden="true"><div>
-              {[0, 1].map((k) => (
-                <span key={k} style={{ display: "contents" }}>
-                  {WORDS.map((w) => <span key={w + k}>{w}</span>)}
-                  <span className="now">{NOW}</span>
-                  {AFTER.map((w) => <span key={w + k}>{w}</span>)}
-                </span>
-              ))}
-            </div></div>
-          </div>
+          <LiveCall />
         </div>
       </section>
 
