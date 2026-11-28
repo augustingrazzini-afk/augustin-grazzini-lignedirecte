@@ -12,5 +12,5 @@ export const planOf = cache(async (orgId: string) => {
   return { plan: org?.plan || "trial", ai: !org || hasAi(org), premium: !org || hasPremium(org) };
 });
 
-/** Pages verrouillées par la formule (cadenas dans le menu). */
-export const lockedIcons = (p: { ai: boolean; premium: boolean }) => [...(p.ai ? [] : ["relances", "coach"]), ...(p.premium ? [] : ["brief"])];
+/** Pages non incluses dans la formule : elles restent visibles dans le menu, grisées, avec le nom de la formule qui les ouvre. */
+export const lockedIcons = (p: { ai: boolean; premium: boolean }): Record<string, string> => ({ ...(p.ai ? {} : { relances: "Essentiel", coach: "Essentiel" }), ...(p.premium ? {} : { brief: "Premium" }) });

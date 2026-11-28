@@ -72,8 +72,10 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
             <dt>Source</dt><dd>{SOURCE_LABEL[c.provider] || c.provider}{c.listName ? ` · ${c.listName}` : ""}</dd>
           </dl>
           {!readOnly && <div className="row" style={{ marginTop: 16 }}>
-            {plan.premium && <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>}
+            {plan.premium ? <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
+              : <span className="btn btn-locked" aria-disabled="true" title="Inclus dans la formule Premium">Préparer le brief <em className="lock-pill">Premium</em></span>}
             <Link className="btn" href={`${base}/contacts/${encodeURIComponent(c.contactKey)}`}>Fiche prospect</Link>
+            {lite && <span className="btn btn-locked" aria-disabled="true" title="Inclus dans la formule Essentiel">Analyser avec l&apos;IA <em className="lock-pill">Essentiel</em></span>}
             <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={!lite && tr.length > 0} back={`${base}/calls`} clientId={clientParam} meeting={c.kind === "meeting"} />
           </div>}
         </div>

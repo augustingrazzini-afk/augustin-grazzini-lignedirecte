@@ -20,12 +20,12 @@ export type ShellProps = {
   admin?: boolean;
   /** Widget flottant en bas à droite (assistant IA + avis). */
   /** Pages non incluses dans la formule (cadenas dans le menu), désignées par leur icône. */
-  locked?: string[];
+  locked?: Record<string, string>;
   widget?: { clientId: string | null; aiReady: boolean; shareToken?: string };
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, admin = false, locked = [], widget, children }: ShellProps) {
+export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, admin = false, locked = {}, widget, children }: ShellProps) {
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
@@ -43,7 +43,8 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
-  for (const it of all) if (locked.includes(it.icon)) { it.locked = true; it.badge = undefined; }
+  for (const it of all) if (locked[it.icon]) { it.locked = locked[it.icon]; it.badge = undefined; }
+  const anyLocked = Object.keys(locked).length > 0;
   const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/rendez-vous`, `${base}/coach`].includes(it.href)) : all;
   // L'espace client (portail et lien de suivi) est en clair ; l'espace commercial reste en sombre.
   return (
@@ -59,7 +60,8 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
               <span className="client-tag">{clientName ? <>Espace <b>{clientName}</b></> : <b>{orgName}</b>}</span>
             </div>
           </Link>
-          <nav className="nav"><NavLinks items={items} variant="side" /></nav>
+          <nav className="nav"><NavLinks items={items} variant="side" />
+            {anyLocked && !share && (isOrg ? <Link className="nav-up" href={`${base}/billing#changer`}>Pour aller plus loin : changer de formule →</Link> : <span className="nav-up">Fonctions grisées : non incluses dans la formule de votre entreprise.</span>)}</nav>
           <div className="side-foot">
             {share && <span>Lien de suivi en lecture seule</span>}
             {clientName && <span>Suivi par <b>{orgName}</b></span>}

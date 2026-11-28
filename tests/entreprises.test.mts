@@ -160,10 +160,10 @@ test("créneaux : classement par taux de décroché, heure de Paris, volume mini
 test("menu : cadenas selon la formule", async () => {
   const { lockedIcons } = await import("../src/lib/plan");
   const of = (plan: string) => lockedIcons({ ai: billing.hasAi({ plan }), premium: billing.hasPremium({ plan }) });
-  assert.deepEqual(of("starter"), ["relances", "coach", "brief"]);
-  assert.deepEqual(of("agency"), ["brief"]);
-  assert.deepEqual(of("premium"), []);
-  assert.deepEqual(of("trial"), [], "l'essai garde tout ouvert");
+  assert.deepEqual(of("starter"), { relances: "Essentiel", coach: "Essentiel", brief: "Premium" });
+  assert.deepEqual(of("agency"), { brief: "Premium" });
+  assert.deepEqual(of("premium"), {});
+  assert.deepEqual(of("trial"), {});
 });
 
 test("essai de 7 jours : carte enregistrée, accès ouvert, rien de débité", async () => {

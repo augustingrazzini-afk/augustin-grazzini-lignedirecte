@@ -21,20 +21,27 @@ export function ListenPlayer({ src, fallback, tool }: { src: string; fallback?: 
   const [rate, setRate] = useState(1);
   const ref = useRef<HTMLAudioElement>(null);
   const [bars] = useState(() => shape(src.split("?")[0]));
-  // L'erreur peut survenir avant que la page soit interactive : on la rattrape au montage.
-  useEffect(() => { const a = ref.current; if (a && (a.error || a.networkState === 3)) setFailed(true); else if (a && a.duration) setDur(a.duration); }, []);
-  if (failed) return fallback
-    ? <a className="btn primary" href={fallback} target="_blank" rel="noopener noreferrer">▶ Écouter dans {tool}</a>
-    : <span className="muted small">Enregistrement indisponible pour le moment. Réessayez dans quelques minutes.</span>;
-  const toggle = () => { const a = ref.current; if (!a) return; if (a.paused) a.play().catch(() => setFailed(true)); else a.pause(); };
+  // Une vraie erreur de lecture peut survenir avant que la page soit interactive : on la rattrape au montage.
+  // (On ne se fie pas à l'état « réseau » du lecteur : sur iPhone il est trompeur tant qu'on n'a pas appuyé sur lecture.)
+  useEffect(() => { const a = ref.current; if (a?.error) setFailed(true); else if (a && Number.isFinite(a.duration)) setDur(a.duration); }, []);
+  // L'écoute se fait toujours ici. En cas d'échec, on propose de réessayer ; le lien vers l'outil n'est qu'un dernier recours discret.
+  const retry = () => { setFailed(false); setT(0); requestAnimationFrame(() => { const a = ref.current; if (a) { a.load(); a.play().catch(() => {}); } }); };
+  const toggle = () => { const a = ref.current; if (!a) return; if (a.paused) a.play().catch(() => { /* lecture refusée par le navigateur : l'utilisateur rappuie */ }); else a.pause(); };
   const seek = (e: React.MouseEvent<HTMLButtonElement>) => {
     const a = ref.current; if (!a || !Number.isFinite(a.duration)) return toggle();
     const r = e.currentTarget.getBoundingClientRect();
     a.currentTime = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * a.duration;
-    if (a.paused) a.play().catch(() => setFailed(true));
+    if (a.paused) a.play().catch(() => {});
   };
   const speed = () => { const next = rate === 1 ? 1.5 : rate === 1.5 ? 2 : 1; setRate(next); if (ref.current) ref.current.playbackRate = next; };
   const done = Number.isFinite(dur) && dur > 0 ? t / dur : 0;
+  if (failed) return (
+    <div className="lp lp-err">
+      <audio ref={ref} preload="none" src={src} onError={() => setFailed(true)} onPlay={() => { setFailed(false); setPlaying(true); }} />
+      <button type="button" className="btn primary" onClick={retry}>▶ Réessayer l&apos;écoute</button>
+      <span className="muted small">L&apos;enregistrement n&apos;a pas pu être lu.{fallback && <> En dernier recours : <a href={fallback} target="_blank" rel="noopener noreferrer">l&apos;ouvrir dans {tool}</a>.</>}</span>
+    </div>
+  );
   return (
     <div className={`lp${playing ? " playing" : ""}`}>
       <audio ref={ref} preload="metadata" src={src} onError={() => setFailed(true)} onPlay={() => setPlaying(true)} onPause={() => setPlaying(false)} onEnded={() => setPlaying(false)}
