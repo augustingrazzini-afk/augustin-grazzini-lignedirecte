@@ -237,3 +237,12 @@ test("abonnement Stripe : le rythme est reconnu d'après le prix", async () => {
   assert.equal(periodOf({ recurring: { interval: "month", interval_count: 3 } } as never), "quarter");
   assert.equal(periodOf({ recurring: { interval: "year", interval_count: 1 } } as never), "year");
 });
+
+test("sans paiement, un espace tout juste créé est inactif : ni IA, ni écriture, ni synchro", async () => {
+  const { isActive } = await import("../src/lib/billing");
+  // Ce que crée l'inscription quand la carte est obligatoire : essai déjà « échu », aucune souscription.
+  const fresh = { subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() - 1000) };
+  assert.equal(isActive(fresh), false);
+  // La notification de paiement Stripe ouvre l'essai de 7 jours.
+  assert.equal(isActive({ subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() + 7 * 864e5) }), true);
+});

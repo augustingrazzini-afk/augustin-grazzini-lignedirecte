@@ -126,6 +126,15 @@ async function seed() {
   if (first) await db.callShare.create({ data: { callId: first.id!, clientId: "demo_rep_karim", fromName: "La direction", note: "Écoute comment Hugo ouvre l'appel." } });
 }
 
+/** Le freelance de la démo : le visiteur peut aussi voir son espace (vue « commercial invité »). */
+export const DEMO_REP_ID = "demo_rep_karim";
+export async function ensureDemoRep() {
+  await db.clientMember.upsert({
+    where: { clientId_userId: { clientId: DEMO_REP_ID, userId: DEMO_USER_ID } },
+    update: {}, create: { clientId: DEMO_REP_ID, userId: DEMO_USER_ID, digest: false, joinedAt: new Date(), onboardedAt: new Date() },
+  });
+}
+
 /** Prépare la démo : la crée si besoin, la régénère une fois par jour (le premier visiteur du jour). */
 export async function ensureDemo() {
   const last = await db.call.findFirst({ where: { orgId: DEMO_ORG_ID }, orderBy: { startedAt: "desc" }, select: { startedAt: true } });

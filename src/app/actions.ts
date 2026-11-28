@@ -18,6 +18,7 @@ import { getProvider } from "@/lib/providers";
 import { ProviderError } from "@/lib/providers/types";
 import { analyzeOrg, syncAndAnalyze, syncIntegration } from "@/lib/sync";
 import { reapplyRules } from "@/lib/ingest";
+import { cardRequired } from "@/lib/stripe";
 import { currentUser } from "@/lib/session";
 import { DEMO_MESSAGE, isDemoUser } from "@/lib/demo-ids";
 
@@ -150,7 +151,9 @@ export async function createOrganization(_: FormState, f: FormData): Promise<For
   const name = s(f, "name", 80);
   if (name.length < 2) return { error: "Indiquez le nom de votre entreprise." };
   await db.organization.create({
-    data: { name, offer: s(f, "offer", 2000), trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 864e5), members: { create: { userId: u.id, role: "owner" } } },
+    // Carte obligatoire : tant qu'aucune formule n'est souscrite, l'espace est inactif partout (pages, routes, actions).
+    // C'est la notification de paiement Stripe qui ouvre l'essai de 7 jours.
+    data: { name, offer: s(f, "offer", 2000), trialEndsAt: new Date(Date.now() + (cardRequired() ? -1000 : TRIAL_DAYS * 864e5)), members: { create: { userId: u.id, role: "owner" } } },
   });
   redirect("/paiement");
 }
@@ -605,8 +608,8 @@ export async function fetchRecordings(_: FormState, f: FormData): Promise<FormSt
 
 /** Fin du guide de démarrage du commercial : on ne le lui remontre plus, il arrive sur son tableau de bord. */
 export async function finishOnboarding(f: FormData) {
-  if (await inDemo()) return;
   const clientId = s(f, "clientId", 40);
+  if (await inDemo()) redirect(`/portal/${clientId}`); // démo : rien à enregistrer, on ouvre simplement l'espace
   const u = await requireUser();
   await db.clientMember.updateMany({ where: { clientId, userId: u.id, onboardedAt: null }, data: { onboardedAt: new Date() } });
   redirect(`/portal/${clientId}`);
