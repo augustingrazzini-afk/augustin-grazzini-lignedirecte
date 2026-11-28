@@ -193,7 +193,7 @@ export const SLOT_LEVELS = [
   { min: 30, label: "Excellent", sub: "30 % et plus", color: "#0F9F6E" },
   { min: 20, label: "Bon", sub: "20 à 30 %", color: "#6FD3A4" },
   { min: 10, label: "Moyen", sub: "10 à 20 %", color: "#F2B84B" },
-  { min: 0, label: "Faible", sub: "moins de 10 %", color: "#E8697D" },
+  { min: 0, label: "Faible", sub: "moins de 10 %", color: "#E8480F" },
 ] as const;
 
 export function slotLevel(slot: { calls: number; connected: number } | undefined) {
