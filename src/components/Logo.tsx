@@ -19,15 +19,11 @@ export function LogoMark({ size = 36 }: { size?: number; onDark?: boolean }) {
   );
 }
 
-/** Symbole + mot « TRUSTPIPE », signé « by LigneDirecte ». `onDark` pour les fonds sombres ; `by={false}` pour masquer la signature. */
-export function Logo({ size = 22, onDark = false, by = true }: { size?: number; onDark?: boolean; by?: boolean }) {
+/** Le mot « TRUSTPIPE » seul, en gros (sans symbole ni signature). `onDark` pour les fonds sombres. */
+export function Logo({ size = 22, onDark = false }: { size?: number; onDark?: boolean; by?: boolean }) {
   return (
     <span className="tp-logo" style={{ fontSize: size }}>
-      <LogoMark size={Math.round(size * 1.55)} />
-      <span className="tp-name">
-        <span className="tp-word" style={{ color: onDark ? "#EDE9E1" : "var(--ink, #140700)", fontFamily: "\"Unbounded Variable\", \"Arial Black\", sans-serif", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".01em", fontSize: ".82em" }}>Trustpipe</span>
-        {by && <span className="tp-by" style={{ color: onDark ? "rgba(237,233,225,.6)" : "var(--dim, #59628A)", fontFamily: "\"IBM Plex Mono\", ui-monospace, monospace", textTransform: "uppercase", letterSpacing: ".12em" }}>by LigneDirecte</span>}
-      </span>
+      <span className="tp-word" style={{ color: onDark ? "#EDE9E1" : "var(--ink, #140700)", fontFamily: "\"Unbounded Variable\", \"Arial Black\", sans-serif", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".01em", fontSize: "1.25em", lineHeight: 1 }}>Trustpipe</span>
     </span>
   );
 }

@@ -431,3 +431,7 @@
 }
 @media (max-width: 360px) { .st-rail > * { padding: 0 10px; } .st-logo { font-size: 14px; } .st-go { font-size: 11.5px; gap: 6px; } }
 .st-aiic.logo { background: #F4EFE6; display: grid; place-items: center; }
+
+.st-logo { font-size: 24px; letter-spacing: 0; }
+@media (max-width: 680px) { .st-logo { font-size: 19px; } }
+@media (max-width: 360px) { .st-logo { font-size: 16px; } }

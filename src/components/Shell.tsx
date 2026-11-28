@@ -52,7 +52,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         <aside className="side">
           <Link className="brand" href={base}>
             <div>
-              <Logo size={28} onDark />
+              <Logo size={19} onDark />
               <span className="client-tag">{clientName ? <>Espace <b>{clientName}</b></> : <b>{orgName}</b>}</span>
             </div>
           </Link>

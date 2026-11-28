@@ -2,7 +2,6 @@ import Link from "next/link";
 import { claudeInstallLink } from "@/lib/claude-link";
 import "@fontsource/ibm-plex-mono/400.css";
 import "../studio.css";
-import { LogoMark } from "@/components/Logo";
 import { LEGAL } from "@/lib/legal";
 
 export const metadata = {
@@ -40,7 +39,7 @@ export default function Page() {
   return (
     <div className="studio">
       <header className="st-rail">
-        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><LogoMark size={30} />TRUSTPIPE</Link>
+        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil">TRUSTPIPE</Link>
         <nav className="st-links" aria-label="Sections"><a href="#installer">Installer</a><a href="#outils">Outils</a><a href="#securite">Sécurité</a><Link className="st-push st-keep" href="/login">Connexion</Link></nav>
         <Link className="st-go" href="/inscription">COMMENCER <span aria-hidden="true">→</span></Link>
       </header>

@@ -1,7 +1,6 @@
 import Link from "next/link";
 import "@fontsource/ibm-plex-mono/400.css";
 import "../studio.css";
-import { LogoMark } from "@/components/Logo";
 import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { AssistantDemo } from "@/components/marketing/AssistantDemo";
 import { AI_CAN } from "@/lib/assistant-content";
@@ -46,7 +45,7 @@ export default function Page() {
     <div className="studio">
       <VisitBeacon page="/assistant" />
       <header className="st-rail">
-        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil"><LogoMark size={30} />TRUSTPIPE</Link>
+        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil">TRUSTPIPE</Link>
         <nav className="st-links" aria-label="Sections"><a href="#comment">Comment ça marche</a><a href="#capacites">Ce qu&apos;il sait faire</a><a href="#questions">Questions</a><Link className="st-push st-keep" href="/login">Connexion</Link></nav>
         <Link className="st-go" href="/inscription">COMMENCER <span aria-hidden="true">→</span></Link>
       </header>
