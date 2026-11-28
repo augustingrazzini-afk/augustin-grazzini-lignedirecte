@@ -3,7 +3,7 @@ import { apiScope, callScope } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, analyzeCall, debriefMeeting } from "@/lib/ai";
-import { hasAi } from "@/lib/billing";
+import { hasAi, hasPremium } from "@/lib/billing";
 
 export const maxDuration = 120;
 
@@ -37,7 +37,8 @@ export async function POST(req: Request, { params }: { params: Promise<{ id: str
   try {
     const done = await analyzeCall(r.call);
     if (!done) return jsonError("Cet appel n'a pas de transcription : il n'y a rien à analyser.", 400);
-    if (r.call.kind === "meeting") await debriefMeeting(r.call.id);
+    // Le débrief de rendez-vous est réservé à la formule Premium (l'analyse simple reste possible dès Essentiel).
+    if (r.call.kind === "meeting" && org && hasPremium(org)) await debriefMeeting(r.call.id);
     return NextResponse.json({ ok: true });
   } catch (e) {
     return jsonError(e instanceof AiError ? e.message : "Analyse impossible", 502);

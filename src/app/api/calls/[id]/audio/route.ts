@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { open } from "@/lib/crypto";
 import { checkAudioSig } from "@/lib/audio";
 import { getProvider } from "@/lib/providers";
+import { hasPremium } from "@/lib/billing";
 import { isAudio } from "@/lib/providers/types";
 
 export const maxDuration = 120;
@@ -13,8 +14,10 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const u = new URL(req.url);
   if (!checkAudioSig(id, u.searchParams.get("exp"), u.searchParams.get("sig"))) return new Response("Lien expiré", { status: 403 });
-  const call = await db.call.findUnique({ where: { id }, select: { provider: true, recordingUrl: true, integrationId: true, externalId: true } });
+  const call = await db.call.findUnique({ where: { id }, select: { provider: true, recordingUrl: true, integrationId: true, externalId: true, org: { select: { plan: true } } } });
   if (!call?.recordingUrl) return new Response("Introuvable", { status: 404 });
+  // L'écoute des enregistrements est réservée à la formule Premium : vérifié ici aussi, pas seulement à l'affichage.
+  if (!hasPremium(call.org)) return new Response("Écoute incluse dans la formule Premium", { status: 402 });
   // Les identifiants de l'outil quand il en faut (Skipcall, lemlist…) ; certains outils (Minari) servent l'audio par lien de partage.
   const integ = call.integrationId ? await db.integration.findUnique({ where: { id: call.integrationId } }) : null;
   let creds: Record<string, string> = {};
