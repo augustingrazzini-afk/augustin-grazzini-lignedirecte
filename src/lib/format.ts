@@ -34,3 +34,22 @@ type NameLike = { firstName: string; lastName: string; company: string };
 export const displayName = (c: NameLike) => [c.firstName, c.lastName].filter(Boolean).join(" ") || c.company || "Contact";
 export const initials = (c: NameLike) => ((c.firstName[0] || "") + (c.lastName[0] || "") || c.company[0] || "?").toUpperCase();
 export const isConversation = (c: { durationSec: number; connected: boolean }) => c.connected && c.durationSec >= 30;
+
+/** Date complète, lisible : « jeudi 3 décembre » (heure de Paris). */
+export const dayLong = (d: Date) => d.toLocaleDateString("fr-FR", { weekday: "long", day: "numeric", month: "long", timeZone: TZ });
+/** Prochain jour de semaine voulu (1 = lundi … 7 = dimanche), strictement après `from`. */
+export function nextDow(dow: number, from = new Date()) {
+  const cur = weekdayParis(from) + 1;
+  return new Date(from.getTime() + (((dow - cur + 7) % 7) || 7) * 864e5);
+}
+/** Dernier jour de semaine voulu, strictement avant `from`. */
+export function prevDow(dow: number, from = new Date()) {
+  const cur = weekdayParis(from) + 1;
+  return new Date(from.getTime() - (((cur - dow + 7) % 7) || 7) * 864e5);
+}
+/** Prochain jour ouvré (lundi à vendredi) après `from`. */
+export function nextWorkday(from = new Date()) {
+  let d = new Date(from.getTime() + 864e5);
+  while (weekdayParis(d) > 4) d = new Date(d.getTime() + 864e5);
+  return d;
+}

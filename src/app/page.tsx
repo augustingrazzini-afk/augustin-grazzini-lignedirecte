@@ -1,4 +1,4 @@
-import { LiveCall } from "@/components/client/LiveCall";
+import { dayLong, nextDow, nextWorkday, prevDow } from "@/lib/format";
 import { SitePrices } from "@/components/client/PlanCards";
 import Link from "next/link";
 import "@fontsource/ibm-plex-mono/400.css";
@@ -21,20 +21,52 @@ function rng(seed: number) {
   return () => { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; };
 }
 
+/** Onde sonore d'un appel : orange pour la partie déjà « jouée », sable pour la suite. */
+function Wave() {
+  const r = rng(11), W = 1180, H = 300, n = 236, bw = W / n;
+  const bars = Array.from({ length: n }, (_, i) => {
+    let env = 0.25 + 0.75 * Math.abs(Math.sin(i / 9)) * (0.6 + 0.4 * Math.sin(i / 31));
+    if (i % 47 < 6) env *= 0.15;
+    const h = Math.max(3, env * (0.55 + r() * 0.45) * 230);
+    return { x: i * bw + 1, y: H / 2 - h / 2, h };
+  });
+  const rects = (fill: string) => bars.map((b, i) => <rect key={i} x={b.x.toFixed(1)} y={b.y.toFixed(1)} width={(bw - 2).toFixed(1)} height={b.h.toFixed(1)} rx="1.5" fill={fill} />);
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" aria-hidden="true">
+      <defs><clipPath id="st-played"><rect x="0" y="0" height={H} width="0"><animate attributeName="width" values={`0;${W}`} dur="14s" repeatCount="indefinite" /></rect></clipPath></defs>
+      <g>{rects("#CBBDA4")}</g>
+      <g clipPath="url(#st-played)">{rects("#FF5A1F")}</g>
+      <line x1="0" x2="0" y1="0" y2={H} stroke="#FF5A1F" strokeWidth="2" vectorEffect="non-scaling-stroke">
+        <animate attributeName="x1" values={`0;${W}`} dur="14s" repeatCount="indefinite" />
+        <animate attributeName="x2" values={`0;${W}`} dur="14s" repeatCount="indefinite" />
+      </line>
+    </svg>
+  );
+}
+
+/** Ce qui se dit pendant l'appel d'exemple (fictif) : qui parle, la phrase, et le moment clé mis en avant. */
+const SAID: [string, string, boolean][] = [
+  ["Léa", "Bonjour M. Morel, je vous appelle au sujet de vos coûts d'énergie.", false],
+  ["Paul Morel", "On a déjà un fournisseur, et le budget de l'année est bouclé.", false],
+  ["Léa", "Sans rien changer, je vous montre l'écart sur votre dernière facture.", false],
+  ["Paul Morel", "Bon… {RDV}, je vous donne un quart d'heure.", true],
+  ["Léa", "Parfait, 15 h 30. Je vous envoie l'invitation.", false],
+];
+
 /** Fil d'appels d'exemple (données fictives) : ce que voit le dirigeant, tous commerciaux confondus. */
 const FEED = [
-  { time: "09:41", rep: "Léa · interne", name: "Paul Morel", company: "Atelier Morel", kind: "rdv", summary: "Intéressé par l'offre, rendez-vous téléphonique jeudi à 15 h 30.", dur: "2 min 14" },
+  { time: "09:41", rep: "Léa · interne", name: "Paul Morel", company: "Atelier Morel", kind: "rdv", summary: "Intéressé par l'offre, rendez-vous téléphonique {RDV} à 15 h 30.", dur: "2 min 14" },
   { time: "09:38", rep: "Prospectio · agence", name: "Sophie Lemaire", company: "Solaris Énergie", kind: "rappel", summary: "En réunion, demande à être rappelée à 14 h.", dur: "0 min 41" },
   { time: "09:36", rep: "Karim · freelance", name: "Marc Duval", company: "Bati Sud", kind: "refus", summary: "Déjà équipé, pas de projet cette année.", dur: "1 min 02" },
   { time: "09:33", rep: "Léa · interne", name: "Julie Martin", company: "Elec Pro 34", kind: "conv", summary: "Curieuse, veut une plaquette par email avant d'aller plus loin.", dur: "1 min 48" },
-  { time: "09:30", rep: "Prospectio · agence", name: "Thomas Roux", company: "Nova Habitat", kind: "absent", summary: "Pas de réponse, relance proposée pour demain matin.", dur: "—" },
+  { time: "09:30", rep: "Prospectio · agence", name: "Thomas Roux", company: "Nova Habitat", kind: "absent", summary: "Pas de réponse, relance proposée le {DEMAIN} au matin.", dur: "—" },
 ] as const;
 /** Extrait de transcription d'exemple (fictif). */
 const TRANSCRIPT: [string, string, string, boolean][] = [
   ["00:04", "Léa", "Bonjour Monsieur Morel, je vous appelle au sujet de vos coûts d'énergie.", false],
   ["00:41", "Prospect", "On paie trop, c'est sûr. Mais là je n'ai pas le temps.", false],
   ["01:12", "Léa", "Dix minutes suffisent pour vous montrer l'écart.", false],
-  ["01:36", "Prospect", "Jeudi, je vous donne un quart d'heure.", true],
+  ["01:36", "Prospect", "{Rdv}, je vous donne un quart d'heure.", true],
 ];
 const RESULT: Record<string, string> = { rdv: "RDV PRIS", rappel: "À RAPPELER", refus: "PAS INTÉRESSÉ", conv: "À SUIVRE", absent: "PAS DE RÉPONSE" };
 
@@ -88,6 +120,9 @@ export default async function Home() {
   const me = await currentUser();
   const u = me && me.id !== "demo_user" ? me : null; // le visiteur de la démo reste un visiteur
   const start = u ? "/app" : "/inscription";
+  // Les exemples portent de vraies dates, calculées à partir d'aujourd'hui : « jeudi 3 décembre », jamais « jeudi » tout court.
+  const rdv = dayLong(nextDow(4)), mardi = dayLong(prevDow(2)), demain = dayLong(nextWorkday());
+  const fill = (t: string) => t.replace("{RDV}", rdv).replace("{Rdv}", rdv[0].toUpperCase() + rdv.slice(1)).replace("{DEMAIN}", demain);
   const startLabel = u ? "OUVRIR MON ESPACE" : "COMMENCER";
   return (
     <div className="studio">
@@ -126,7 +161,22 @@ export default async function Home() {
               </div>
             </div>
           </div>
-          <LiveCall />
+          <div className="st-wave" aria-label="Exemple : un appel écouté dans Trustpipe, avec sa transcription (données fictives)">
+            <div className="st-wv-head">
+              <span className="st-wv-state"><i />ÉCOUTE DE L&apos;APPEL</span>
+              <span className="st-wv-who">LÉA · INTERNE <b>→</b> PAUL MOREL · <b>ATELIER MOREL</b></span>
+              <span className="st-wv-rdv">RDV PRIS · {rdv.toUpperCase()}, 15 H 30</span>
+              <span className="st-wv-time">02:14</span>
+            </div>
+            <div className="st-wv-svg"><Wave /></div>
+            <div className="st-words" aria-hidden="true"><div>
+              {[0, 1].map((k) => (
+                <span key={k} style={{ display: "contents" }}>
+                  {SAID.map(([who, txt, hi]) => <span key={txt + k} className={`${who === "Léa" ? "rep" : "pro"}${hi ? " now" : ""}`}><b>{who}</b>{fill(txt)}</span>)}
+                </span>
+              ))}
+            </div></div>
+          </div>
         </div>
       </section>
 
@@ -162,7 +212,7 @@ export default async function Home() {
                 <span className="st-ft">{f.time}</span>
                 <div className="st-fp"><b>{f.name}</b><small>{f.company}</small></div>
                 <span className={`st-fk ${f.kind}`}>{RESULT[f.kind]}</span>
-                <p className="st-fs"><span className="st-rep">{f.rep}</span>{f.summary}</p>
+                <p className="st-fs"><span className="st-rep">{f.rep}</span>{fill(f.summary)}</p>
                 <span className="st-fd">{f.dur}</span>
               </div>
             ))}
@@ -181,7 +231,7 @@ export default async function Home() {
           <div className="st-trx" aria-label="Exemple : la transcription et le résumé d'un appel">
             <div className="st-trx-l">
               <div className="st-fh" style={{ padding: "0 0 14px" }}><span className="st-o">● TRANSCRIPTION COMPLÈTE</span><span>LÉA · ATELIER MOREL · 02:14</span></div>
-              {TRANSCRIPT.map(([ts, who, txt, hi]) => <p key={ts}><span>{ts}</span><span><b>{who} :</b> {hi ? <mark>{txt}</mark> : txt}</span></p>)}
+              {TRANSCRIPT.map(([ts, who, txt, hi]) => <p key={ts}><span>{ts}</span><span><b>{who} :</b> {hi ? <mark>{fill(txt)}</mark> : fill(txt)}</span></p>)}
               <div className="st-player" aria-hidden="true"><span className="b">▶</span><span className="w">{Array.from({ length: 48 }, (_, i) => <i key={i} style={{ height: `${22 + Math.round(Math.abs(Math.sin(i / 4)) * 60 + (i * 37 % 17))}%` }} />)}</span><span className="t">02:14</span></div>
               <small>Écoute de l&apos;enregistrement : formule Premium, une fois le partage activé dans votre outil d&apos;appel.</small>
             </div>
@@ -207,11 +257,11 @@ export default async function Home() {
         <div className="st-body">
           <span className="st-aitag"><span className="st-dot" />ASSISTANT IA · INCLUS DÈS ESSENTIEL</span>
           <h2 className="st-h2">Un assistant IA. <span className="st-thin">Il a écouté toute l&apos;équipe.</span></h2>
-          <p className="st-lead">Dans Trustpipe, un assistant IA a écouté chaque appel de chaque commercial. Vous lui posez vos questions comme à un directeur commercial : qui performe, qui a besoin d&apos;aide, pourquoi les prospects refusent, comment préparer votre rendez-vous de jeudi.</p>
+          <p className="st-lead">Dans Trustpipe, un assistant IA a écouté chaque appel de chaque commercial. Vous lui posez vos questions comme à un directeur commercial : qui performe, qui a besoin d&apos;aide, pourquoi les prospects refusent, comment préparer votre rendez-vous du {rdv}.</p>
           <div className="st-ai">
             <div className="q"><div className="st-prompt"><span className="u1">direction ~</span><br />dans quels appels a-t-on perdu le prospect cette semaine, et pourquoi ?<span className="st-cur" /></div>
               <div className="st-chips"><span>les appels du jour</span><span>prospects intéressés</span><span>objections entendues</span><span>appels à écouter</span><span>où on perd le prospect</span></div></div>
-            <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● RÉPONSE DE L&apos;ASSISTANT IA</span><b>3 appels perdus cette semaine, tous sur le prix.</b> Le prospect était intéressé, puis décroche dès que le tarif arrive.<ol><li><b>Karim · Atelier Morel</b> : « trop cher » à 01:12, il n&apos;insiste pas et raccroche.</li><li><b>Prospectio · Solaris Énergie</b> : le tarif est annoncé avant le besoin, fin de l&apos;appel à 00:48.</li><li>À écouter : l&apos;appel de <b>Léa</b> de mardi, elle retourne la même objection et prend le rendez-vous.</li></ol></div>
+            <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● RÉPONSE DE L&apos;ASSISTANT IA</span><b>3 appels perdus cette semaine, tous sur le prix.</b> Le prospect était intéressé, puis décroche dès que le tarif arrive.<ol><li><b>Karim · Atelier Morel</b> : « trop cher » à 01:12, il n&apos;insiste pas et raccroche.</li><li><b>Prospectio · Solaris Énergie</b> : le tarif est annoncé avant le besoin, fin de l&apos;appel à 00:48.</li><li>À écouter : l&apos;appel de <b>Léa</b> du {mardi}, elle retourne la même objection et prend le rendez-vous.</li></ol></div>
           </div>
           <div className="st-secg">
             {AI_CAN.map(([t, d]) => <div key={t}><b>{t}</b><p>{d}</p></div>)}
@@ -228,8 +278,8 @@ export default async function Home() {
           <p className="st-lead">Vous utilisez déjà Claude ? Branchez-y Trustpipe en une minute. Vous lui parlez comme d&apos;habitude, et il lit vos appels et gère vos relances : plus besoin d&apos;ouvrir un tableau de bord pour savoir qui rappeler.</p>
           <div className="st-ai">
             <div className="q"><div className="st-prompt">
-              {["Quelles relances sont en retard ?", "Prépare ma journée, avec le contexte de chaque prospect.", "Reporte la relance de Paul Morel à jeudi 10 h.", "Relis le dernier appel avec Atelier Morel."].map((a) => <div key={a}><span className="u1">vous ~ </span>{a}</div>)}<span className="st-cur" /></div></div>
-            <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● CLAUDE, AVEC VOS DONNÉES TRUSTPIPE</span><b>3 relances en retard.</b><ol><li><b>Paul Morel</b> (Atelier Morel) : confirmer le rendez-vous de jeudi. Dernier appel mardi, il attend l&apos;invitation.</li><li><b>Julie Martin</b> (Elec Pro 34) : envoyer la plaquette demandée.</li><li><b>Sophie Lemaire</b> (Solaris Énergie) : rappeler à 14 h, comme convenu.</li></ol></div>
+              {["Quelles relances sont en retard ?", "Prépare ma journée, avec le contexte de chaque prospect.", `Reporte la relance de Paul Morel au ${rdv}, 10 h.`, "Relis le dernier appel avec Atelier Morel."].map((a) => <div key={a}><span className="u1">vous ~ </span>{a}</div>)}<span className="st-cur" /></div></div>
+            <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● CLAUDE, AVEC VOS DONNÉES TRUSTPIPE</span><b>3 relances en retard.</b><ol><li><b>Paul Morel</b> (Atelier Morel) : confirmer le rendez-vous du {rdv}. Dernier appel le {mardi}, il attend l&apos;invitation.</li><li><b>Julie Martin</b> (Elec Pro 34) : envoyer la plaquette demandée.</li><li><b>Sophie Lemaire</b> (Solaris Énergie) : rappeler à 14 h, comme convenu.</li></ol></div>
           </div>
           <div className="st-trio">
             <div><div className="st-big">1</div><h4>Une adresse à coller.</h4><p>Dans Claude : Réglages › Connecteurs › Ajouter un connecteur. Vous autorisez l&apos;accès, c&apos;est tout.</p></div>
