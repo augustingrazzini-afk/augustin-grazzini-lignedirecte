@@ -23,7 +23,7 @@ const CANDIDATS = [
 export async function GET() {
   const res = await Promise.all(CANDIDATS.map(async (url) => {
     try {
-      const o = await discover(url);
+      const o = await Promise.race([discover(url), new Promise<never>((_, no) => setTimeout(() => no(new Error("délai")), 12_000))]);
       return { url, oauth: true, unClic: !!o.as.registration_endpoint, serveur: o.as.issuer || new URL(o.as.authorization_endpoint).origin };
     } catch { return { url, oauth: false, unClic: false }; }
   }));
