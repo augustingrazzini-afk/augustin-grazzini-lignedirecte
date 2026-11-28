@@ -1,4 +1,4 @@
-import { http, num, Provider, NormalizedCall, str, toDate, stripHtml } from "./types";
+import { http, num, Provider, NormalizedCall, str, toDate, stripHtml, audioFetch } from "./types";
 
 /**
  * Apollo (dialer Apollo) — API https://api.apollo.io/api/v1, clé dans l'en-tête « x-api-key ».
@@ -64,6 +64,8 @@ async function userNames(c: Record<string, string>) {
 
 export const apollo: Provider = {
   id: "apollo",
+  /** Écoute dans Trustpipe : le lien de l'enregistrement, relu à chaque écoute (avec la clé si l'outil la demande). */
+  fetchAudio: (c, url, range) => audioFetch(url, range, { hosts: /(^|\.)apollo\.io$/i, headers: { "x-api-key": c.apiKey } }),
   label: "Apollo",
   channels: ["call"],
   credentialFields: [{

@@ -2,6 +2,7 @@ import { db } from "@/lib/db";
 import { open } from "@/lib/crypto";
 import { checkAudioSig } from "@/lib/audio";
 import { getProvider } from "@/lib/providers";
+import { isAudio } from "@/lib/providers/types";
 
 export const maxDuration = 120;
 /** Taille maximale relue en mémoire pour servir l'audio par morceaux (environ 2 h d'appel). */
@@ -12,15 +13,15 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params;
   const u = new URL(req.url);
   if (!checkAudioSig(id, u.searchParams.get("exp"), u.searchParams.get("sig"))) return new Response("Lien expiré", { status: 403 });
-  const call = await db.call.findUnique({ where: { id }, select: { provider: true, recordingUrl: true, integrationId: true } });
+  const call = await db.call.findUnique({ where: { id }, select: { provider: true, recordingUrl: true, integrationId: true, externalId: true } });
   if (!call?.recordingUrl) return new Response("Introuvable", { status: 404 });
   // Les identifiants de l'outil quand il en faut (Skipcall, lemlist…) ; certains outils (Minari) servent l'audio par lien de partage.
   const integ = call.integrationId ? await db.integration.findUnique({ where: { id: call.integrationId } }) : null;
   let creds: Record<string, string> = {};
   try { if (integ) creds = open<Record<string, string>>(integ.credentials); } catch { /* identifiants illisibles : on tente sans */ }
   const p = getProvider(call.provider);
-  const r = p.fetchAudio ? await p.fetchAudio(creds, call.recordingUrl, req.headers.get("range")).catch(() => null) : null;
-  if (!r || (!r.ok && r.status !== 206)) return new Response("Enregistrement indisponible", { status: 502 });
+  const r = p.fetchAudio ? await p.fetchAudio(creds, call.recordingUrl, req.headers.get("range"), call.externalId).catch(() => null) : null;
+  if (!isAudio(r)) return new Response("Enregistrement indisponible", { status: 502 });
   // L'outil ne sait pas servir un morceau du fichier (Minari) : on le fait nous-mêmes, sinon l'iPhone refuse de lire
   // et on ne peut pas avancer dans l'enregistrement.
   const range = /^bytes=(\d*)-(\d*)$/.exec(req.headers.get("range") || "");

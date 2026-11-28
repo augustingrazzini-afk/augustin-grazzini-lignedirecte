@@ -1,4 +1,4 @@
-import { http, msToTs, num, Provider, NormalizedCall, str, toDate, trimTranscript } from "./types";
+import { http, msToTs, num, Provider, NormalizedCall, str, toDate, trimTranscript, audioFetch } from "./types";
 
 const API = "https://api.aircall.io/v1";
 const headers = (c: Record<string, string>) => ({ Authorization: "Basic " + Buffer.from(`${c.apiId}:${c.apiToken}`).toString("base64"), Accept: "application/json" });
@@ -32,6 +32,18 @@ function map(c: any): NormalizedCall {
 
 export const aircall: Provider = {
   id: "aircall",
+  /**
+   * Écoute dans Trustpipe : le lien direct d'Aircall (`recording`) n'est valable que quelques minutes.
+   * On redemande donc l'appel à chaque écoute pour obtenir un lien frais.
+   */
+  async fetchAudio(c, url, range, externalId) {
+    if (externalId) {
+      const res = (await http(`${API}/calls/${encodeURIComponent(externalId)}`, { headers: headers(c), label: "Aircall" }).catch(() => null)) as any;
+      const fresh = str(res?.call?.recording);
+      if (fresh) { const r = await audioFetch(fresh, range); if (r) return r; }
+    }
+    return audioFetch(url, range);
+  },
   label: "Aircall",
   channels: ["call"],
   credentialFields: [

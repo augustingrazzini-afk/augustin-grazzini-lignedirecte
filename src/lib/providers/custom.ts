@@ -1,4 +1,4 @@
-import { http, num, Provider, NormalizedCall, ProviderError, str, toDate, trimTranscript, type TranscriptLine } from "./types";
+import { http, num, Provider, NormalizedCall, ProviderError, str, toDate, trimTranscript, type TranscriptLine, audioFetch } from "./types";
 
 /**
  * « Mon outil » : n'importe quel outil d'appel qui a une API.
@@ -104,6 +104,11 @@ function nextOf(res: any, current: string): { url?: string; cursor?: string } {
 
 export const custom: Provider = {
   id: "custom",
+  /** Écoute dans Trustpipe : le lien de l'enregistrement ; la clé n'est envoyée qu'au domaine de l'API branchée. */
+  fetchAudio: (c, url, range) => {
+    let host = ""; try { host = new URL(c.url).hostname; } catch { /* adresse d'API absente */ }
+    return audioFetch(url, range, host ? { hosts: new RegExp(`^${host.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, "i"), headers: headersFor(c) } : undefined);
+  },
   label: "Mon outil (clé API)",
   channels: ["call"],
   credentialFields: [

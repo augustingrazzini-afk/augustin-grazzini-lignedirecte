@@ -1,4 +1,4 @@
-import { http, num, Provider, NormalizedCall, str, toDate } from "./types";
+import { http, num, Provider, NormalizedCall, str, toDate, audioFetch } from "./types";
 
 const API = "https://public-api.ringover.com/v2";
 const headers = (c: Record<string, string>) => ({ Authorization: c.apiKey, Accept: "application/json" });
@@ -30,6 +30,8 @@ function map(c: any): NormalizedCall {
 
 export const ringover: Provider = {
   id: "ringover",
+  /** Écoute dans Trustpipe : le lien de l'enregistrement, relu à chaque écoute (avec la clé si l'outil la demande). */
+  fetchAudio: (c, url, range) => audioFetch(url, range, { hosts: /(^|\.)ringover\.(com|io)$/i, headers: { Authorization: c.apiKey } }),
   label: "Ringover",
   beta: true,
   channels: ["call"],

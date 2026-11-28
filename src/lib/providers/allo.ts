@@ -1,4 +1,4 @@
-import { http, Provider, NormalizedCall, str, toDate, trimTranscript, type TranscriptLine } from "./types";
+import { http, Provider, NormalizedCall, str, toDate, trimTranscript, type TranscriptLine, audioFetch } from "./types";
 
 /**
  * Allo (téléphonie IA) — API publique https://api.withallo.com, en-tête « Authorization: Api-Key ak_live_… » (pas Bearer).
@@ -78,6 +78,8 @@ export function mapAllo(r: any): NormalizedCall | null {
 
 export const allo: Provider = {
   id: "allo",
+  /** Écoute dans Trustpipe : le lien de l'enregistrement, relu à chaque écoute (avec la clé si l'outil la demande). */
+  fetchAudio: (c, url, range) => audioFetch(url, range, { hosts: /(^|\.)withallo\.com$/i, headers: { Authorization: `Api-Key ${c.apiKey}` } }),
   label: "Allo",
   channels: ["call"],
   credentialFields: [{ key: "apiKey", label: "Clé API Allo", type: "password", help: "Allo › Settings › API (web.withallo.com/settings/api) › Create API Key, avec la portée CONVERSATIONS_READ (compte Admin ou Manager)" }],

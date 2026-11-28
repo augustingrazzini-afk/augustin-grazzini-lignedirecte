@@ -1,4 +1,4 @@
-import { http, num, Provider, NormalizedActivity, NormalizedCall, str, stripHtml, toDate } from "./types";
+import { http, num, Provider, NormalizedActivity, NormalizedCall, str, stripHtml, toDate, audioFetch } from "./types";
 
 const API = "https://api.hubapi.com";
 const headers = (c: Record<string, string>) => ({ Authorization: `Bearer ${c.token}`, "Content-Type": "application/json" });
@@ -26,6 +26,8 @@ function map(r: any): NormalizedCall {
 
 export const hubspot: Provider = {
   id: "hubspot",
+  /** Écoute dans Trustpipe : le lien de l'enregistrement, relu à chaque écoute (avec la clé si l'outil la demande). */
+  fetchAudio: (c, url, range) => audioFetch(url, range, { hosts: /(^|\.)(hubspot|hubapi)\.com$/i, headers: { Authorization: `Bearer ${c.token}` } }),
   label: "HubSpot",
   channels: ["call", "email"],
   credentialFields: [{ key: "token", label: "Jeton d'application privée", type: "password", help: "HubSpot > Paramètres > Intégrations > Applications privées (droits crm.objects.calls.read et emails)" }],

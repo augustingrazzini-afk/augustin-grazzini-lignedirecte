@@ -91,7 +91,7 @@ export type Provider = {
   /** Complète un appel (transcription, objections). Optionnel. */
   details?(creds: Record<string, string>, externalId: string): Promise<Partial<NormalizedCall> | null>;
   /** Lit un enregistrement protégé par la clé de l'outil (relayé par /api/calls/[id]/audio). */
-  fetchAudio?(creds: Record<string, string>, url: string, range?: string | null): Promise<Response | null>;
+  fetchAudio?(creds: Record<string, string>, url: string, range?: string | null, externalId?: string): Promise<Response | null>;
   /** Extrait l'id d'appel d'un webhook, s'il y en a un. */
   webhookCallId?(payload: unknown): string | null;
 };
@@ -161,3 +161,29 @@ export function trimTranscript(lines: TranscriptLine[], max = 60000): Transcript
   return out;
 }
 export const OBJECTION_KEYS = ["relevance", "incumbent", "timing", "too_busy", "authority", "budget", "other"] as const;
+
+/** Une réponse qui contient bien du son (et pas une page de connexion ou une erreur). */
+export const isAudio = (r: Response | null | undefined): r is Response =>
+  !!r && (r.ok || r.status === 206) && !/^(text\/|application\/(json|xml|xhtml))/i.test(r.headers.get("content-type") || "");
+
+/** Adresse publique en https uniquement : jamais une machine interne. */
+export const publicHttps = (url: string) => {
+  try {
+    const u = new URL(url);
+    return u.protocol === "https:" && !/^(localhost|.*\.(local|internal|lan)|\[.*\]|\d+\.\d+\.\d+\.\d+)$/i.test(u.hostname);
+  } catch { return false; }
+};
+
+/**
+ * Lecture d'un enregistrement pour l'écoute dans Trustpipe : d'abord sans identifiants (lien public ou signé) ;
+ * si l'outil répond par une page de connexion, on réessaie avec la clé, mais uniquement vers le domaine de l'outil.
+ */
+export async function audioFetch(url: string, range?: string | null, auth?: { hosts: RegExp; headers: Record<string, string> }): Promise<Response | null> {
+  if (!publicHttps(url)) return null;
+  const rg = range ? { Range: range } : undefined;
+  const plain = await fetch(url, { headers: rg, signal: AbortSignal.timeout(60_000) }).catch(() => null);
+  if (isAudio(plain)) return plain;
+  if (!auth || !auth.hosts.test(new URL(url).hostname)) return null;
+  const authed = await fetch(url, { headers: { ...auth.headers, ...rg }, signal: AbortSignal.timeout(60_000) }).catch(() => null);
+  return isAudio(authed) ? authed : null;
+}

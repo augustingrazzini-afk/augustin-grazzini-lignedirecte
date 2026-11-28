@@ -1,4 +1,4 @@
-import { http, Provider, NormalizedCall, ProviderError, str, toDate, trimTranscript, type TranscriptLine } from "./types";
+import { http, Provider, NormalizedCall, ProviderError, str, toDate, trimTranscript, type TranscriptLine, audioFetch } from "./types";
 
 /**
  * Gong (enregistreur d'appels et de réunions) — API publique v2, authentification Basic base64(accessKey:accessKeySecret).
@@ -86,6 +86,17 @@ const SELECTOR = { exposedFields: { parties: true, content: { brief: true } } };
 
 export const gong: Provider = {
   id: "gong",
+  /**
+   * Écoute dans Trustpipe : Gong donne un lien audio signé (valable 8 h) quand la clé a le droit « media-url ».
+   * Sans ce droit, pas de son : le lecteur propose alors d'ouvrir l'appel dans Gong.
+   */
+  async fetchAudio(c, _url, range, externalId) {
+    if (!externalId) return null;
+    const res = (await http(`${base(c)}/v2/calls/extensive`, { method: "POST", headers: headers(c), label: LABEL,
+      body: JSON.stringify({ filter: { callIds: [externalId] }, contentSelector: { exposedFields: { media: true } } }) }).catch(() => null)) as any;
+    const media = str(res?.calls?.[0]?.media?.audioUrl) || str(res?.calls?.[0]?.media?.videoUrl);
+    return media ? audioFetch(media, range) : null;
+  },
   label: "Gong",
   channels: ["call"],
   credentialFields: [

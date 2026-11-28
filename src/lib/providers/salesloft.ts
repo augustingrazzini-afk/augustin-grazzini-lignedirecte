@@ -1,4 +1,4 @@
-import { http, num, Provider, NormalizedCall, str, toDate, stripHtml } from "./types";
+import { http, num, Provider, NormalizedCall, str, toDate, stripHtml, audioFetch } from "./types";
 
 /**
  * Salesloft (cadences + dialer) — API https://api.salesloft.com, clé API « Bearer ak_… ».
@@ -92,6 +92,8 @@ async function byIds(c: Record<string, string>, path: string, ids: string[]) {
 
 export const salesloft: Provider = {
   id: "salesloft",
+  /** Écoute dans Trustpipe : le lien de l'enregistrement, relu à chaque écoute (avec la clé si l'outil la demande). */
+  fetchAudio: (c, url, range) => audioFetch(url, range, { hosts: /(^|\.)salesloft\.com$/i, headers: { Authorization: `Bearer ${c.apiKey}` } }),
   label: "Salesloft",
   channels: ["call"],
   credentialFields: [{
