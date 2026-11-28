@@ -1,3 +1,4 @@
+import { FastLink } from "@/components/client/FastLink";
 import Link from "next/link";
 import { planOf } from "@/lib/plan";
 import type { Call, Prisma } from "@prisma/client";
@@ -16,7 +17,11 @@ const FILTERS: Record<string, { label: string; where: Prisma.CallWhereInput }> =
   all: { label: "Tous les appels", where: {} },
 };
 
-export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: { scope: Scope; base: string; days: number; q: string; f: string; obj: string; readOnly?: boolean }) {
+const PAGE = 50, MAX = 500;
+
+export async function Calls({ scope, base, days, q, f, obj, n, readOnly = false }: { scope: Scope; base: string; days: number; q: string; f: string; obj: string; n?: string; readOnly?: boolean }) {
+  // 50 appels d'abord (affichage immédiat), puis « voir plus » par tranches de 50.
+  const shown = Math.min(MAX, Math.max(PAGE, Math.ceil((Number(n) || PAGE) / PAGE) * PAGE));
   const filter = FILTERS[f] ? f : "conv";
   const where: Prisma.CallWhereInput = {
     ...callScope(scope),
@@ -28,7 +33,7 @@ export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: 
   const isBoss = scope.kind === "org";
   const [calls, count, sources, reps] = await Promise.all([
     // Sans les colonnes lourdes que la liste n'affiche pas (transcriptions, analyses, coordonnées) : seule l'étiquette « Transcription » est calculée, plus bas.
-    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: 200, omit: { transcript: true, debrief: true, objDetails: true, aiSummary: true, contactSealed: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null, objDetails: [], aiSummary: "", contactSealed: null }) as Call)),
+    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: shown, omit: { transcript: true, debrief: true, objDetails: true, aiSummary: true, contactSealed: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null, objDetails: [], aiSummary: "", contactSealed: null }) as Call)),
     db.call.count({ where }),
     db.call.groupBy({ by: ["provider"], where: callScope(scope) }),
     isBoss ? db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : Promise.resolve([]),
@@ -68,17 +73,18 @@ export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: 
       </form>
       {isBoss && reps.length > 0 && (
         <div className="filters" aria-label="Commercial">
-          <Link className="chip" href={href({ client: "" })} aria-current={!current ? "true" : undefined}>Tous les commerciaux</Link>
-          {reps.map((r) => <Link key={r.id} className="chip" href={href({ client: r.id })} aria-current={current === r.id ? "true" : undefined}>{r.name}</Link>)}
-          <Link className="chip" href={href({ client: "none" })} aria-current={current === "none" ? "true" : undefined}>Non attribués</Link>
+          <FastLink className="chip" href={href({ client: "" })} current={!current}>Tous les commerciaux</FastLink>
+          {reps.map((r) => <FastLink key={r.id} className="chip" href={href({ client: r.id })} current={current === r.id}>{r.name}</FastLink>)}
+          <FastLink className="chip" href={href({ client: "none" })} current={current === "none"}>Non attribués</FastLink>
         </div>
       )}
       <div className="filters">
-        {Object.entries(FILTERS).map(([k, v]) => <Link key={k} className="chip" href={href({ f: k })} aria-current={k === filter && !obj ? "true" : undefined}>{v.label}</Link>)}
-        {Object.keys(OBJ_LABEL).map((k) => <Link key={k} className="chip" href={href({ obj: obj === k ? "" : k })} aria-current={obj === k ? "true" : undefined}>{OBJ_LABEL[k]}</Link>)}
+        {Object.entries(FILTERS).map(([k, v]) => <FastLink key={k} className="chip" href={href({ f: k })} current={k === filter && !obj} eager>{v.label}</FastLink>)}
+        {Object.keys(OBJ_LABEL).map((k) => <FastLink key={k} className="chip" href={href({ obj: obj === k ? "" : k })} current={obj === k}>{OBJ_LABEL[k]}</FastLink>)}
       </div>
-      <p className="muted small" style={{ margin: "2px 0 8px" }}>{count} appel(s){count > 200 ? " · 200 plus récents affichés" : ""}</p>
+      <p className="muted small" style={{ margin: "2px 0 8px" }}>{count} appel(s){count > shown ? ` · ${shown} plus récents affichés` : ""}</p>
       {calls.length ? <div className="list">{calls.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} audio={plan.premium} hasTranscript={trIds.has(c.id)} showSource={sources.length > 1} rep={isBoss ? (c.clientId && repName.get(c.clientId)) || c.repName || undefined : undefined} />)}</div> : <div className="empty">Aucun appel ne correspond.</div>}
+      {count > shown && shown < MAX && <p style={{ textAlign: "center", margin: "14px 0 0" }}><Link className="btn" href={href({ n: String(shown + PAGE) })} scroll={false} prefetch>Voir {Math.min(PAGE, count - shown)} appels de plus</Link></p>}
     </div>
     </>
   );

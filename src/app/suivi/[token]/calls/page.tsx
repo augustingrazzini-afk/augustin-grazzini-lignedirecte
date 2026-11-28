@@ -14,7 +14,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
   return (
     <>
       <PageTop title="Appels" subtitle="Chaque conversation, résumée, transcrite et classée"><Period days={days} href={keep} /></PageTop>
-      <Calls scope={scope} base={base} days={days} q={(sp.q || "").slice(0, 100)} f={sp.f || "conv"} obj={sp.obj || ""} readOnly />
+      <Calls scope={scope} base={base} days={days} q={(sp.q || "").slice(0, 100)} f={sp.f || "conv"} obj={sp.obj || ""} n={sp.n} readOnly />
     </>
   );
 }
