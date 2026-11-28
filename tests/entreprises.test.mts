@@ -185,3 +185,14 @@ test("essai de 7 jours : carte enregistrée, accès ouvert, rien de débité", a
     assert.equal(billing.isActive({ ...o, trialEndsAt: new Date(Date.now() - 1000) }), false, "essai dépassé sans paiement : lecture seule");
   } finally { await db.organization.delete({ where: { id: o3.id } }); }
 });
+
+test("connecteur Claude : écran d'autorisation réservé au Premium actif", async () => {
+  const { hasPremium, isActive } = billing;
+  const can = (o: { plan: string; subscriptionStatus: string; trialEndsAt: Date }) => isActive(o) && hasPremium(o);
+  const future = new Date(Date.now() + 864e5), past = new Date(Date.now() - 864e5);
+  assert.equal(can({ plan: "premium", subscriptionStatus: "active", trialEndsAt: past }), true);
+  assert.equal(can({ plan: "premium", subscriptionStatus: "trialing", trialEndsAt: future }), true, "essai Premium en cours");
+  assert.equal(can({ plan: "agency", subscriptionStatus: "active", trialEndsAt: past }), false, "Essentiel : non");
+  assert.equal(can({ plan: "starter", subscriptionStatus: "active", trialEndsAt: past }), false, "Découverte : non");
+  assert.equal(can({ plan: "premium", subscriptionStatus: "canceled", trialEndsAt: past }), false, "abonnement arrêté : non");
+});

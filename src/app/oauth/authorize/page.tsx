@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { AuthCard } from "@/components/AuthCard";
 import { currentUser } from "@/lib/session";
 import { checkAuthorize, issueCode } from "@/lib/mcp-server";
+import { PLANS, euros, hasPremium, isActive } from "@/lib/billing";
 
 export const metadata = { title: "Connecter Claude", robots: { index: false } };
 export const dynamic = "force-dynamic";
@@ -26,6 +27,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
     const ok = await checkAuthorize(params);
     const mm = me?.memberships[0];
     if (!me || !mm || "error" in ok) redirect("/app");
+    // Le connecteur est réservé à la formule Premium (abonnement actif) : vérifié à nouveau ici, pas seulement à l'affichage.
+    if (!isActive(mm.org) || !hasPremium(mm.org)) redirect("/app/billing#changer");
     redirect(await issueCode(ok, me.id, mm.orgId));
   }
   async function deny(form: FormData) {
@@ -37,6 +40,21 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
     back.searchParams.set("error", "access_denied");
     if (ok.state) back.searchParams.set("state", ok.state);
     redirect(back.toString());
+  }
+  // Sans abonnement actif ou hors Premium : pas d'autorisation possible, on propose l'abonnement ou de refuser.
+  const org = m.org, active = isActive(org), premium = hasPremium(org);
+  if (!active || !premium) {
+    const hiddenDeny = ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state"].map((k) => sp[k] !== undefined && <input key={k} type="hidden" name={k} value={sp[k]} />);
+    return (
+      <AuthCard title="Connecteur Claude : formule Premium" subtitle={!active ? `L'abonnement de l'espace « ${org.name} » n'est pas actif.` : `Votre formule actuelle (${PLANS[org.plan as keyof typeof PLANS]?.name || org.plan}) n'inclut pas le connecteur Claude.`}>
+        <p className="small" style={{ margin: "0 0 18px", lineHeight: 1.6 }}>Brancher Claude sur Trustpipe est inclus dans la formule <b>Premium</b> ({euros(PLANS.premium.price)} € HT par mois, jusqu&apos;à 10 commerciaux). Passez en Premium, puis relancez la connexion depuis Claude.</p>
+        <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+          <a className="btn primary" href={active ? "/app/billing#changer" : "/paiement"}>Prendre l&apos;abonnement Premium</a>
+          <form action={deny}>{hiddenDeny}<button className="btn" type="submit">Non merci</button></form>
+        </div>
+        <p className="muted small" style={{ margin: "14px 0 0" }}>Connecté en tant que {u.email}.</p>
+      </AuthCard>
+    );
   }
   const hidden = ["response_type", "client_id", "redirect_uri", "code_challenge", "code_challenge_method", "state"].map((k) => sp[k] !== undefined && <input key={k} type="hidden" name={k} value={sp[k]} />);
 
