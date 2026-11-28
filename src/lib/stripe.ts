@@ -21,7 +21,7 @@ export const stripeEnabled = () => {
  */
 const isStripeLink = (u?: string) => !!u && /^https:\/\/(buy|billing)\.stripe\.com\//.test(u);
 export function paymentLink(plan: Plan, email: string, orgId: string): string | null {
-  const base = plan === "starter" ? process.env.STRIPE_LINK_STARTER : plan === "premium" ? process.env.STRIPE_LINK_PREMIUM : plan === "agency" ? process.env.STRIPE_LINK_AGENCY : plan === "solo_plus" ? process.env.STRIPE_LINK_SOLO_PLUS : process.env.STRIPE_LINK_SOLO;
+  const base = plan === "starter" ? process.env.STRIPE_LINK_STARTER : plan === "premium" ? process.env.STRIPE_LINK_PREMIUM : plan === "agency" ? process.env.STRIPE_LINK_AGENCY : undefined; // anciennes formules Solo : plus vendues
   if (!isStripeLink(base)) return null;
   const u = new URL(base!);
   u.searchParams.set("prefilled_email", email);

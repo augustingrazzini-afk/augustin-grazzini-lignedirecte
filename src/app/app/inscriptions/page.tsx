@@ -99,9 +99,10 @@ export default async function Page() {
                       <input type="hidden" name="orgId" value={o.id} />
                       <select name="what" className="input" defaultValue="" style={{ height: 32, padding: "0 8px" }} aria-label="Changer l'abonnement">
                         <option value="" disabled>Changer…</option>
-                        <option value="solo">Payant Solo</option>
-                        <option value="agency">Payant Équipe</option>
-                        <option value="trial">Prolonger l&apos;essai 14 j</option>
+                        <option value="starter">Payant Découverte</option>
+                        <option value="agency">Payant Essentiel</option>
+                        <option value="premium">Payant Premium</option>
+                        <option value="trial">Prolonger l&apos;essai 7 j</option>
                         <option value="canceled">Résilié</option>
                       </select>
                       <button className="btn sm">OK</button>

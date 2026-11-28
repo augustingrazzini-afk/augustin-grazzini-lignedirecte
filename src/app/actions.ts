@@ -522,7 +522,7 @@ export async function adminSetSubscription(f: FormData) {
   const what = s(f, "what", 20);
   const org = await db.organization.findUnique({ where: { id: orgId } });
   if (!org || isAdminOrg(org.id)) return;
-  if (what === "solo" || what === "agency") {
+  if (what === "starter" || what === "agency" || what === "premium") {
     await db.organization.update({ where: { id: org.id }, data: { plan: what, subscriptionStatus: "active", ...(org.stripeSubscriptionId ? {} : { stripeSubscriptionId: `manuel_${org.id}` }) } });
   } else if (what === "canceled") {
     await db.organization.update({ where: { id: org.id }, data: { subscriptionStatus: "canceled" } });

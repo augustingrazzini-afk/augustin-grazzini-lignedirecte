@@ -33,7 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const endDate = endTs ? new Date(endTs * 1000).toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" }) : "";
   const owner = scope.role === "owner";
   const me = await currentUser();
-  const links = !stripeEnabled() ? { solo: paymentLink("solo", me?.email || "", org.id), solo_plus: paymentLink("solo_plus", me?.email || "", org.id), agency: paymentLink("agency", me?.email || "", org.id) } : null;
+  const links = !stripeEnabled() ? { starter: paymentLink("starter", me?.email || "", org.id), agency: paymentLink("agency", me?.email || "", org.id), premium: paymentLink("premium", me?.email || "", org.id) } : null;
   const portal = portalLink();
   const plan = PLANS[org.plan as PlanId] || PLANS.trial;
   const repCount = await db.client.count({ where: { orgId: org.id } });
@@ -61,7 +61,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
       {sp.cancelled && <div className="banner ok">C&apos;est noté : votre abonnement est résilié{endDate ? ` et prendra fin le ${endDate}` : ""}. Aucun autre prélèvement ne sera fait. Vous gardez l&apos;accès jusque-là.</div>}
       {sp.resumed && <div className="banner ok">Votre abonnement continue normalement.</div>}
       {sp.err && <div className="banner err">La demande n&apos;a pas abouti. Réessayez ou écrivez-nous.</div>}
-      {!stripeEnabled() && !links?.solo && !subscribed && <div className="banner">Le paiement en ligne n&apos;est pas encore activé.</div>}
+      {!stripeEnabled() && !links?.agency && !subscribed && <div className="banner">Le paiement en ligne n&apos;est pas encore activé.</div>}
 
       {subscribed && (
         <div className="card">

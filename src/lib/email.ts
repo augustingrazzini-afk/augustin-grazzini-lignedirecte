@@ -32,7 +32,7 @@ export async function sendLoginEmail(to: string, link: string, intro?: string, p
 }
 
 /** Email générique (récap des relances…). En développement sans clé Resend : affiché dans les logs. */
-export async function sendEmail(to: string, subject: string, html: string, text: string) {
+export async function sendEmail(to: string, subject: string, html: string, text: string, headers?: Record<string, string>) {
   if (!process.env.RESEND_API_KEY) {
     if (process.env.NODE_ENV === "production") return;
     console.log(`\n[email pour ${to}] ${subject}\n${text}\n`);
@@ -41,7 +41,12 @@ export async function sendEmail(to: string, subject: string, html: string, text:
   const r = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${process.env.RESEND_API_KEY}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from: process.env.EMAIL_FROM, reply_to: CONTACT_EMAIL, to, subject, text, html }),
+    body: JSON.stringify({ from: process.env.EMAIL_FROM, reply_to: CONTACT_EMAIL, to, subject, text, html, ...(headers ? { headers } : {}) }),
   });
   if (!r.ok) throw new Error(`Envoi de l'email impossible (${r.status})`);
 }
+
+/** En-têtes d'un email récurrent : lien de désinscription reconnu par Gmail et Outlook (bouton « Se désabonner »). */
+export const recurringHeaders = (settingsUrl: string): Record<string, string> => ({
+  "List-Unsubscribe": `<mailto:${CONTACT_EMAIL}?subject=Ne%20plus%20recevoir%20le%20r%C3%A9cap>, <${settingsUrl}>`,
+});

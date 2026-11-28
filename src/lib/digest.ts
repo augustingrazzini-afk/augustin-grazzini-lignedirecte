@@ -1,6 +1,6 @@
 import type { Task } from "@prisma/client";
 import { db } from "./db";
-import { sendEmail } from "./email";
+import { recurringHeaders, sendEmail } from "./email";
 import { generateRuleTasks } from "./tasks";
 import { CHANNEL_LABEL } from "./providers";
 
@@ -25,7 +25,7 @@ async function postSlack(url: string, title: string, overdue: Task[], today: Tas
 
 function emailHtml(title: string, overdue: Task[], today: Task[], link: string) {
   const block = (label: string, color: string, list: Task[]) => list.length ? `<p style="margin:20px 0 8px;font-weight:700;color:${color}">${label} · ${list.length}</p><ul style="margin:0;padding-left:18px;color:#0B122F">${lines(list).map((l) => `<li style="margin:4px 0">${esc(l)}</li>`).join("")}</ul>` : "";
-  return `<div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#0B122F"><p style="font-size:18px;font-weight:700;margin:0">${esc(title)}</p>${block("En retard", "#DD3F55", overdue)}${block("Aujourd'hui", "#C27F05", today)}<p style="margin-top:24px"><a href="${esc(link)}" style="display:inline-block;background:#2E5BFF;color:#fff;padding:12px 20px;border-radius:10px;text-decoration:none;font-weight:600">Ouvrir mes relances</a></p><p style="color:#59628A;font-size:12px">Vous recevez ce récap chaque matin. Vous pouvez le désactiver dans les réglages.</p></div>`;
+  return `<div style="font-family:Inter,Arial,sans-serif;max-width:560px;margin:auto;padding:24px;color:#140700"><p style="font-size:20px;font-weight:900;letter-spacing:.02em;margin:0 0 14px;font-family:'Arial Black',Arial,sans-serif;color:#140700"><span style="display:inline-block;width:14px;height:14px;border-radius:50%;background:#FF5A1F;margin-right:8px;vertical-align:1px"></span>TRUSTPIPE</p><p style="font-size:18px;font-weight:700;margin:0">${esc(title)}</p>${block("En retard", "#DD3F55", overdue)}${block("Aujourd'hui", "#C27F05", today)}<p style="margin-top:24px"><a href="${esc(link)}" style="display:inline-block;background:#FF5A1F;color:#140700;padding:12px 20px;border-radius:4px;text-decoration:none;font-weight:600">Ouvrir mes relances</a></p><p style="color:#59628A;font-size:12px">Vous recevez ce récap chaque matin. Vous pouvez le désactiver dans les réglages.</p></div>`;
 }
 
 /** Tâche du matin : règles automatiques, puis récap des relances par email et Slack. */
@@ -42,7 +42,7 @@ export async function runDigest() {
     if (due.length) {
       const [overdue, today] = split(due);
       const title = `${org.name} : ${due.length} relance(s) à faire`;
-      for (const m of org.members) { await sendEmail(m.user.email, title, emailHtml(title, overdue, today, `${APP()}/app/relances`), lines(due).join("\n")).catch(() => {}); emails++; }
+      for (const m of org.members) { await sendEmail(m.user.email, title, emailHtml(title, overdue, today, `${APP()}/app/relances`), lines(due).join("\n"), recurringHeaders(`${APP()}/app/settings`)).catch(() => {}); emails++; }
       if (org.slackWebhook) { await postSlack(org.slackWebhook, title, overdue, today, `${APP()}/app/relances`); slacks++; }
     }
     for (const c of org.clients) {
@@ -51,7 +51,7 @@ export async function runDigest() {
       const [overdue, today] = split(mine);
       const title = `${c.name} : ${mine.length} relance(s) à faire`;
       const link = `${APP()}/portal/${c.id}/relances`;
-      for (const m of c.members) { await sendEmail(m.user.email, title, emailHtml(title, overdue, today, link), lines(mine).join("\n")).catch(() => {}); emails++; }
+      for (const m of c.members) { await sendEmail(m.user.email, title, emailHtml(title, overdue, today, link), lines(mine).join("\n"), recurringHeaders(`${APP()}/portal/${c.id}`)).catch(() => {}); emails++; }
       if (c.slackWebhook) { await postSlack(c.slackWebhook, title, overdue, today, link); slacks++; }
     }
   }
