@@ -4,7 +4,7 @@ const esc = (s: string) => s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&
 export type LinkPurpose = "login" | "verify" | "reset";
 const COPY: Record<LinkPurpose, { subject: (app: string) => string; lead: string; cta: string; validity: string }> = {
   login: { subject: (a) => `${a} : votre lien de connexion`, lead: "Cliquez pour vous connecter.", cta: "Se connecter", validity: "30 minutes" },
-  verify: { subject: (a) => `${a} : confirmez votre adresse email`, lead: "Bienvenue ! Confirmez votre adresse email pour activer votre compte et démarrer votre essai.", cta: "Confirmer mon email", validity: "24 heures" },
+  verify: { subject: (a) => `${a} : confirmez votre adresse email`, lead: "Bienvenue ! Confirmez votre adresse email pour activer votre compte.", cta: "Confirmer mon email", validity: "24 heures" },
   reset: { subject: (a) => `${a} : réinitialisez votre mot de passe`, lead: "Vous avez demandé à changer votre mot de passe. Cliquez pour en choisir un nouveau.", cta: "Choisir un nouveau mot de passe", validity: "30 minutes" },
 };
 

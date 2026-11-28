@@ -145,7 +145,7 @@ export async function createOrganization(_: FormState, f: FormData): Promise<For
 async function writableOrg(clientFilter?: string | null) {
   const scope = await requireOrgScope(clientFilter);
   const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId } });
-  if (!isActive(org)) throw new Error("Votre essai est terminé : choisissez un abonnement pour continuer.");
+  if (!isActive(org)) throw new Error("Votre abonnement n'est plus actif : choisissez une formule pour continuer.");
   return { scope, org };
 }
 const fail = (e: unknown): FormState => ({ error: e instanceof Error ? e.message : "Action impossible." });

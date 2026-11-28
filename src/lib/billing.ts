@@ -2,7 +2,7 @@ import type { Organization } from "@prisma/client";
 
 /** Formules. `perSeat` : le prix est par commercial (le nombre est choisi au paiement). */
 export const PLANS = {
-  trial: { name: "Essai gratuit", maxClients: 3, price: 0, perSeat: false },
+  trial: { name: "Sans formule", maxClients: 3, price: 0, perSeat: false },
   solo: { name: "Solo", maxClients: 3, price: 24.99, perSeat: false },
   solo_plus: { name: "Solo Illimité", maxClients: Infinity, price: 34.99, perSeat: false },
   starter: { name: "Découverte", maxClients: Infinity, price: 19.99, perSeat: true },
@@ -27,7 +27,7 @@ export const PLAN_CAP: Record<string, number> = { starter: 2, agency: 4, premium
 export const PREMIUM_EXTRAS = ["Commerciaux illimités", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
 /**
  * Fonctions Premium (briefs, débriefs, transcription par Trustpipe, connecteur Claude) :
- * incluses partout sauf dans la formule Essentiel. L'essai et les anciennes formules les gardent.
+ * réservées à Premium (et aux anciennes formules). Il n'y a pas d'essai gratuit : un nouvel espace paie sa formule avant d'entrer.
  */
 export const hasPremium = (org: { plan: string }) => org.plan !== "agency" && org.plan !== "starter";
 /** Analyse IA des appels (résumés, objections, relances automatiques) et assistant IA : tout sauf Découverte. */

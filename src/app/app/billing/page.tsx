@@ -8,7 +8,7 @@ import { PageTop } from "@/components/Shell";
 import { requestCancel } from "@/app/actions";
 
 export const metadata = { title: "Abonnement" };
-const STATUS: Record<string, string> = { trialing: "Essai gratuit", active: "Actif", past_due: "Paiement en échec", canceled: "Résilié" };
+const STATUS: Record<string, string> = { trialing: "Accès provisoire", active: "Actif", past_due: "Paiement en échec", canceled: "Résilié" };
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ ok?: string; cancelled?: string; resumed?: string; err?: string }> }) {
   const scope = await requireOrgScope();
@@ -31,7 +31,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const subscribed = !!subId && org.subscriptionStatus !== "canceled";
   const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   const statusLine = offered ? "Accès offert"
-    : org.subscriptionStatus === "trialing" ? `Essai gratuit jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
+    : org.subscriptionStatus === "trialing" ? `Accès provisoire jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
     : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price * (plan.perSeat ? Math.max(1, org.seats) : 1))} € HT par mois, sans engagement`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
