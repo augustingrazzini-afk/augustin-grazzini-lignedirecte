@@ -108,6 +108,8 @@ model ClientMember {
   clientId  String
   userId    String
   digest    Boolean  @default(true)
+  joinedAt    DateTime? // première visite de son espace (lien d'invitation cliqué)
+  onboardedAt DateTime? // guide de démarrage terminé
   createdAt DateTime @default(now())
   client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)

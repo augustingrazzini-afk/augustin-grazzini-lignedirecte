@@ -31,7 +31,9 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         FROM "Call" WHERE "orgId" = ${scope.orgId} AND "clientId" = ${rep.id} AND kind <> 'meeting' AND "repName" <> '' GROUP BY 1`)
         .map((r) => ({ ...r, clientId: rep.id, day: "", dow: 0, hour: 0, talk: 0, convSec: 0 })))
     : [];
-  const status = rep.integrations.length ? `Outil branché : ${rep.integrations.map((i) => SOURCE_LABEL[i.provider] || i.label).join(", ")}` : rep.members.length ? "Invité, outil pas encore branché" : "Pas encore invité";
+  const joined = rep.members.some((m) => m.joinedAt);
+  const status = rep.integrations.length ? `Outil branché : ${rep.integrations.map((i) => SOURCE_LABEL[i.provider] || i.label).join(", ")}` : joined ? "Connecté, outil pas encore branché" : rep.members.length ? "Invité, pas encore connecté" : "Pas encore invité";
+  const memberState = (m: { joinedAt: Date | null; onboardedAt: Date | null }) => rep.integrations.length ? <span className="pill win">Outil branché</span> : m.joinedAt ? <span className="pill">Connecté · outil à brancher</span> : <span className="pill bad">Invité · pas encore connecté</span>;
   return (
     <>
       <PageTop title={rep.name} subtitle={`${[KIND_LABEL[rep.kind] || "Interne", rep.agency].filter(Boolean).join(" · ")} · ${fmt(rep._count.calls)} appels · ${status}`}>
@@ -58,7 +60,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <div className="stack">
           <div className="card"><h2>Inviter {rep.name}</h2><p className="sub">Il reçoit un lien de connexion par email et branche son outil d&apos;appel (Minari, Aircall, Ringover, lemlist…) en 2 minutes. Ses appels arrivent ensuite ici en direct. Dans son espace, il ne voit que ses propres appels.</p>
             {rep.members.length > 0 && <div className="list" style={{ marginBottom: 14 }}>{rep.members.map((m) => (
-              <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}><span className="who">{m.user.email}</span>
+              <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto auto" }}><span className="who">{m.user.email}</span>{memberState(m)}
                 <form action={removeClientUser}><input type="hidden" name="clientId" value={rep.id} /><input type="hidden" name="userId" value={m.userId} /><button className="btn sm danger">Retirer</button></form></div>
             ))}</div>}
             <ActionForm action={inviteClientUser} submit={rep.members.length ? "Inviter une autre adresse" : "Envoyer l'invitation"} hidden={{ clientId: rep.id }}><label className="full">Email<input className="input" type="email" name="email" required placeholder="prenom@exemple.fr" /></label></ActionForm>

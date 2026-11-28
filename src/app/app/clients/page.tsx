@@ -17,7 +17,7 @@ export default async function Page() {
   const scope = await requireOrgScope();
   const [org, reps, unassigned] = await Promise.all([
     db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }),
-    db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, include: { _count: { select: { calls: true, members: true, integrations: true } } } }),
+    db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, include: { members: { select: { joinedAt: true } }, _count: { select: { calls: true, members: true, integrations: true } } } }),
     db.call.count({ where: { orgId: scope.orgId, clientId: null } }),
   ]);
   // Listes et noms de commerciaux vus dans les appels synchronisés, proposés à la création.
@@ -48,7 +48,7 @@ export default async function Page() {
             <Link key={c.id} className="item" href={`/app/clients/${c.id}`}>
               <span className="av">{c.name.slice(0, 2).toUpperCase()}</span>
               <span className="who">{c.name}</span><span className="meta">{fmt(c._count.calls)} appels</span>
-              <span className="sum">{[KIND_LABEL[c.kind] || "Interne", c.agency].filter(Boolean).join(" · ")} · {c._count.integrations ? "outil branché" : c._count.members ? "invité" : "pas encore invité"}</span>
+              <span className="sum">{[KIND_LABEL[c.kind] || "Interne", c.agency].filter(Boolean).join(" · ")} · {c._count.integrations ? "✓ outil branché" : c.members.some((m) => m.joinedAt) ? "connecté, outil à brancher" : c._count.members ? "invité, pas encore connecté" : "pas encore invité"}</span>
             </Link>
           ))}</div> : <div className="empty"><b>Aucun commercial</b>Ajoutez votre premier commercial à droite : interne, freelance ou agence.</div>}
         </div>

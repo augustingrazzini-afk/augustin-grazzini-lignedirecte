@@ -243,7 +243,7 @@ export async function inviteClientUser(_: FormState, f: FormData): Promise<FormS
     if (!isEmail(email)) return { error: "Adresse email invalide." };
     const user = await db.user.upsert({ where: { email }, update: {}, create: { email } });
     await db.clientMember.upsert({ where: { clientId_userId: { clientId, userId: user.id } }, update: {}, create: { clientId, userId: user.id } });
-    await sendMagicLink(email, { redirect: `/portal/${clientId}/sources`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace « ${client.name} », avec leurs résumés et un assistant IA.` });
+    await sendMagicLink(email, { redirect: `/portal/${clientId}/bienvenue`, intro: `${org.name} suit sa prospection avec Trustpipe. Branchez votre outil d'appel en 2 minutes : vos appels apparaîtront dans votre espace « ${client.name} », avec leurs résumés et un assistant IA.` });
     revalidatePath(`/app/clients/${clientId}`);
     return { ok: `Invitation envoyée à ${email}.` };
   } catch (e) { return fail(e); }
@@ -601,4 +601,13 @@ export async function fetchRecordings(_: FormState, f: FormData): Promise<FormSt
     return { ok: integ.provider === "minari" ? `Écoute activée : ${n} appel(s) écoutable(s) dès maintenant. Les prochains appels le seront automatiquement.`
       : `Écoute activée : ${n} appel(s) déjà écoutable(s). Le reste de l'historique (90 jours) se récupère en arrière-plan : comptez quelques minutes.` };
   } catch (e) { return fail(e); }
+}
+
+/** Fin du guide de démarrage du commercial : on ne le lui remontre plus, il arrive sur son tableau de bord. */
+export async function finishOnboarding(f: FormData) {
+  if (await inDemo()) return;
+  const clientId = s(f, "clientId", 40);
+  const u = await requireUser();
+  await db.clientMember.updateMany({ where: { clientId, userId: u.id, onboardedAt: null }, data: { onboardedAt: new Date() } });
+  redirect(`/portal/${clientId}`);
 }

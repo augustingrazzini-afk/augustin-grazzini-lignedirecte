@@ -19,7 +19,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   const p = await checkAuthorize(sp);
   if ("error" in p) return <AuthCard title="Connexion impossible" subtitle={p.error}><p className="muted small">Fermez cette page et relancez la connexion depuis Claude.</p></AuthCard>;
   const m = u.memberships[0];
-  if (!m) return <AuthCard title="Connexion impossible" subtitle="Ce compte n'a pas d'espace commercial Trustpipe. Connectez-vous avec le compte de votre espace."><p className="muted small">Connecté en tant que {u.email}.</p></AuthCard>;
+  if (!m) return <AuthCard title="Connexion impossible" subtitle={u.clientAccess.length ? "Le connecteur Claude se branche avec le compte de l'entreprise (son responsable), pas depuis un espace de commercial invité." : "Ce compte n'a pas d'espace Trustpipe. Connectez-vous avec le compte de votre entreprise."}><p className="muted small">Connecté en tant que {u.email}.</p></AuthCard>;
 
   async function allow(form: FormData) {
     "use server";
