@@ -1,6 +1,6 @@
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PLANS, PLAN_FEATURES, type PlanId, euros } from "@/lib/billing";
+import { PAID_PLANS, PLANS, PLAN_CAP, PLAN_FEATURES, type PlanId, euros } from "@/lib/billing";
 import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
 import { currentUser } from "@/lib/session";
 import { PlanPicker } from "@/components/PlanPicker";
@@ -26,6 +26,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const links = !stripeEnabled() ? { solo: paymentLink("solo", me?.email || "", org.id), solo_plus: paymentLink("solo_plus", me?.email || "", org.id), agency: paymentLink("agency", me?.email || "", org.id) } : null;
   const portal = portalLink();
   const plan = PLANS[org.plan as PlanId] || PLANS.trial;
+  const repCount = await db.client.count({ where: { orgId: org.id } });
+  const order = (PAID_PLANS as readonly string[]).indexOf(org.plan);
   const subId = org.stripeSubscriptionId || "";
   const offered = !!subId && !subId.startsWith("sub_"); // accès offert ou activé à la main
   const subscribed = !!subId && org.subscriptionStatus !== "canceled";
@@ -56,7 +58,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
           <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
           <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
             {(org.plan in PLAN_FEATURES ? PLAN_FEATURES[org.plan as keyof typeof PLAN_FEATURES].yes : features()).map((f) => <li key={f}>{f}</li>)}
-            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(plan.price)} € HT / mois</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}. Pour en suivre plus, changez de formule dans « Gérer mon abonnement ».</li>}
+            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(plan.price)} € HT / mois</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}. {Number.isFinite(plan.maxClients) ? <>Pour en suivre plus, <a href="#changer">changez de formule</a> ci-dessous.</> : null}</li>}
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>
@@ -79,6 +81,34 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
                   <form action="/api/billing" method="post"><input type="hidden" name="action" value="cancel" /><button className="btn danger">Résilier</button></form>
                 </div>
           ) : null)}
+        </div>
+      )}
+
+      {subscribed && owner && org.plan in PLAN_FEATURES && (
+        <div className="card mt" id="changer">
+          <h2>Changer de formule</h2>
+          <p className="sub">Passez à la formule au-dessus ou en dessous quand vous voulez, sans engagement. Vous suivez actuellement {repCount} {repCount > 1 ? "commerciaux" : "commercial"}.</p>
+          <div className="grid g-3e plans" style={{ marginTop: 12 }}>
+            {PAID_PLANS.map((id, i) => {
+              const p = PLANS[id], cur = id === org.plan, up = i > order, cap = PLAN_CAP[id], tooSmall = repCount > cap;
+              // Abonnement Stripe en cours : le changement se fait dans l'espace Stripe. Accès offert : on souscrit la formule choisie.
+              const href = !cur ? (offered || !portal ? paymentLink(id, me?.email || "", org.id) : portal) : null;
+              return (
+                <div key={id} className={`card price${cur ? " lp-best" : ""}`}>
+                  <div className="plan-top"><h2>{p.name}</h2>{cur && <span className="pill win">Votre formule</span>}</div>
+                  <div className="amt" style={{ whiteSpace: "nowrap", fontSize: 30 }}>{euros(p.price)} €</div>
+                  <div className="muted small" style={{ margin: "-4px 0 8px" }}>HT / mois · {Number.isFinite(cap) ? `jusqu'à ${cap} commerciaux` : "commerciaux illimités"}</div>
+                  <ul>{PLAN_FEATURES[id].yes.slice(1, 5).map((t) => <li key={t}>{t}</li>)}</ul>
+                  {cur ? <span className="muted small">C&apos;est votre formule actuelle.</span>
+                    : tooSmall ? <span className="muted small">Vous suivez {repCount} commerciaux : retirez-en {repCount - cap} avant de passer à cette formule.</span>
+                    : href ? <a className={`btn${up ? " primary" : ""}`} href={href} target="_blank" rel="noopener noreferrer">{up ? `Passer en ${p.name} ↑` : `Revenir en ${p.name} ↓`}</a>
+                    : stripeEnabled() ? <form action="/api/billing" method="post"><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /><button className={`btn${up ? " primary" : ""}`}>{up ? `Passer en ${p.name} ↑` : `Revenir en ${p.name} ↓`}</button></form>
+                    : <span className="muted small">Écrivez-nous pour changer de formule.</span>}
+                </div>
+              );
+            })}
+          </div>
+          {!offered && portal && <p className="muted small" style={{ margin: "12px 0 0" }}>Le bouton ouvre votre espace Stripe : connectez-vous avec l&apos;email de votre abonnement (un code vous est envoyé), cliquez sur « Mettre à jour l&apos;abonnement » et choisissez la formule. Le changement est immédiat et le prix est ajusté au prorata.</p>}
         </div>
       )}
 

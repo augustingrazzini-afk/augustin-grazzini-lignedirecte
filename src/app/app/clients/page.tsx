@@ -39,7 +39,7 @@ export default async function Page() {
       {Number.isFinite(max) && reps.length >= max && (
         <div className="banner" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
           <span><b>Votre formule {plan.name} couvre {max} commerciaux, tous utilisés.</b> Pour en suivre plus, passez à la formule supérieure.</span>
-          {portal ? <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Changer de formule</a> : <Link className="btn primary" href="/app/billing">Changer de formule</Link>}
+          <Link className="btn primary" href="/app/billing#changer">Changer de formule</Link>
         </div>
       )}
       <div className="grid g-2">
