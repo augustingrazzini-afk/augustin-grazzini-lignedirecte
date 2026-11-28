@@ -1,3 +1,4 @@
+import { Btn } from "@/components/client/Btn";
 import Link from "next/link";
 import { openContact, prettyPhone } from "@/lib/contact";
 import { planOf } from "@/lib/plan";
@@ -96,8 +97,8 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           <div className="card"><div className="sec"><h4>Rendez-vous détecté par l&apos;IA</h4>
             <p className="muted small" style={{ margin: "0 0 10px" }}>D&apos;après la transcription, un rendez-vous semble avoir été fixé, mais l&apos;outil d&apos;appel ne l&apos;indique pas. Il n&apos;est pas compté dans les chiffres tant qu&apos;il n&apos;est pas confirmé.</p>
             {scope.kind === "org" && !readOnly ? <div className="row" style={{ gap: 8 }}>
-              <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="1" /><button className="btn sm primary">Confirmer le rendez-vous</button></form>
-              <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="0" /><button className="btn sm">Ce n&apos;est pas un rendez-vous</button></form>
+              <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="1" /><Btn className="btn sm primary">Confirmer le rendez-vous</Btn></form>
+              <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="0" /><Btn className="btn sm">Ce n&apos;est pas un rendez-vous</Btn></form>
             </div> : <p className="muted small" style={{ margin: 0 }}>Marquez le rendez-vous dans votre outil d&apos;appel pour qu&apos;il soit compté.</p>}
           </div></div>
         )}
@@ -113,7 +114,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
               {c.shares.length > 0 && <div className="list" style={{ marginTop: 12 }}>{c.shares.map((x) => (
                 <div key={x.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
                   <span className="who">Envoyé à {x.client.name}<span> · le {dateFR(x.createdAt)}</span></span>
-                  <form action={unshareCall}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="clientId" value={x.clientId} /><button className="btn sm">Retirer</button></form>
+                  <form action={unshareCall}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="clientId" value={x.clientId} /><Btn className="btn sm" row>Retirer</Btn></form>
                   {x.note && <span className="sum">« {x.note} »</span>}
                 </div>
               ))}</div>}
@@ -122,7 +123,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           <div className="card"><div className="sec"><h4>À qui appartient cet appel</h4>
             <form action={assignCall} className="row"><input type="hidden" name="callId" value={c.id} />
               <select className="select" name="clientId" defaultValue={c.clientId || ""}><option value="">— Non attribué —</option>{clients.map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}</select>
-              <button className="btn sm">Changer</button></form>
+              <Btn className="btn sm">Changer</Btn></form>
             <p className="muted small" style={{ margin: "8px 0 0" }}>À corriger seulement si l&apos;appel a été rangé chez le mauvais commercial : il compte dans ses chiffres et son classement.</p></div></div>
           </>
         )}

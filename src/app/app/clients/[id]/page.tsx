@@ -1,3 +1,4 @@
+import { Btn } from "@/components/client/Btn";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { requireOrgScope } from "@/lib/access";
@@ -61,7 +62,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
           <div className="card"><h2>Inviter {rep.name}</h2><p className="sub">Il reçoit un lien de connexion par email et branche son outil d&apos;appel (Minari, Aircall, Ringover, lemlist…) en 2 minutes. Ses appels arrivent ensuite ici en direct. Dans son espace, il ne voit que ses propres appels.</p>
             {rep.members.length > 0 && <div className="list" style={{ marginBottom: 14 }}>{rep.members.map((m) => (
               <div key={m.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto auto" }}><span className="who">{m.user.email}</span>{memberState(m)}
-                <form action={removeClientUser}><input type="hidden" name="clientId" value={rep.id} /><input type="hidden" name="userId" value={m.userId} /><button className="btn sm danger">Retirer</button></form></div>
+                <form action={removeClientUser}><input type="hidden" name="clientId" value={rep.id} /><input type="hidden" name="userId" value={m.userId} /><Btn className="btn sm danger" row>Retirer</Btn></form></div>
             ))}</div>}
             <ActionForm action={inviteClientUser} submit={rep.members.length ? "Inviter une autre adresse" : "Envoyer l'invitation"} hidden={{ clientId: rep.id }}><label className="full">Email<input className="input" type="email" name="email" required placeholder="prenom@exemple.fr" /></label></ActionForm>
           </div>
@@ -69,7 +70,7 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             {rep.rules.length ? <div className="list">{rep.rules.map((r) => (
               <div key={r.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
                 <span className="who">{FIELD[r.field] || r.field} = « {r.value} »{r.provider && <span> · {SOURCE_LABEL[r.provider]}</span>}</span>
-                <form action={deleteRule}><input type="hidden" name="ruleId" value={r.id} /><input type="hidden" name="clientId" value={rep.id} /><button className="btn sm danger">Retirer</button></form>
+                <form action={deleteRule}><input type="hidden" name="ruleId" value={r.id} /><input type="hidden" name="clientId" value={rep.id} /><Btn className="btn sm danger" row>Retirer</Btn></form>
               </div>
             ))}</div> : <p className="muted">Aucune règle : attribuez les appels depuis leur fiche, ou ajoutez une règle.</p>}
             <div style={{ marginTop: 14 }}><ActionForm action={addRule} submit="Ajouter la règle" hidden={{ clientId: rep.id }}>
@@ -98,10 +99,10 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
             <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
               <input className="input" readOnly value={shareUrl} style={{ flex: "1 1 260px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
               <CopyButton text={shareUrl} label="Copier" />
-              <form action={disableShareLink}><input type="hidden" name="clientId" value={rep.id} /><button className="btn sm danger">Désactiver</button></form>
+              <form action={disableShareLink}><input type="hidden" name="clientId" value={rep.id} /><Btn className="btn sm danger">Désactiver</Btn></form>
             </div></div>}
           {scope.role === "owner" && <div className="card"><h2>Retirer ce commercial</h2><p className="sub">Ses appels restent dans votre espace, non attribués. Son accès est retiré.</p>
-            <form action={deleteClient}><input type="hidden" name="clientId" value={rep.id} /><button className="btn danger">Retirer {rep.name}</button></form></div>}
+            <form action={deleteClient}><input type="hidden" name="clientId" value={rep.id} /><Btn className="btn danger">Retirer {rep.name}</Btn></form></div>}
         </div>
       </div>
     </>

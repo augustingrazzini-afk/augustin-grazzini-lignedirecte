@@ -6,6 +6,7 @@ import { hasAi, hasPremium } from "@/lib/billing";
 import { SOURCE_LABEL } from "@/lib/providers";
 import { Sources } from "@/components/views/Sources";
 import { finishOnboarding } from "@/app/actions";
+import { Btn } from "@/components/client/Btn";
 
 export const metadata = { title: "Bienvenue" };
 
@@ -101,7 +102,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
           <form action={finishOnboarding} className="ob-actions">
             <input type="hidden" name="clientId" value={scope.clientId} />
             <Link className="btn" href={next(2)}>← Retour</Link>
-            <button className="btn primary">Ouvrir mon espace →</button>
+            <Btn className="btn primary">Ouvrir mon espace →</Btn>
           </form>
         </div>
       )}

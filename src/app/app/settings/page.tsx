@@ -1,3 +1,4 @@
+import { Btn } from "@/components/client/Btn";
 import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
 import { planOf } from "@/lib/plan";
@@ -30,7 +31,7 @@ export default async function Page() {
           {mcp.length ? <div className="list">{mcp.map((t) => (
             <div key={t.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
               <span className="who">{t.clientName || "Claude"}<span className="small muted"> · connecté le {t.createdAt.toLocaleDateString("fr-FR")}{t.lastUsedAt ? ` · utilisé le ${t.lastUsedAt.toLocaleDateString("fr-FR")}` : ""}</span></span>
-              <form action={revokeMcpToken}><input type="hidden" name="id" value={t.id} /><button className="btn sm" type="submit">Couper l&apos;accès</button></form>
+              <form action={revokeMcpToken}><input type="hidden" name="id" value={t.id} /><Btn className="btn sm" row>Couper l&apos;accès</Btn></form>
             </div>))}</div> : <p className="small muted" style={{ margin: 0 }}>Aucune connexion active.</p>}
         </div>
         <div className="card"><h2>Votre activité</h2><p className="sub">L&apos;IA utilise votre offre pour les briefs et le coach.</p>
