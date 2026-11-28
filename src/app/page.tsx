@@ -126,7 +126,7 @@ export default async function Home() {
       </header>
 
       <section className="st-hero">
-        <div className="st-vert" aria-hidden="true"><span className="st-rec"><span className="st-dot" />REC · EN DIRECT</span><span className="big">ON AIR</span></div>
+        <div className="st-vert" aria-hidden="true"><span className="big">ON AIR</span></div>
         <div>
           <div className="st-hc">
             <span className="st-aitag" style={{ marginBottom: 26 }}><span className="st-dot" />POUR LES DIRIGEANTS ET DIRECTEURS COMMERCIAUX</span>

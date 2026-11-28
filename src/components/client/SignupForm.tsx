@@ -3,6 +3,7 @@ import { useActionState, useRef, useState } from "react";
 import Link from "next/link";
 import { signup, type FormState } from "@/app/actions";
 import { Mascot } from "./Mascot";
+import { PRO_EMAIL_MESSAGE, isPersonalEmail } from "@/lib/pro-email";
 
 /** Inscription, puis écran « Vérifiez votre boîte mail » (au lieu d'un simple message). */
 export function SignupForm() {
@@ -11,6 +12,11 @@ export function SignupForm() {
   const last = useRef<FormData | null>(null);
   const [resent, setResent] = useState(false);
   const email = state?.ok && !editing ? state.ok : null;
+  // Retour immédiat pendant la saisie, sans attendre l'envoi du formulaire.
+  const [typed, setTyped] = useState("");
+  const [pw, setPw] = useState("");
+  const [seePw, setSeePw] = useState(false);
+  const personal = typed.includes("@") && typed.split("@")[1].includes(".") && isPersonalEmail(typed);
 
   if (email) {
     const domain = email.split("@")[1] || "";
@@ -41,12 +47,15 @@ export function SignupForm() {
 
   return (
     <form action={(f) => { last.current = f; setEditing(false); run(f); }} className="form">
-      <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus /></label>
-      <label className="full">Mot de passe<input className="input" type="password" name="password" required minLength={10} autoComplete="new-password" />
-        <span className="small" style={{ color: "var(--dim)" }}>Au moins 10 caractères.</span></label>
+      <label className="full">Email professionnel<input className="input" type="email" name="email" required autoComplete="email" autoFocus inputMode="email" placeholder="prenom@votre-entreprise.fr" value={typed} onChange={(e) => setTyped(e.target.value)} aria-invalid={personal || undefined} />
+        {personal && <span className="small" style={{ color: "var(--rose)" }}>{PRO_EMAIL_MESSAGE}</span>}</label>
+      <label className="full">Mot de passe
+        <span className="pw-wrap"><input className="input" type={seePw ? "text" : "password"} name="password" required minLength={10} autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} />
+          <button type="button" className="pw-eye" onClick={() => setSeePw(!seePw)} aria-label={seePw ? "Masquer le mot de passe" : "Afficher le mot de passe"}>{seePw ? "Masquer" : "Afficher"}</button></span>
+        <span className="small" style={{ color: pw.length >= 10 ? "var(--mint)" : "var(--dim)" }}>{pw.length >= 10 ? "✓ Longueur suffisante" : `Au moins 10 caractères${pw.length ? ` (encore ${10 - pw.length})` : ""}.`}</span></label>
       <label className="full auth-check"><input type="checkbox" name="accept" required /><span>J&apos;accepte les <Link href="/cgv" target="_blank">conditions générales</Link> et la <Link href="/confidentialite" target="_blank">politique de confidentialité</Link>. Service réservé aux professionnels.</span></label>
       {state?.error && <div className="full banner err" role="alert">{state.error}</div>}
-      <div className="full row"><button className="btn primary" disabled={pending}>{pending ? "Un instant…" : "Créer mon compte"}</button></div>
+      <div className="full row"><button className="btn primary" disabled={pending || personal}>{pending ? "Création du compte…" : "Créer mon compte"}</button></div>
     </form>
   );
 }

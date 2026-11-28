@@ -954,3 +954,8 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .ck a { color: inherit; text-decoration: underline; }
 .ck-btn { flex: none; border: 0; background: #FF5A1F; color: #140700; font-weight: 700; padding: 10px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
 @media (max-width: 520px) { .ck { left: 8px; right: 8px; bottom: 8px; max-width: none; flex-direction: column; align-items: stretch; } }
+
+/* Inscription : afficher / masquer le mot de passe */
+.pw-wrap { position: relative; display: block; }
+.pw-wrap .input { padding-right: 84px; width: 100%; }
+.pw-eye { position: absolute; right: 6px; top: 50%; transform: translateY(-50%); border: 0; background: none; color: var(--muted); font-size: 12.5px; padding: 6px 8px; cursor: pointer; }

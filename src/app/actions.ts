@@ -1,6 +1,8 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { PRO_EMAIL_MESSAGE, isPersonalEmail } from "@/lib/pro-email";
+import { domainReceivesMail } from "@/lib/pro-email-server";
 import { isRedirectError } from "next/dist/client/components/redirect-error";
 import { after } from "next/server";
 import { revalidatePath } from "next/cache";
@@ -62,8 +64,12 @@ export async function signup(_: FormState, f: FormData): Promise<FormState> {
   if (!isEmail(email)) return { error: "Adresse email invalide." };
   const typo = emailTypo(email);
   if (typo) return { error: `Vérifiez votre adresse : vouliez-vous dire ${typo} ?` };
+  // Trustpipe est réservé aux entreprises : adresse professionnelle obligatoire (sauf adresses autorisées à la main, pour les tests).
+  const allowed = (process.env.SIGNUP_ALLOW_EMAILS || "").toLowerCase().split(",").map((x) => x.trim()).filter(Boolean);
+  if (!allowed.includes(email) && isPersonalEmail(email)) return { error: PRO_EMAIL_MESSAGE };
   if (f.get("accept") !== "on") return { error: "Acceptez les conditions générales pour continuer." };
   if (await tooManyFromIp("signup", 20)) return TOO_MANY;
+  if (!(await domainReceivesMail(email))) return { error: "Ce nom de domaine ne reçoit pas d'emails. Vérifiez l'orthographe de votre adresse." };
   const problem = passwordProblem(pw, email);
   if (problem) return { error: problem };
   try {
