@@ -212,6 +212,8 @@ model Brief {
   company     String       @default("")
   content     Json
   createdById String
+  status      String       @default("done") // pending (rédaction en cours, même page fermée) | done | failed
+  error       String       @default("")
   createdAt   DateTime     @default(now())
   org         Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
 

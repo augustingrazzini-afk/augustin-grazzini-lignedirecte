@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Brief } from "@/lib/ai";
 
-export type BriefHistory = { id: string; prospect: string; company: string; createdAt: string; content: Brief };
+export type BriefHistory = { id: string; prospect: string; company: string; createdAt: string; content: Brief; status?: string };
 
 export function BriefDoc({ b, n }: { b: Brief; n?: number }) {
   const heat = Math.max(0, Math.min(100, b.chaleur || 0)), lab = heat >= 66 ? "Chaud" : heat >= 33 ? "Tiède" : "Froid";
@@ -36,13 +36,34 @@ export function BriefPanel({ clientId, history, initialQuery, aiReady }: { clien
   async function run(query: string) {
     if (query.trim().length < 3) return setState({ status: "error", err: "Tapez au moins 3 caractères." });
     setState({ status: "run" });
-    const r = await fetch("/api/brief", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query, clientId }) });
+    // `keepalive` : la demande part même si la page est quittée dans la seconde. La rédaction, elle, se fait côté serveur.
+    const r = await fetch("/api/brief", { method: "POST", keepalive: true, headers: { "Content-Type": "application/json" }, body: JSON.stringify({ query, clientId }) });
     const j = await r.json().catch(() => ({}));
     if (!r.ok) return setState({ status: "error", err: j.error || "La génération a échoué." });
-    setState({ status: "done", brief: j.brief, n: j.calls });
     router.refresh();
+    follow(j.id, j.calls);
   }
-  useEffect(() => { if (initialQuery && !ran.current && aiReady) { ran.current = true; run(initialQuery); } }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  /** Suit un brief en cours de rédaction jusqu'à ce qu'il soit prêt (il continue même si on quitte la page). */
+  async function follow(id: string, n?: number) {
+    setState({ status: "run" });
+    for (let i = 0; i < 100 && alive.current; i++) {
+      await new Promise((r) => setTimeout(r, 2500));
+      const r = await fetch(`/api/brief?id=${encodeURIComponent(id)}${clientId ? `&clientId=${encodeURIComponent(clientId)}` : ""}`).catch(() => null);
+      const j = r ? await r.json().catch(() => ({})) : {};
+      if (!alive.current) return;
+      if (j.status === "done") { setState({ status: "done", brief: j.brief, n }); return router.refresh(); }
+      if (j.status === "failed" || r?.status === 404) { setState({ status: "error", err: j.error || "La génération a échoué." }); return router.refresh(); }
+    }
+  }
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    const pending = history.find((h) => h.status === "pending");
+    // Un brief lancé puis quitté : on reprend son suivi en revenant sur la page (sans en relancer un second).
+    if (pending && !ran.current) { ran.current = true; follow(pending.id); }
+    else if (initialQuery && !ran.current && aiReady) { ran.current = true; run(initialQuery); }
+    return () => { alive.current = false; };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return (
     <div className="grid g-2">
       <div className="stack">
@@ -52,16 +73,16 @@ export function BriefPanel({ clientId, history, initialQuery, aiReady }: { clien
             <input className="input" style={{ flex: "1 1 240px", fontSize: 15, padding: "13px 16px" }} value={q} onChange={(e) => setQ(e.target.value)} placeholder="Ex. Jean Dupont ou Acme" aria-label="Prospect ou entreprise" />
             <button className="btn primary" disabled={state.status === "run" || !aiReady}>{state.status === "run" ? "Rédaction…" : "Générer le brief"}</button>
           </form>
-          {state.status === "run" && <div className="steps"><div className="step ok"><i />Recherche des appels</div><div className="step on"><i />Rédaction du brief par l&apos;IA (30 s à 1 min)</div></div>}
+          {state.status === "run" && <div className="steps"><div className="step ok"><i />Recherche des appels</div><div className="step on"><i />Rédaction du brief par l&apos;IA (30 s à 1 min)</div><p className="muted small" style={{ margin: "8px 0 0" }}>Vous pouvez quitter cette page : le brief se termine tout seul et vous attendra dans l&apos;historique.</p></div>}
           {state.status === "error" && <div className="banner err" style={{ margin: "16px 0 0" }}>{state.err}</div>}
         </div>
         {state.status === "done" && state.brief && <div className="card"><BriefDoc b={state.brief} n={state.n} /></div>}
       </div>
       <div className="card"><h2>Historique</h2><p className="sub">Derniers briefs préparés</p>
         {history.length ? <div className="list">{history.map((h) => (
-          <button key={h.id} className="item" style={{ border: 0, background: "none", cursor: "pointer", textAlign: "left", width: "100%" }} onClick={() => { setState({ status: "done", brief: h.content }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
+          <button key={h.id} className="item" style={{ border: 0, background: "none", cursor: "pointer", textAlign: "left", width: "100%" }} disabled={h.status === "pending"} onClick={() => { setState({ status: "done", brief: h.content }); window.scrollTo({ top: 0, behavior: "smooth" }); }}>
             <span className="av">{(h.prospect || "?").split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase()}</span>
-            <span className="who">{h.prospect} <span>· {h.company}</span></span>
+            <span className="who">{h.prospect} <span>· {h.status === "pending" ? "rédaction en cours…" : h.company}</span></span>
             <span className="meta">{new Date(h.createdAt).toLocaleDateString("fr-FR", { day: "numeric", month: "short" })}</span>
           </button>
         ))}</div> : <div className="empty">Vos briefs apparaîtront ici, partagés avec votre équipe.</div>}

@@ -64,12 +64,13 @@ async function premiumGate(scope: Scope, what: string, fromEssentiel = false): P
 export async function BriefPage({ scope, q }: { scope: Scope; q?: string }) {
   const gate = await premiumGate(scope, "Le brief pré-rendez-vous");
   if (gate) return (<><PageTop title="Brief pré-meeting" subtitle="Tapez un prospect : l'IA prépare votre rendez-vous" />{gate}</>);
-  const history = await db.brief.findMany({ where: { orgId: scope.orgId, clientId: clientOf(scope) ?? undefined, ...(scope.kind === "client" ? { clientId: scope.clientId } : {}) }, orderBy: { createdAt: "desc" }, take: 30 });
+  // Prêts, ou en cours de rédaction depuis moins de 4 minutes (au-delà : rédaction interrompue, on ne l'affiche pas).
+  const history = await db.brief.findMany({ where: { orgId: scope.orgId, clientId: clientOf(scope) ?? undefined, ...(scope.kind === "client" ? { clientId: scope.clientId } : {}), OR: [{ status: "done" }, { status: "pending", createdAt: { gt: new Date(Date.now() - 4 * 60_000) } }] }, orderBy: { createdAt: "desc" }, take: 30 });
   return (
     <>
       <PageTop title="Brief pré-meeting" subtitle="Tapez un prospect : l'IA prépare votre rendez-vous" />
       <BriefPanel clientId={clientOf(scope)} aiReady={aiEnabled()} initialQuery={(q || "").slice(0, 120)}
-        history={history.map((h) => ({ id: h.id, prospect: h.prospect, company: h.company, createdAt: h.createdAt.toISOString(), content: h.content as unknown as Brief }))} />
+        history={history.map((h) => ({ id: h.id, prospect: h.prospect, company: h.company, createdAt: h.createdAt.toISOString(), content: h.content as unknown as Brief, status: h.status }))} />
     </>
   );
 }

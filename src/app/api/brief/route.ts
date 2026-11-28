@@ -1,5 +1,5 @@
 import { bumpUsage } from "@/lib/usage";
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { apiScope, callScope, scopeClientId } from "@/lib/access";
 import { assertActive, assertPremium, jsonError, sameOrigin } from "@/lib/api";
@@ -31,11 +31,30 @@ export async function POST(req: Request) {
   const clientId = scopeClientId(scope);
   const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId } });
   const client = clientId ? await db.client.findUnique({ where: { id: clientId } }) : null;
-  try {
-    const brief = await generateBrief(calls, b.data.query, client?.offer || org.offer, client?.name || org.name, acts);
-    const saved = await db.brief.create({ data: { orgId: scope.orgId, clientId, query: b.data.query, prospect: brief.prospect || b.data.query, company: brief.entreprise, content: asJson(brief), createdById: scope.userId } });
-    return NextResponse.json({ id: saved.id, brief, calls: calls.length + acts.length });
-  } catch (e) {
-    return jsonError(e instanceof AiError ? e.message : "La génération a échoué.", 502);
-  }
+  // Le brief est rédigé en arrière-plan : il se termine et s'enregistre même si la personne quitte la page ou ferme le site.
+  const saved = await db.brief.create({ data: { orgId: scope.orgId, clientId, query: b.data.query, prospect: b.data.query, content: {}, createdById: scope.userId, status: "pending" } });
+  const offer = client?.offer || org.offer, name = client?.name || org.name;
+  after(async () => {
+    try {
+      const brief = await generateBrief(calls, b.data.query, offer, name, acts);
+      await db.brief.update({ where: { id: saved.id }, data: { prospect: brief.prospect || b.data.query, company: brief.entreprise, content: asJson(brief), status: "done" } });
+    } catch (e) {
+      await db.brief.update({ where: { id: saved.id }, data: { status: "failed", error: e instanceof AiError ? e.message : "La génération a échoué." } }).catch(() => null);
+    }
+  });
+  return NextResponse.json({ id: saved.id, pending: true, calls: calls.length + acts.length });
+}
+
+/** Au-delà, un brief encore « en cours » est considéré comme échoué (serveur interrompu). */
+const STALE_MS = 4 * 60_000;
+
+/** État d'un brief en cours de rédaction (interrogé par la page tant qu'il n'est pas prêt). */
+export async function GET(req: Request) {
+  const u = new URL(req.url);
+  const scope = await apiScope(req, { clientId: u.searchParams.get("clientId") });
+  if (!scope) return jsonError("Accès refusé", 403);
+  const br = await db.brief.findFirst({ where: { id: u.searchParams.get("id") || "", orgId: scope.orgId, ...(scope.kind === "client" ? { clientId: scope.clientId } : {}) } });
+  if (!br) return jsonError("Brief introuvable", 404);
+  if (br.status === "pending" && Date.now() - br.createdAt.getTime() > STALE_MS) return NextResponse.json({ status: "failed", error: "La rédaction a été interrompue. Relancez le brief." });
+  return NextResponse.json({ status: br.status, error: br.error, brief: br.status === "done" ? br.content : null });
 }
