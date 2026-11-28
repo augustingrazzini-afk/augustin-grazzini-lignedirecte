@@ -322,7 +322,7 @@ export async function shareCall(_: FormState, f: FormData): Promise<FormState> {
       const { sendEmail } = await import("@/lib/email");
       await Promise.all(recipients.map((to) => sendEmail(to, `${fromName} vous envoie un appel à écouter`, html, text).catch(() => null)));
     });
-    revalidatePath(`/app/calls/${callId}`);
+    // Pas de rechargement de la fiche : la confirmation s'affiche tout de suite, la liste « Envoyé à » se met à jour à la visite suivante.
     return { ok: rep.members.length ? `Appel envoyé à ${rep.name} : il le voit dans son espace et reçoit un email.` : `Appel envoyé à ${rep.name}. Il n'a pas encore d'accès : invitez-le depuis sa fiche pour qu'il puisse l'ouvrir.` };
   } catch (e) { return fail(e); }
 }
