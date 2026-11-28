@@ -10,13 +10,14 @@ import { syncAndAnalyze } from "@/lib/sync";
 
 export const maxDuration = 300;
 
-type Pending = { state: string; verifier: string; provider: string; userId: string; orgId: string; clientId: string | null; redirectUri: string; resource: string; tokenEndpoint: string; oauthClientId: string; oauthClientSecret: string; at: number };
+type Pending = { state: string; verifier: string; provider: string; userId: string; orgId: string; clientId: string | null; rep?: boolean; redirectUri: string; resource: string; tokenEndpoint: string; oauthClientId: string; oauthClientSecret: string; at: number };
 
 /** Retour de la page d'autorisation : on récupère les jetons, on crée l'intégration et la première synchro démarre. */
 export async function GET(req: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const app = process.env.APP_URL || new URL(req.url).origin;
-  const back = (q: string) => NextResponse.redirect(new URL(`/app/sources?${q}`, app), 303);
+  let dest = "/app/sources?";
+  const back = (q: string) => NextResponse.redirect(new URL(`${dest}${q}`, app), 303);
   const fail = (msg: string) => back(`erreur=${encodeURIComponent(msg)}`);
   const server = MCP_SERVERS[provider];
   const sp = new URL(req.url).searchParams;
@@ -27,6 +28,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   if (sp.get("error")) return fail(`Connexion à ${server.label} annulée.`);
   let p: Pending;
   try { p = open<Pending>(raw); } catch { return fail("La connexion a expiré. Recommencez."); }
+  if (p.rep && p.clientId) dest = `/portal/${p.clientId}/bienvenue?etape=2&`; // le commercial revient dans son guide
   const u = await currentUser();
   if (!u || u.id !== p.userId || p.provider !== provider || Date.now() - p.at > 900e3 || !safeEqual(sp.get("state") || "", p.state)) return fail("La connexion a expiré. Recommencez.");
   const code = sp.get("code");

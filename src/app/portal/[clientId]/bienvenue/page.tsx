@@ -12,9 +12,10 @@ export const metadata = { title: "Bienvenue" };
 const STEPS = ["Votre espace", "Branchez votre outil", "Ce que Trustpipe fait pour vous"];
 
 /** Première connexion d'un commercial invité : 3 étapes guidées, puis son tableau de bord. */
-export default async function Page({ params, searchParams }: { params: Promise<{ clientId: string }>; searchParams: Promise<{ etape?: string }> }) {
+export default async function Page({ params, searchParams }: { params: Promise<{ clientId: string }>; searchParams: Promise<{ etape?: string; erreur?: string; connecte?: string }> }) {
   const scope = await requireClientScope((await params).clientId);
-  const step = Math.min(3, Math.max(1, Number((await searchParams).etape) || 1));
+  const sp = await searchParams;
+  const step = Math.min(3, Math.max(1, Number(sp.etape) || 1));
   const base = `/portal/${scope.clientId}`;
   const [client, member, integrations, calls] = await Promise.all([
     db.client.findUniqueOrThrow({ where: { id: scope.clientId }, include: { org: true } }),
@@ -69,6 +70,7 @@ export default async function Page({ params, searchParams }: { params: Promise<{
             <p className="ob-kicker">Étape 2 sur 3 · 2 minutes</p>
             <h1 className="ob-title">Branchez votre outil d&apos;appel</h1>
             <p className="ob-lead">Choisissez votre outil ci-dessous et collez votre clé API. Chaque outil indique où la trouver (en général : Réglages, puis Intégrations ou API).</p>
+            {sp.erreur && <div className="banner err ob-status"><div>{sp.erreur}</div></div>}
             {integrations.length ? (
               <div className="banner ok ob-status"><div><b>✓ C&apos;est branché : {integrations.map((i) => SOURCE_LABEL[i.provider] || i.label).join(", ")}.</b> {calls ? `${fmt(calls)} appel${calls > 1 ? "s" : ""} déjà récupéré${calls > 1 ? "s" : ""}.` : "Vos appels arrivent dans quelques minutes."}</div></div>
             ) : (

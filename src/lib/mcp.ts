@@ -11,6 +11,13 @@ import { ProviderError } from "./providers/types";
 /** Serveurs MCP connus, par source. */
 export const MCP_SERVERS: Record<string, { url: string; label: string }> = {
   minari: { url: process.env.MINARI_MCP_URL || "https://mcp.minari.ai/mcp", label: "Minari" },
+  // Serveurs vérifiés le 28/11 depuis la production : connexion OAuth avec inscription automatique de Trustpipe.
+  lemlist: { url: "https://api.lemlist.com/mcp", label: "lemlist" },
+  close: { url: "https://mcp.close.com/mcp", label: "Close" },
+  apollo: { url: "https://mcp.apollo.io/mcp", label: "Apollo" },
+  dialpad: { url: "https://mcp.dialpad.com/mcp", label: "Dialpad" },
+  gong: { url: "https://mcp.gong.io/mcp", label: "Gong" },
+  salesloft: { url: "https://mcp.salesloft.com/mcp", label: "Salesloft" },
 };
 
 export const CONNECT_COOKIE = "tp_connect";
@@ -178,6 +185,25 @@ async function rpc(c: McpCreds, label: string, method: string, params: unknown, 
 }
 
 let nextId = 1;
+
+/** Ouvre la session MCP si besoin (initialisation). */
+async function ensureSession(c: McpCreds, label: string) {
+  if (c.expiresAt && new Date(c.expiresAt).getTime() < Date.now() + 60_000) await refresh(c);
+  if (sessions.has(c)) return;
+  const init = await rpc(c, label, "initialize", { protocolVersion: PROTOCOL, capabilities: {}, clientInfo: { name: "Trustpipe", version: "1.0" } }, nextId++);
+  if (init?.error) throw new ProviderError(`${label} : ${init.error.message || "connexion refusée"}.`);
+  await rpc(c, label, "notifications/initialized", {});
+}
+
+export type McpTool = { name: string; description?: string; inputSchema?: { properties?: Record<string, any>; required?: string[] } };
+
+/** Liste des outils proposés par le serveur MCP de l'outil connecté. */
+export async function listTools(c: McpCreds, label: string): Promise<McpTool[]> {
+  await ensureSession(c, label);
+  const res = await rpc(c, label, "tools/list", {}, nextId++);
+  if (!res || res.error) throw new ProviderError(`${label} : ${res?.error?.message || "liste des outils indisponible"}.`);
+  return res.result?.tools || [];
+}
 
 /** Appelle un outil MCP et renvoie son résultat (JSON). */
 export async function callTool(c: McpCreds, label: string, name: string, args: Record<string, unknown>): Promise<any> {

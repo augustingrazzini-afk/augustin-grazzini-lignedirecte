@@ -13,18 +13,25 @@ import { ProviderError } from "@/lib/providers/types";
 export async function GET(req: Request, { params }: { params: Promise<{ provider: string }> }) {
   const { provider } = await params;
   const app = process.env.APP_URL || new URL(req.url).origin;
-  const back = (msg: string) => NextResponse.redirect(new URL(`/app/sources?erreur=${encodeURIComponent(msg)}`, app), 303);
+  const asked = new URL(req.url).searchParams.get("client");
+  // Un commercial invité revient dans son propre espace (guide de démarrage), l'entreprise dans ses sources.
+  const page = (cid: string | null, rep: boolean) => (rep && cid ? `/portal/${cid}/bienvenue?etape=2` : "/app/sources");
+  let repMode = false;
+  const back = (msg: string) => NextResponse.redirect(new URL(`${page(asked, repMode)}${page(asked, repMode).includes("?") ? "&" : "?"}erreur=${encodeURIComponent(msg)}`, app), 303);
   const server = MCP_SERVERS[provider];
   if (!server) return back("Cet outil ne propose pas la connexion en un clic.");
   const u = await currentUser();
   if (!u) return NextResponse.redirect(new URL(`/login?next=/app/sources`, app), 303);
   if (u.id === "demo_user") return NextResponse.redirect(new URL(`/app/sources`, app), 303); // démo en lecture seule
-  const m = u.memberships[0];
-  if (!m) return back("Seul un membre de l'espace peut connecter un outil.");
-  const org = await db.organization.findUniqueOrThrow({ where: { id: m.orgId } });
+  // Entreprise (membre de l'espace) ou commercial invité qui branche son propre outil.
+  const access = asked ? u.clientAccess.find((a) => a.clientId === asked) : null;
+  repMode = !!access && !u.memberships.some((x) => x.orgId === access.client.orgId);
+  const orgId = access ? access.client.orgId : u.memberships[0]?.orgId;
+  if (!orgId) return back("Seul un membre de l'espace peut connecter un outil.");
+  const org = await db.organization.findUniqueOrThrow({ where: { id: orgId } });
   if (!isActive(org)) return back("L'abonnement de cet espace n'est plus actif.");
-  const clientId = new URL(req.url).searchParams.get("client");
-  if (clientId && !(await db.client.count({ where: { id: clientId, orgId: m.orgId } }))) return back("Client introuvable.");
+  const clientId = asked;
+  if (clientId && !(await db.client.count({ where: { id: clientId, orgId } }))) return back("Commercial introuvable.");
   const redirectUri = `${app}/api/connect/${provider}/callback`;
   try {
     const o = await discover(server.url);
@@ -32,7 +39,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
     const { verifier, challenge } = pkce();
     const state = randomToken(24);
     (await cookies()).set(COOKIE, seal({
-      state, verifier, provider, userId: u.id, orgId: m.orgId, clientId, redirectUri, resource: o.resource,
+      state, verifier, provider, userId: u.id, orgId, clientId, rep: repMode, redirectUri, resource: o.resource,
       tokenEndpoint: o.as.token_endpoint, oauthClientId: c.clientId, oauthClientSecret: c.clientSecret || "", at: Date.now(),
     }), { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/api/connect", maxAge: 900 });
     const url = new URL(o.as.authorization_endpoint);

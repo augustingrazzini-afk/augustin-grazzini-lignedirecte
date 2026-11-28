@@ -61,7 +61,7 @@ export function Connectors({ providers, clientId, connected }: { providers: Prov
 }
 
 /** Outils connectables en un clic (OAuth, comme les connecteurs de Claude). */
-const ONE_CLICK = new Set(["minari"]);
+const ONE_CLICK = new Set(["minari", "lemlist", "dialpad", "close", "salesloft", "apollo", "gong"]);
 
 function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: string | null; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
