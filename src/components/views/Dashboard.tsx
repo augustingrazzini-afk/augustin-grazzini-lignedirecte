@@ -82,7 +82,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
           <div className="card"><h2>Objections</h2><p className="sub">Les plus fréquentes et la part passée</p>
             {lite ? <div className="empty"><b>Inclus à partir de la formule Essentiel</b>Les objections de chaque appel, repérées et comptées.{scope.kind === "org" && <> <Link href="/app/billing">Changer de formule</Link></>}</div> : s.objections.length ? <>{s.objections.slice(0, 6).map((o) => (
               <div key={o.key} className="obj"><span>{OBJ_LABEL[o.key] || o.key}</span><div className="bar" style={{ width: `${(o.count / omx) * 100}%` }}><i style={{ width: `${o.passedRate ?? 0}%` }} /></div><span className="n">{o.count}</span></div>
-            ))}<div className="legend" style={{ marginTop: 12 }}><span><i style={{ background: "var(--mint)" }} />Passée</span><span><i style={{ background: "rgba(221,63,85,.3)" }} />Non passée ou inconnue</span></div></> : <div className="empty">Aucune objection détectée.</div>}
+            ))}<div className="legend" style={{ marginTop: 12 }}><span><i style={{ background: "var(--mint)" }} />Passée</span><span><i style={{ background: "rgba(232,72,15,.3)" }} />Non passée ou inconnue</span></div></> : <div className="empty">Aucune objection détectée.</div>}
           </div>
           <div className="card"><h2>Quand ça décroche</h2><p className="sub">Taux de décroché par jour et par heure (heure de Paris)</p>
             <div className="heat"><span />{HRS.map((h) => <label key={h} style={{ textAlign: "center" }}>{h % 2 ? "" : `${h}h`}</label>)}

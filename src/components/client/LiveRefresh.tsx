@@ -6,9 +6,11 @@ import { useRouter } from "next/navigation";
 export function LiveRefresh({ every = 60 }: { every?: number }) {
   const router = useRouter();
   useEffect(() => {
-    const tick = () => { if (document.visibilityState === "visible") router.refresh(); };
+    // Après chaque rafraîchissement, le menu recharge en avance ses pages (événement « tp:refreshed »).
+    const refresh = () => { router.refresh(); setTimeout(() => window.dispatchEvent(new Event("tp:refreshed")), 1200); };
+    const tick = () => { if (document.visibilityState === "visible") refresh(); };
     const id = setInterval(tick, every * 1000);
-    const onVis = () => { if (document.visibilityState === "visible") router.refresh(); };
+    const onVis = () => { if (document.visibilityState === "visible") refresh(); };
     document.addEventListener("visibilitychange", onVis);
     return () => { clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
   }, [router, every]);

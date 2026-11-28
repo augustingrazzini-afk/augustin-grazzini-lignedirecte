@@ -1,5 +1,7 @@
 import { FastLink } from "@/components/client/FastLink";
 import Link from "next/link";
+import { Suspense } from "react";
+import { NavStage } from "./client/NavStage";
 import { logout } from "@/app/actions";
 import { NavLinks, type NavItem } from "./NavLinks";
 import { PERIODS } from "@/lib/period";
@@ -79,7 +81,7 @@ export function Shell({ base, orgName, clientName, spaces = [], isOrg, email, fo
         </aside>
         <main className="main">
           {banner}
-          {children}
+          <Suspense fallback={children}><NavStage>{children}</NavStage></Suspense>
         </main>
       </div>
       <nav className="tabbar"><NavLinks items={items} variant="tab" footer={!share && <>{spaces.length > 1 && spaces.filter((sp) => !sp.current).map((sp) => <Link key={sp.href} href={sp.href} className="tab-out">Espace {sp.label}</Link>)}<form action={logout} className="tab-out"><button type="submit">Se déconnecter</button></form></>} /></nav>
