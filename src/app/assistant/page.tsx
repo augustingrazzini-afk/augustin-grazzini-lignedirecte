@@ -23,7 +23,7 @@ const BOSS_ASKS = [
   "Quels appels dois-je écouter en priorité, et pourquoi ?",
   "Dans quels appels a-t-on perdu le prospect ?",
   "L'agence fait-elle le travail promis ?",
-  "Prépare mon rendez-vous de jeudi avec Atelier Morel",
+  "Que s'est-il dit avec Atelier Morel, et où en est-on ?",
 ];
 const REP_ASKS = [
   "Qui dois-je rappeler en priorité aujourd'hui ?",

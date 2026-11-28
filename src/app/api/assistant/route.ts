@@ -59,6 +59,9 @@ export async function POST(req: Request) {
       who: client ? `${client.name} (suivi par ${org.name})` : org.name,
       offer: client?.offer || org.offer,
       isClient: scope.kind === "client",
+      // Droits lus sur le serveur, jamais dans la conversation.
+      access: { plan: org.plan, status: org.subscriptionStatus, trialEnd: org.subscriptionStatus === "trialing" ? org.trialEndsAt : null,
+        role: b.data.shareToken ? "lien de suivi" : scope.kind === "client" ? "commercial invité" : scope.role === "owner" ? "propriétaire" : "membre" },
     });
     return reply(r, "ia");
   } catch (e) {

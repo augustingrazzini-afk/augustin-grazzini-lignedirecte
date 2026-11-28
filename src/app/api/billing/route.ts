@@ -33,7 +33,9 @@ export async function POST(req: Request) {
     }
     return NextResponse.redirect(new URL(`/app/billing?${action === "cancel" ? "cancelled" : "resumed"}=1`, app), 303);
   }
-  const plan = form.get("plan") === "agency" ? "agency" : "solo";
+  // Les 3 formules proposées (une valeur inconnue retombe sur Essentiel, jamais sur une ancienne formule).
+  const asked = String(form.get("plan") || "");
+  const plan = asked === "starter" || asked === "premium" ? asked : "agency";
   let price: string;
   try {
     price = await priceFor(plan);
@@ -43,13 +45,15 @@ export async function POST(req: Request) {
     return NextResponse.redirect(new URL(org.stripeSubscriptionId ? "/app/billing?erreur=1" : "/paiement?erreur=1", app), 303);
   }
   // Premier abonnement d'un espace : l'essai gratuit démarre ici, carte enregistrée mais non débitée pendant l'essai.
-  const trialDays = !org.stripeSubscriptionId ? Math.min(TRIAL_DAYS, Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5)) : 0;
-  const startTrial = form.get("trial") === "1" && trialDays > 0;
+  // Premier abonnement : 7 jours d'essai, carte enregistrée mais non débitée pendant l'essai (comme les liens de paiement).
+  const trialDays = !org.stripeSubscriptionId ? TRIAL_DAYS : 0;
+  const startTrial = trialDays > 0;
   const session = await stripe().checkout.sessions.create({
     mode: "subscription",
     line_items: [{ price, quantity: 1 }],
     payment_method_collection: "always",
-    ...(startTrial ? { subscription_data: { trial_period_days: trialDays, trial_settings: { end_behavior: { missing_payment_method: "cancel" } } } } : {}),
+    ...(startTrial ? { subscription_data: { trial_period_days: trialDays, trial_settings: { end_behavior: { missing_payment_method: "cancel" } }, metadata: { plan } } } : { subscription_data: { metadata: { plan } } }),
+    metadata: { plan },
     client_reference_id: org.id,
     ...(org.stripeCustomerId ? { customer: org.stripeCustomerId } : { customer_email: user.email }),
     allow_promotion_codes: true,

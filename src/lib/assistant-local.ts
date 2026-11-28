@@ -56,7 +56,7 @@ async function prepare(scope: Scope, name: string, company: string): Promise<str
   const excerpt = typeof detail?.transcription === "string" && detail.transcription !== "pas de transcription"
     ? detail.transcription.split("\n").slice(0, 8).join("\n") : "";
   const out: string[] = [];
-  out.push(`**Préparation : ${last.prospect}${last.entreprise ? `, ${last.entreprise}` : ""}${last.poste ? ` (${last.poste})` : ""}**`);
+  out.push(`**Historique : ${last.prospect}${last.entreprise ? `, ${last.entreprise}` : ""}${last.poste ? ` (${last.poste})` : ""}**`);
   out.push(list([`${calls.length} appel(s), le dernier le ${last.date} (${last.duree})`, booked ? `Rendez-vous obtenu lors de l'appel du ${booked.date}` : "Pas encore de rendez-vous noté"]));
   const resumes = calls.map((c) => c.resume).filter(Boolean);
   if (resumes.length) out.push(`**Ce qu'il a dit**\n${resumes[0].split("\n").map((l) => l.replace(/^-\s*/, "- ")).join("\n")}`);
@@ -107,7 +107,7 @@ export async function askLocal(scope: Scope, history: ChatTurn[]): Promise<{ tex
   if (/stat|bilan|combien|resultat|resume|semaine|mois|aujourd|trimestre|annee|diagnostic|performance/.test(q)) return { text: await stats(scope, days), steps: ["stats", "search_calls"] };
   if (name || company) return { text: await prepare(scope, name, company), steps: ["prospect_history", "get_call"] };
   return {
-    text: `Je peux vous aider sur vos appels. Par exemple :\n${list(["« Bilan de la semaine » ou « Mes stats du mois »", "« Prépare mon rendez-vous avec Prénom Nom »", "« Quelles objections reviennent ? »", "« Quel est le meilleur créneau d'appel ? »", "« Mes relances » ou « Derniers appels »"])}`,
+    text: `Je peux vous aider sur vos appels. Par exemple :\n${list(["« Bilan de la semaine » ou « Mes stats du mois »", "« Que s'est-il dit avec Prénom Nom ? »", "« Quelles objections reviennent ? »", "« Quel est le meilleur créneau d'appel ? »", "« Mes relances » ou « Derniers appels »"])}`,
     steps: [],
   };
 }

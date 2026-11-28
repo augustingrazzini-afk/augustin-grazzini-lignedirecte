@@ -196,3 +196,16 @@ test("connecteur Claude : écran d'autorisation réservé au Premium actif", asy
   assert.equal(can({ plan: "starter", subscriptionStatus: "active", trialEndsAt: past }), false, "Découverte : non");
   assert.equal(can({ plan: "premium", subscriptionStatus: "canceled", trialEndsAt: past }), false, "abonnement arrêté : non");
 });
+
+test("assistant : les droits viennent du serveur et suivent la formule", async () => {
+  const { accessRules } = await import("../src/lib/assistant");
+  const ess = accessRules({ plan: "agency", status: "active", trialEnd: null, role: "propriétaire" }, "https://trustpipe.fr/app/billing#changer");
+  assert.match(ess, /formule: Essentiel \(agency\)/);
+  assert.match(ess, /statut_abonnement: actif/);
+  assert.match(ess, /réservés à Premium/);
+  assert.match(ess, /app\/billing#changer/, "le propriétaire reçoit le lien pour changer de formule");
+  const rep = accessRules({ plan: "agency", status: "active", trialEnd: null, role: "commercial invité" }, "x");
+  assert.match(rep, /oriente-le vers l'entreprise/, "le commercial est orienté vers l'entreprise, pas vers l'abonnement");
+  const old = accessRules({ plan: "premium", status: "trialing", trialEnd: new Date(Date.now() - 864e5), role: "propriétaire" }, "x");
+  assert.match(old, /statut_abonnement: expiré/, "essai dépassé = expiré");
+});
