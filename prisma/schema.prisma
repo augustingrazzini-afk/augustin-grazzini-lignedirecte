@@ -308,6 +308,8 @@ model Feedback {
   rating    Int? // 1 à 5
   message   String
   page      String?
+  handledAt   DateTime? // avis traité (correction mise en ligne, réponse préparée ou rien à faire)
+  handledNote String? // ce qui a été fait
   createdAt DateTime @default(now())
 
   @@index([createdAt])
