@@ -27,8 +27,8 @@ export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: 
   };
   const isBoss = scope.kind === "org";
   const [calls, count, sources, reps] = await Promise.all([
-    // Sans les transcriptions (lourdes) : seule l'étiquette « Transcription » est calculée, plus bas.
-    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: 200, omit: { transcript: true, debrief: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null }) as Call)),
+    // Sans les colonnes lourdes que la liste n'affiche pas (transcriptions, analyses, coordonnées) : seule l'étiquette « Transcription » est calculée, plus bas.
+    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: 200, omit: { transcript: true, debrief: true, objDetails: true, aiSummary: true, contactSealed: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null, objDetails: [], aiSummary: "", contactSealed: null }) as Call)),
     db.call.count({ where }),
     db.call.groupBy({ by: ["provider"], where: callScope(scope) }),
     isBoss ? db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : Promise.resolve([]),
