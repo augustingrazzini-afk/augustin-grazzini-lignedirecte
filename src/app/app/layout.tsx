@@ -2,7 +2,8 @@ import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
 import { currentUser } from "@/lib/session";
 import { db } from "@/lib/db";
-import { isActive, PLANS, type PlanId } from "@/lib/billing";
+import { hasAi, hasPremium, isActive, PLANS, type PlanId } from "@/lib/billing";
+import { lockedIcons } from "@/lib/plan";
 import { Shell } from "@/components/Shell";
 import { after } from "next/server";
 import { syncIfStale } from "@/lib/sync";
@@ -25,5 +26,5 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   else if (org.subscriptionStatus === "past_due") banner = <div className="banner err"><div><b>Paiement en échec.</b> <Link href="/app/billing">Mettre à jour le moyen de paiement</Link>.</div></div>;
   else if (org.subscriptionStatus === "trialing" && days <= 5) banner = <div className="banner"><div><b>{PLANS[org.plan as PlanId]?.name || "Essai"} : plus que {days} jour(s).</b> <Link href="/app/billing">Choisir une formule</Link>.</div></div>;
   after(() => syncIfStale(scope.orgId));
-  return <Shell base="/app" orgName={org.name} isOrg admin={isAdminOrg(org.id)} email={user!.email} followUps={follow} banner={banner} widget={{ clientId: null, aiReady: true }}>{children}</Shell>;
+  return <Shell base="/app" orgName={org.name} isOrg admin={isAdminOrg(org.id)} email={user!.email} followUps={follow} banner={banner} locked={lockedIcons({ ai: hasAi(org), premium: hasPremium(org) })} widget={hasAi(org) ? { clientId: null, aiReady: true } : undefined}>{children}</Shell>;
 }

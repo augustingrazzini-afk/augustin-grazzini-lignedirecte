@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Icon } from "./icons";
 
-export type NavItem = { href: string; label: string; icon: string; badge?: number; sep?: boolean };
+export type NavItem = { href: string; label: string; icon: string; badge?: number; sep?: boolean; locked?: boolean };
 
 /** Les 4 écrans du quotidien, toujours visibles en bas sur téléphone ; le reste est rangé dans « Plus ». */
 const MAIN = ["pilotage", "appels", "relances", "coach"];
@@ -22,7 +22,7 @@ export function NavLinks({ items, variant, footer }: { items: NavItem[]; variant
     const main = items.filter((i) => MAIN.includes(i.icon)), rest = items.filter((i) => !MAIN.includes(i.icon));
     const tab = (i: NavItem) => (
       <Link key={i.href} href={i.href} aria-current={active(i.href) ? "page" : undefined} prefetch>
-        <Icon name={i.icon} /><span>{i.label.split(" ")[0]}</span>{!!i.badge && <em className="tab-badge">{i.badge > 99 ? "99+" : i.badge}</em>}
+        <Icon name={i.icon} /><span>{i.label.split(" ")[0]}{i.locked ? " 🔒" : ""}</span>{!!i.badge && <em className="tab-badge">{i.badge > 99 ? "99+" : i.badge}</em>}
       </Link>
     );
     return (
@@ -30,7 +30,7 @@ export function NavLinks({ items, variant, footer }: { items: NavItem[]; variant
         {more && <button type="button" className="tab-veil" aria-label="Fermer le menu" onClick={() => setMore(false)} />}
         {more && (
           <div className="tab-more" role="menu">
-            {rest.map((i) => <Link key={i.href} href={i.href} role="menuitem" aria-current={active(i.href) ? "page" : undefined} onClick={() => setMore(false)}><Icon name={i.icon} /><span>{i.label}</span></Link>)}
+            {rest.map((i) => <Link key={i.href} href={i.href} role="menuitem" aria-current={active(i.href) ? "page" : undefined} onClick={() => setMore(false)}><Icon name={i.icon} /><span>{i.label}{i.locked ? " 🔒" : ""}</span></Link>)}
             {footer}
           </div>
         )}
@@ -48,7 +48,7 @@ export function NavLinks({ items, variant, footer }: { items: NavItem[]; variant
           {variant === "side" && i.sep && <div className="sep" />}
           <Link href={i.href} aria-current={active(i.href) ? "page" : undefined} prefetch>
             <Icon name={i.icon} />
-            <span>{variant === "tab" ? i.label.split(" ")[0] : i.label}</span>
+            <span>{variant === "tab" ? i.label.split(" ")[0] : i.label}{i.locked && <small className="nav-lock" title="Non inclus dans votre formule"> 🔒</small>}</span>
             {variant === "side" && !!i.badge && <span className="badge">{i.badge}</span>}
           </Link>
         </span>

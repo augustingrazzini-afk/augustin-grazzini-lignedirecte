@@ -907,3 +907,7 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 /* Appel envoyé à un commercial par l'entreprise */
 .shared-note { border-color: var(--blue); background: rgba(255,90,31,.07); display: flex; flex-direction: column; gap: 6px; }
 .shared-note > p { margin: 0; font-size: 15.5px; }
+
+/* Contenu non inclus dans la formule */
+.card.locked { border-style: dashed; background: transparent; }
+.nav-lock { font-size: 11px; opacity: .8; }

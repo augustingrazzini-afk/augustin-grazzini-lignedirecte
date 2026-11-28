@@ -1,0 +1,16 @@
+import { cache } from "react";
+import { db } from "./db";
+import { hasAi, hasPremium } from "./billing";
+
+/**
+ * Ce que la formule de l'entreprise ouvre, pour adapter l'affichage (une lecture par page).
+ * `ai` : résumés, objections, transcription, écoute, relances, assistant (à partir d'Essentiel).
+ * `premium` : briefs, débriefs, connecteur Claude.
+ */
+export const planOf = cache(async (orgId: string) => {
+  const org = await db.organization.findUnique({ where: { id: orgId }, select: { plan: true } });
+  return { plan: org?.plan || "trial", ai: !org || hasAi(org), premium: !org || hasPremium(org) };
+});
+
+/** Pages verrouillées par la formule (cadenas dans le menu). */
+export const lockedIcons = (p: { ai: boolean; premium: boolean }) => [...(p.ai ? [] : ["relances", "coach"]), ...(p.premium ? [] : ["brief"])];

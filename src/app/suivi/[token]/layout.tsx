@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { hasAi, hasPremium } from "@/lib/billing";
+import { lockedIcons } from "@/lib/plan";
 import { shareScope } from "@/lib/access";
 import { Shell } from "@/components/Shell";
 import { after } from "next/server";
@@ -15,5 +17,5 @@ export default async function ShareLayout({ children, params }: { children: Reac
   const { token } = await params;
   const { client } = await shareScope(token);
   after(() => syncIfStale(client.orgId));
-  return <Shell base={`/suivi/${token}`} orgName={client.org.name} clientName={client.name} isOrg={false} email="" share widget={{ clientId: client.id, aiReady: true, shareToken: token }}>{children}</Shell>;
+  return <Shell base={`/suivi/${token}`} orgName={client.org.name} clientName={client.name} isOrg={false} email="" share locked={lockedIcons({ ai: hasAi(client.org), premium: hasPremium(client.org) })} widget={hasAi(client.org) ? { clientId: client.id, aiReady: true, shareToken: token } : undefined}>{children}</Shell>;
 }

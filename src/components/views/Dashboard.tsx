@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { planOf } from "@/lib/plan";
 import type { Scope } from "@/lib/access";
 import { BEST_MIN_CALLS, SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotInsights, slotLevel, windowCalls } from "@/lib/stats";
 import { OBJ_LABEL, fmt, fmtDuration, isConversation, pct } from "@/lib/format";
@@ -13,6 +14,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
   const calls = await windowCalls(scope, days);
   const overview = channels ? <ChannelOverview scope={scope} days={days} base={base} /> : null;
   if (!calls.length) return <>{overview}<div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div></>;
+  const lite = !(await planOf(scope.orgId)).ai;
   const s = computeStats(calls, days);
   const perMeet = s.meetings ? Math.round(s.total / s.meetings) : null;
 
@@ -73,11 +75,11 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
       <div className="grid g-2 mt">
         <div className="card">
           <div className="head"><div><h2>Dernières conversations</h2><p className="sub">Elles arrivent ici dès qu&apos;elles sont synchronisées</p></div><Link className="btn sm" href={`${base}/calls`}>Tout voir</Link></div>
-          {feed.length ? <div className="list">{feed.map((c) => <CallItem key={c.id} c={c} base={base} showSource={multiSource} />)}</div> : <div className="empty">Aucune conversation sur la période.</div>}
+          {feed.length ? <div className="list">{feed.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} showSource={multiSource} />)}</div> : <div className="empty">Aucune conversation sur la période.</div>}
         </div>
         <div className="stack">
           <div className="card"><h2>Objections</h2><p className="sub">Les plus fréquentes et la part passée</p>
-            {s.objections.length ? <>{s.objections.slice(0, 6).map((o) => (
+            {lite ? <div className="empty"><b>Inclus à partir de la formule Essentiel</b>Les objections de chaque appel, repérées et comptées.{scope.kind === "org" && <> <Link href="/app/billing">Changer de formule</Link></>}</div> : s.objections.length ? <>{s.objections.slice(0, 6).map((o) => (
               <div key={o.key} className="obj"><span>{OBJ_LABEL[o.key] || o.key}</span><div className="bar" style={{ width: `${(o.count / omx) * 100}%` }}><i style={{ width: `${o.passedRate ?? 0}%` }} /></div><span className="n">{o.count}</span></div>
             ))}<div className="legend" style={{ marginTop: 12 }}><span><i style={{ background: "var(--mint)" }} />Passée</span><span><i style={{ background: "rgba(221,63,85,.3)" }} />Non passée ou inconnue</span></div></> : <div className="empty">Aucune objection détectée.</div>}
           </div>

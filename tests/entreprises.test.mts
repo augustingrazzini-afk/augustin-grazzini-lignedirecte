@@ -155,3 +155,12 @@ test("créneaux : classement par taux de décroché, heure de Paris, volume mini
   // Été : 14 h UTC = 16 h à Paris.
   assert.equal(slotInsights(at("2026-07-09T14:00:00Z", 20, 4)).slots[0].label, "jeudi 16h");
 });
+
+test("menu : cadenas selon la formule", async () => {
+  const { lockedIcons } = await import("../src/lib/plan");
+  const of = (plan: string) => lockedIcons({ ai: billing.hasAi({ plan }), premium: billing.hasPremium({ plan }) });
+  assert.deepEqual(of("starter"), ["relances", "coach", "brief"]);
+  assert.deepEqual(of("agency"), ["brief"]);
+  assert.deepEqual(of("premium"), []);
+  assert.deepEqual(of("trial"), [], "l'essai garde tout ouvert");
+});

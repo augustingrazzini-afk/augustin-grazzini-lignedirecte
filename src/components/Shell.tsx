@@ -19,11 +19,13 @@ export type ShellProps = {
   /** Espace de l'éditeur : page « Inscriptions » (statistiques de lancement). */
   admin?: boolean;
   /** Widget flottant en bas à droite (assistant IA + avis). */
+  /** Pages non incluses dans la formule (cadenas dans le menu), désignées par leur icône. */
+  locked?: string[];
   widget?: { clientId: string | null; aiReady: boolean; shareToken?: string };
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, admin = false, widget, children }: ShellProps) {
+export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, admin = false, locked = [], widget, children }: ShellProps) {
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
@@ -41,6 +43,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
         ]
       : []),
   ];
+  for (const it of all) if (locked.includes(it.icon)) { it.locked = true; it.badge = undefined; }
   const items = share ? all.filter((it) => [base, `${base}/calls`, `${base}/rendez-vous`, `${base}/coach`].includes(it.href)) : all;
   // L'espace client (portail et lien de suivi) est en clair ; l'espace commercial reste en sombre.
   return (

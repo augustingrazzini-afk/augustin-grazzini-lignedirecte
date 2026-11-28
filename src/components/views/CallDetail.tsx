@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { planOf } from "@/lib/plan";
 import { notFound } from "next/navigation";
 import { callScope, type Scope, callAccess } from "@/lib/access";
 import { db } from "@/lib/db";
@@ -23,11 +24,14 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   if (!c) notFound();
   const sharedWithMe = scope.kind === "client" && c.clientId !== scope.clientId ? c.shares.find((x) => x.clientId === scope.clientId) : undefined;
   if (sharedWithMe) readOnly = true;
-  const tr = (c.transcript as unknown as TranscriptLine[]) || [];
-  const det = (c.objDetails as unknown as ObjDetail[]) || [];
+  // Formule Découverte : ni résumé, ni objections, ni transcription, ni écoute (inclus à partir d'Essentiel).
+  const plan = await planOf(scope.orgId), lite = !plan.ai;
+  if (lite) { c.summary = ""; c.aiSummary = ""; c.objections = []; c.aiMeeting = false; }
+  const tr = lite ? [] : (c.transcript as unknown as TranscriptLine[]) || [];
+  const det = lite ? [] : (c.objDetails as unknown as ObjDetail[]) || [];
   // Lecture dans Trustpipe : fichier stocké chez nous, relais signé (outils dont l'audio demande une clé), sinon le lien de l'outil.
   const recLink = c.recordingUrl && /^https:\/\//.test(c.recordingUrl) ? c.recordingUrl : null;
-  const audio = c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
+  const audio = lite ? null : c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
   // Secours si la lecture échoue ici : la page d'écoute de l'outil (jamais une adresse interne de relais).
   const recFallback = recLink && !/^https:\/\/api[.-]/.test(recLink) && recLink !== audio ? recLink : null;
   const clients = scope.kind === "org" ? await db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }) : [];
@@ -62,9 +66,9 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
             <dt>Source</dt><dd>{SOURCE_LABEL[c.provider] || c.provider}{c.listName ? ` · ${c.listName}` : ""}</dd>
           </dl>
           {!readOnly && <div className="row" style={{ marginTop: 16 }}>
-            <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>
+            {plan.premium && <Link className="btn primary" href={`${base}/brief?q=${encodeURIComponent(displayName(c))}`}>Préparer le brief</Link>}
             <Link className="btn" href={`${base}/contacts/${encodeURIComponent(c.contactKey)}`}>Fiche prospect</Link>
-            <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={tr.length > 0} back={`${base}/calls`} clientId={clientParam} meeting={c.kind === "meeting"} />
+            <CallActions id={c.id} canDelete={["csv", "manual"].includes(c.provider)} canAnalyze={!lite && tr.length > 0} back={`${base}/calls`} clientId={clientParam} meeting={c.kind === "meeting"} />
           </div>}
         </div>
         {debrief && <DebriefCard d={debrief} />}
@@ -91,7 +95,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
         )}
         {scope.kind === "org" && (
           <>
-          {clients.some((cl) => cl.id !== c.clientId) && (
+          {!lite && clients.some((cl) => cl.id !== c.clientId) && (
             <div className="card"><div className="sec"><h4>Envoyer cet appel à un commercial</h4>
               <p className="muted small" style={{ margin: "0 0 10px" }}>Un bon appel à montrer en exemple, ou un appel à retravailler : le commercial choisi le retrouve dans son espace (résumé, transcription, écoute) et reçoit un email. L&apos;appel reste compté pour celui qui l&apos;a passé.</p>
               <ActionForm action={shareCall} submit="Envoyer l'appel" hidden={{ callId: c.id }}>
@@ -115,6 +119,13 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           </>
         )}
       </div>
+      {lite ? (
+        <div className="card locked">
+          <h2>Résumé, transcription et écoute de l&apos;appel</h2>
+          <p className="muted" style={{ margin: "6px 0 12px" }}>Votre formule Découverte affiche qui a été appelé, quand et avec quel résultat. Le résumé de la conversation, les objections du prospect, la transcription complète et l&apos;écoute sont inclus à partir de la formule Essentiel.</p>
+          {scope.kind === "org" && !readOnly ? <Link className="btn primary" href="/app/billing">Passer en Essentiel</Link> : <span className="muted small">Demandez à l&apos;entreprise qui gère cet espace de changer de formule.</span>}
+        </div>
+      ) : (
       <div className="card">
         <div className="row" style={{ marginBottom: 12 }}><div className="sec"><h4 style={{ margin: 0 }}>Transcription{tr.length ? ` · ${tr.length} répliques` : ""}</h4></div><span className="spacer" />{tr.length > 0 && <CopyButton text={trText} />}</div>
         {tr.length ? (
@@ -136,6 +147,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           </div>
         )}
       </div>
+      )}
     </div>
   );
 }

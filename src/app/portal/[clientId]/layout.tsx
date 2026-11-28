@@ -1,4 +1,6 @@
 import { requireClientScope } from "@/lib/access";
+import { hasAi, hasPremium } from "@/lib/billing";
+import { lockedIcons } from "@/lib/plan";
 import { currentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { Shell } from "@/components/Shell";
@@ -13,5 +15,5 @@ export default async function PortalLayout({ children, params }: { children: Rea
   const scope = await requireClientScope((await params).clientId);
   const [user, client, follow] = await Promise.all([currentUser(), db.client.findUniqueOrThrow({ where: { id: scope.clientId }, include: { org: true } }), countDueTasks(scope)]);
   after(() => syncIfStale(scope.orgId));
-  return <Shell base={`/portal/${scope.clientId}`} orgName={client.org.name} clientName={client.name} isOrg={false} email={user!.email} followUps={follow} widget={{ clientId: scope.clientId, aiReady: true }}>{children}</Shell>;
+  return <Shell base={`/portal/${scope.clientId}`} orgName={client.org.name} clientName={client.name} isOrg={false} email={user!.email} followUps={follow} locked={lockedIcons({ ai: hasAi(client.org), premium: hasPremium(client.org) })} widget={hasAi(client.org) ? { clientId: scope.clientId, aiReady: true } : undefined}>{children}</Shell>;
 }
