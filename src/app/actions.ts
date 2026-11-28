@@ -362,7 +362,7 @@ export async function confirmMeeting(f: FormData) {
   if (await inDemo()) return;
   const { scope } = await writableOrg();
   const callId = s(f, "callId", 40);
-  await db.call.updateMany({ where: { id: callId, orgId: scope.orgId, kind: "call" }, data: { meetingBooked: f.get("value") === "1", aiMeeting: false } });
+  await db.call.updateMany({ where: { id: callId, orgId: scope.orgId, kind: "call" }, data: { meetingBooked: f.get("value") === "1", meetingManual: f.get("value") === "1", aiMeeting: false, ...(f.get("value") === "1" ? { status: "meeting-booked" } : {}) } });
   revalidatePath(`/app/calls/${callId}`);
 }
 

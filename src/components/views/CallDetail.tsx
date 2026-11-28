@@ -66,7 +66,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           <dl className="dl" style={{ marginTop: 16 }}>
             <dt>Date</dt><dd>{dateFR(c.startedAt)} à {timeFR(c.startedAt)}</dd>
             <dt>Durée</dt><dd>{fmtDuration(c.durationSec)}{c.direction ? ` · ${c.direction === "inbound" ? "entrant" : "sortant"}` : ""}</dd>
-            <dt>Résultat</dt><dd>{c.meetingBooked ? <span className="pill win">RDV pris</span> : <span className="pill mute">{c.kind === "meeting" ? "Rendez-vous AE" : c.connected ? "Décroché" : c.status}</span>}</dd>
+            <dt>Résultat</dt><dd>{c.meetingBooked ? <span className="pill win">RDV pris</span> : <span className="pill mute">{c.kind === "meeting" ? "Rendez-vous AE" : c.status === "meeting-rescheduled" ? "RDV reporté (déjà compté)" : c.status === "meeting-followup" ? "Suivi d'un RDV déjà compté" : c.connected ? "Décroché" : c.status}</span>}</dd>
             <dt>Commercial</dt><dd>{c.repName || "–"}</dd>
             {contact?.phone && <><dt>Téléphone</dt><dd><a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>{prettyPhone(contact.phone)}</a></dd></>}
             {contact?.email && <><dt>Email</dt><dd><a href={`mailto:${contact.email}`} style={{ wordBreak: "break-all" }}>{contact.email}</a></dd></>}
@@ -93,6 +93,12 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
         {!det.length && c.objections.length > 0 && <div className="card"><div className="sec"><h4>Objections</h4><div className="row">{c.objections.map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}</div></div></div>}
         {c.optOut && <div className="card"><div className="sec"><h4>Opposition du prospect <span className="pill bad" style={{ marginLeft: 8 }}>Ne plus contacter</span></h4>
           <p className="muted small" style={{ margin: 0 }}>Ce prospect a demandé à ne plus être contacté. Ses relances ont été retirées et Trustpipe n&apos;en proposera plus. Pensez à le marquer aussi « ne pas appeler » dans votre outil d&apos;appel.</p></div></div>}
+        {!c.meetingBooked && c.status.startsWith("meeting-") && c.status !== "meeting-booked" && c.kind === "call" && (
+          <div className="card"><div className="sec"><h4>Rendez-vous déjà compté pour ce prospect</h4>
+            <p className="muted small" style={{ margin: "0 0 10px" }}>{c.status === "meeting-rescheduled" ? "Cet appel décale un rendez-vous déjà pris" : "L'outil d'appel marque cet appel « rendez-vous », mais un rendez-vous avec ce prospect a déjà été compté dans les 30 jours précédents"} : il n&apos;est pas compté une seconde fois dans les chiffres ni dans le classement.</p>
+            {scope.kind === "org" && !readOnly && <form action={confirmMeeting}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="value" value="1" /><Btn className="btn sm">C&apos;est un nouveau rendez-vous : le compter</Btn></form>}
+          </div></div>
+        )}
         {c.aiMeeting && !c.meetingBooked && c.kind === "call" && (
           <div className="card"><div className="sec"><h4>Rendez-vous détecté par l&apos;IA</h4>
             <p className="muted small" style={{ margin: "0 0 10px" }}>D&apos;après la transcription, un rendez-vous semble avoir été fixé, mais l&apos;outil d&apos;appel ne l&apos;indique pas. Il n&apos;est pas compté dans les chiffres tant qu&apos;il n&apos;est pas confirmé.</p>

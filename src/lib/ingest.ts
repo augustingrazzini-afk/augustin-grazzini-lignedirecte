@@ -44,6 +44,12 @@ export function contactKey(provider: string, c: { firstName?: string; lastName?:
 
 type Target = { orgId: string; provider: string; integrationId?: string | null; clientId?: string | null };
 
+/** Un rendez-vous compte une fois par prospect : fenêtre pendant laquelle un nouvel appel « rendez-vous » est un suivi. */
+const SAME_MEETING_DAYS = 30;
+const RE_RESCHED = /(report[ée]|d[ée]cal[ée]|replanifi|recal[ée]|d[ée]plac[ée]|reprogramm)/i;
+/** Statut d'un appel que l'outil marque « rendez-vous » alors que le rendez-vous de ce prospect est déjà compté. */
+export const followStatus = (summary?: string) => (RE_RESCHED.test(summary || "") ? "meeting-rescheduled" : "meeting-followup");
+
 /** Empreinte d'un appel tel que l'outil l'envoie (et du commercial à qui il revient). */
 export const callHash = (c: NormalizedCall, clientId: string | null | undefined) => sha256(JSON.stringify([2, clientId ?? null, c])).slice(0, 32);
 
@@ -58,7 +64,7 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[], opts: { pa
   const rules = t.clientId ? [] : await db.clientRule.findMany({ where: { orgId: t.orgId } });
   const known = new Map((await db.call.findMany({
     where: { orgId: t.orgId, provider: t.provider, externalId: { in: calls.map((c) => c.externalId).filter(Boolean) } },
-    select: { id: true, externalId: true, aiStatus: true, clientId: true, syncHash: true },
+    select: { id: true, externalId: true, aiStatus: true, clientId: true, syncHash: true, meetingManual: true },
   })).map((r) => [r.externalId, r]));
   let created = 0, updated = 0, unchanged = 0;
   for (const c of calls) {
@@ -68,20 +74,32 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[], opts: { pa
     const hash = opts.partial ? undefined : callHash(c, clientId);
     if (existing && hash && existing.syncHash === hash) { unchanged++; continue; }
     const hasTr = (c.transcript?.length || 0) > 0;
+    // L'outil marque « rendez-vous pris » sur chaque appel d'un prospect qui a un rendez-vous (y compris quand on l'appelle
+    // pour le décaler) : s'il est déjà compté dans les 30 jours précédents, cet appel est un suivi, pas un nouveau rendez-vous.
+    const key = contactKey(t.provider, c), isCall = (c.kind || "call") === "call";
+    let booked = c.meetingBooked, status = c.status;
+    if (booked && isCall && !opts.partial) {
+      const prior = await db.call.findFirst({
+        where: { orgId: t.orgId, contactKey: key, kind: "call", meetingBooked: true, NOT: { provider: t.provider, externalId: c.externalId },
+          startedAt: { lt: c.startedAt, gt: new Date(c.startedAt.getTime() - SAME_MEETING_DAYS * 864e5) } },
+        select: { id: true },
+      });
+      if (prior) { booked = false; status = followStatus(c.summary); }
+    }
     const needsAi = hasTr && !(c.objections?.length) ? "pending" : c.summary || c.objections?.length ? "done" : "none";
     const data: Prisma.CallUncheckedUpdateInput = {
       startedAt: c.startedAt,
       durationSec: Math.max(0, Math.round(c.durationSec || 0)),
       direction: c.direction ?? null,
-      status: c.status.slice(0, 60),
+      status: status.slice(0, 60),
       connected: c.connected,
-      meetingBooked: c.meetingBooked,
+      meetingBooked: booked,
       kind: c.kind || "call",
       firstName: (c.firstName || "").slice(0, 120),
       lastName: (c.lastName || "").slice(0, 120),
       company: (c.company || "").slice(0, 200),
       jobTitle: (c.jobTitle || "").slice(0, 200),
-      contactKey: contactKey(t.provider, c),
+      contactKey: key,
       repName: (c.repName || "").slice(0, 120),
       listName: (c.listName || "").slice(0, 200),
       campaign: (c.campaign || "").slice(0, 200),
@@ -96,6 +114,8 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[], opts: { pa
       ...(c.recordingUrl ? { recordingUrl: c.recordingUrl } : {}),
     };
     if (hash) data.syncHash = hash;
+    // Décision prise à la main sur la fiche (compter ou non ce rendez-vous) : la synchro la respecte.
+    if (existing && existing.meetingManual != null) { delete data.meetingBooked; delete data.status; }
     let saved;
     if (existing) {
       saved = await db.call.update({
@@ -109,7 +129,17 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[], opts: { pa
       });
       created++;
     }
-    known.set(c.externalId, { id: saved.id, externalId: c.externalId, aiStatus: saved.aiStatus, clientId: saved.clientId, syncHash: saved.syncHash });
+    known.set(c.externalId, { id: saved.id, externalId: c.externalId, aiStatus: saved.aiStatus, clientId: saved.clientId, syncHash: saved.syncHash, meetingManual: saved.meetingManual });
+    // Les appels arrivent parfois du plus récent au plus ancien : si ce rendez-vous est le premier du prospect,
+    // ses appels « rendez-vous » plus récents (déjà enregistrés) deviennent des suivis.
+    if (saved.meetingBooked && isCall && !opts.partial) {
+      const later = await db.call.findMany({
+        where: { orgId: t.orgId, contactKey: key, kind: "call", meetingBooked: true, meetingManual: null, id: { not: saved.id },
+          startedAt: { gt: saved.startedAt, lt: new Date(saved.startedAt.getTime() + SAME_MEETING_DAYS * 864e5) } },
+        select: { id: true, summary: true },
+      });
+      for (const l of later) await db.call.update({ where: { id: l.id }, data: { meetingBooked: false, status: followStatus(l.summary) } });
+    }
     await afterCall(saved);
   }
   return { created, updated, unchanged };
@@ -130,7 +160,8 @@ export async function reapplyRules(orgId: string) {
 
 /** Relances liées à un appel : RDV pris → on ferme ; sinon règles (l'IA affinera si une transcription arrive). */
 export async function afterCall(c: Awaited<ReturnType<typeof db.call.findFirstOrThrow>>) {
-  if (c.meetingBooked) return closeTasksOnMeeting(c.orgId, c.contactKey);
+  // Rendez-vous pris, ou suivi d'un rendez-vous déjà compté (report, confirmation) : pas de relance à proposer.
+  if (c.meetingBooked || c.status.startsWith("meeting-")) return closeTasksOnMeeting(c.orgId, c.contactKey);
   // Opposition repérée dans le résumé de l'outil d'appel : on la garde et on retire les relances de ce prospect.
   if (!c.optOut && c.summary && RE_OPTOUT.test(c.summary)) {
     await db.call.update({ where: { id: c.id }, data: { optOut: true } });

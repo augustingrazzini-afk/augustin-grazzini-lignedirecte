@@ -169,6 +169,7 @@ model Call {
   status        String       @default("connected")
   connected     Boolean      @default(false)
   meetingBooked Boolean      @default(false)
+  meetingManual Boolean? // décision prise à la main (compter ou non ce rendez-vous) : la synchro ne la remet pas en cause
   firstName     String       @default("")
   lastName      String       @default("")
   company       String       @default("")
