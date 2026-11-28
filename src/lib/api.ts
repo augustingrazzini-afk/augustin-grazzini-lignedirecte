@@ -9,14 +9,14 @@ export const jsonError = (message: string, status = 400) => NextResponse.json({ 
 /** Assistant IA : inclus à partir de la formule Essentiel. */
 export async function assertAi(scope: Scope) {
   const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { plan: true } });
-  if (org && !hasAi(org)) return jsonError("L'assistant IA est inclus à partir de la formule Essentiel (49,99 € HT par mois). Changez de formule depuis la page Abonnement.", 402);
+  if (org && !hasAi(org)) return jsonError("L'assistant IA est inclus à partir de la formule Essentiel (99 € HT par mois). Changez de formule depuis la page Abonnement.", 402);
   return null;
 }
 
 /** Fonction réservée à la formule Premium (briefs, débriefs, connecteur Claude). */
 export async function assertPremium(scope: Scope) {
   const org = await db.organization.findUnique({ where: { id: scope.orgId }, select: { plan: true } });
-  if (org && !hasPremium(org)) return jsonError("Cette fonction est incluse dans la formule Premium (69,99 € HT par mois). Passez en Premium depuis la page Abonnement.", 402);
+  if (org && !hasPremium(org)) return jsonError("Cette fonction est incluse dans la formule Premium (199 € HT par mois). Passez en Premium depuis la page Abonnement.", 402);
   return null;
 }
 

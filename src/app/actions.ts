@@ -528,13 +528,36 @@ export async function revokeMcpToken(f: FormData) {
 }
 
 /** Relit tout l'historique de l'outil (90 jours) pour récupérer les enregistrements / liens d'écoute, après activation du partage. */
-export async function fetchRecordings(f: FormData) {
-  const integ = await ownedIntegration(f);
-  const { bumpUsage } = await import("@/lib/usage");
-  if ((await bumpUsage(`recfetch:${integ.id}`)) > 5) return; // 5 relectures complètes par jour au plus
-  after(async () => {
-    try { await syncIntegration(integ.id, { full: true }); } catch { /* l'erreur est enregistrée sur l'intégration */ }
+/**
+ * « Récupérer les enregistrements » : vérifie d'abord, tout de suite, que l'outil fournit bien des enregistrements
+ * (réponse claire à l'écran), puis complète l'historique. Pour Minari, le lien d'écoute se déduit de l'appel : c'est immédiat.
+ */
+export async function fetchRecordings(_: FormState, f: FormData): Promise<FormState> {
+  try {
+    const integ = await ownedIntegration(f);
+    const { bumpUsage } = await import("@/lib/usage");
+    if ((await bumpUsage(`recfetch:${integ.id}`)) > 10) return { error: "Vous avez déjà relancé la récupération plusieurs fois aujourd'hui. Réessayez demain, ou écrivez-nous." };
+    const { getProvider } = await import("@/lib/providers");
+    const { open } = await import("@/lib/crypto");
+    const { listeningHelp } = await import("@/lib/listening");
+    const p = getProvider(integ.provider);
+    const scopeCalls = { orgId: integ.orgId, provider: integ.provider };
+    // 1. Les appels récents de l'outil ont-ils un enregistrement ? (une seule page, quelques secondes)
+    let sample: { recordingUrl?: string | null; connected?: boolean }[] = [];
+    if (p.list) for await (const page of p.list(open<Record<string, string>>(integ.credentials), new Date(Date.now() - 21 * 864e5))) { sample = page; break; }
+    const answered = sample.filter((c) => c.connected);
+    if (!sample.length) return { error: `Aucun appel récent trouvé dans ${p.label} : passez un appel, puis réessayez.` };
+    if (!sample.some((c) => c.recordingUrl)) {
+      const h = listeningHelp(integ.provider, p.label);
+      return { error: `${p.label} ne fournit pas encore d'enregistrement pour vos derniers appels${answered.length ? "" : " (aucun n'a été décroché récemment)"}. À faire dans ${p.label} : ${h.steps[0]} ${h.steps[1] || ""} Puis recliquez ici.` };
+    }
+    // 2. Historique. Minari : le lien d'écoute est l'adresse de partage de l'appel, on le pose d'un coup.
+    if (integ.provider === "minari")
+      await db.$executeRaw`UPDATE "Call" SET "recordingUrl" = 'https://app.minari.ai/shared/' || "externalId" WHERE "orgId" = ${integ.orgId} AND "provider" = 'minari' AND "durationSec" > 0 AND "recordingUrl" IS NULL`;
+    else after(async () => { try { await syncIntegration(integ.id, { full: true }); } catch { /* l'erreur est enregistrée sur l'intégration */ } revalidatePath("/", "layout"); });
+    const n = await db.call.count({ where: { ...scopeCalls, durationSec: { gt: 0 }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] } });
     revalidatePath("/", "layout");
-  });
-  revalidatePath("/", "layout");
+    return { ok: integ.provider === "minari" ? `Écoute activée : ${n} appel(s) écoutable(s) dès maintenant. Les prochains appels le seront automatiquement.`
+      : `Écoute activée : ${n} appel(s) déjà écoutable(s). Le reste de l'historique (90 jours) se récupère en arrière-plan : comptez quelques minutes.` };
+  } catch (e) { return fail(e); }
 }

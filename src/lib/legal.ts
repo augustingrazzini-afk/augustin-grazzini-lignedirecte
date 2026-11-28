@@ -8,7 +8,7 @@ export const LEGAL = {
   brand: "Trustpipe",
   site: "trustpipe.fr",
   // Éditeur
-  company: "Augustin Grazzini (nom commercial LigneDirecte)", // raison sociale, ou « Prénom Nom, entrepreneur individuel » pour une micro-entreprise
+  company: "Augustin Grazzini (Trustpipe)", // raison sociale, ou « Prénom Nom, entrepreneur individuel » pour une micro-entreprise
   legalForm: "entrepreneur individuel (EI)", // SAS, SARL, EI (micro-entreprise)…
   capital: "", // ex. « 1 000 € » (supprimer pour une EI)
   siren: "131 650 632 (SIRET 131 650 632 00014)",

@@ -72,12 +72,12 @@ test("classement : par rendez-vous, « Non attribués » toujours en dernier, ta
 test("formules : limites de commerciaux et fonctions IA", () => {
   const { maxClients, hasPremium, hasAi, PAID_PLANS, PLANS } = billing;
   assert.deepEqual([...PAID_PLANS], ["starter", "agency", "premium"]);
-  assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [19.99, 49.99, 69.99]);
+  assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [29, 99, 199]);
   // Prix fixe par formule : le nombre de commerciaux dépend de la formule, pas d'une quantité payée.
   assert.equal(maxClients({ plan: "starter", seats: 1 }), 2, "Découverte : 2 commerciaux");
   assert.equal(maxClients({ plan: "agency", seats: 1 }), 4, "Essentiel : 4 commerciaux");
   assert.equal(maxClients({ plan: "agency", seats: 9 }), 4);
-  assert.equal(maxClients({ plan: "premium", seats: 1 }), Infinity, "Premium : illimité");
+  assert.equal(maxClients({ plan: "premium", seats: 1 }), 10, "Premium : 10 commerciaux, au-delà sur devis");
   assert.equal(maxClients({ plan: "solo", seats: 1 }), 3, "anciennes formules conservées");
   assert.deepEqual(["starter", "agency", "premium", "trial", "solo"].map((p) => [hasAi({ plan: p }), hasPremium({ plan: p })]),
     [[false, false], [true, false], [true, true], [true, true], [true, true]]);
@@ -117,7 +117,7 @@ test("Assistant inclus dès Essentiel ; connecteur Claude bloqué en Essentiel, 
   assert.match(okRes.content[0].text, /Léa Martin/);
 });
 
-test("webhook Stripe (liens de paiement) : la formule et le nombre de commerciaux sont activés", async () => {
+test("webhook Stripe (liens de paiement) : la formule payée est activée", async () => {
   process.env.STRIPE_LINK_WEBHOOK_SECRET = "whsec_test_entreprises";
   delete process.env.STRIPE_SECRET_KEY;
   const Stripe = (await import("stripe")).default;
@@ -133,12 +133,13 @@ test("webhook Stripe (liens de paiement) : la formule et le nombre de commerciau
     const r1 = await send({ id: "evt_1", object: "event", type: "checkout.session.completed", data: { object: { object: "checkout.session", client_reference_id: o2.id, customer: `cus_${tag}`, subscription: `sub_${tag}`, metadata: { plan: "starter" }, amount_subtotal: 5997 } } });
     assert.equal(r1.status, 200);
     let o = await db.organization.findUniqueOrThrow({ where: { id: o2.id } });
-    assert.deepEqual([o.plan, o.subscriptionStatus, o.stripeSubscriptionId, o.seats], ["starter", "active", `sub_${tag}`, 3], "3 commerciaux déduits de 59,97 € HT");
-    // Passage en Premium avec 3 commerciaux depuis le portail Stripe.
+    assert.deepEqual([o.plan, o.subscriptionStatus, o.stripeSubscriptionId], ["starter", "active", `sub_${tag}`], "formule activée après paiement");
+    assert.equal(billing.maxClients(o), 2, "Découverte : 2 commerciaux (prix fixe, la quantité ne compte plus)");
+    // Passage en Premium depuis le portail Stripe.
     await send({ id: "evt_2", object: "event", type: "customer.subscription.updated", data: { object: { object: "subscription", id: `sub_${tag}`, customer: `cus_${tag}`, status: "active", cancel_at_period_end: false, cancel_at: null, items: { data: [{ quantity: 3, price: { id: "price_p", lookup_key: "trustpipe_premium_mensuel_eur", metadata: {} } }] } } } });
     o = await db.organization.findUniqueOrThrow({ where: { id: o2.id } });
-    assert.deepEqual([o.plan, o.seats, o.subscriptionStatus], ["premium", 3, "active"]);
-    assert.equal(billing.maxClients(o), Infinity, "Premium : commerciaux illimités, quelle que soit la quantité");
+    assert.deepEqual([o.plan, o.subscriptionStatus], ["premium", "active"]);
+    assert.equal(billing.maxClients(o), 10, "Premium : 10 commerciaux, quelle que soit la quantité");
   } finally {
     await db.organization.delete({ where: { id: o2.id } });
   }

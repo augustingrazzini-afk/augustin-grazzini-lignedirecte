@@ -1,4 +1,5 @@
 import type { Scope } from "@/lib/access";
+import { ActionForm } from "../client/ActionForm";
 import { planOf } from "@/lib/plan";
 import { db } from "@/lib/db";
 import { ago } from "@/lib/format";
@@ -63,8 +64,8 @@ export async function Sources({ scope }: { scope: Scope }) {
                         <div className="banner" style={{ margin: "8px 0 0", display: "block" }}>
                           <b>{h.title}</b>
                           <ol className="small" style={{ margin: "6px 0 10px", paddingLeft: 18, lineHeight: 1.6 }}>{h.steps.map((st) => <li key={st}>{st}</li>)}</ol>
-                          <form action={fetchRecordings}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm primary">Récupérer les enregistrements</button></form>
-                          <p className="muted small" style={{ margin: "6px 0 0" }}>Trustpipe relit les 90 derniers jours : comptez quelques minutes, puis rechargez la page. Chaque commercial pourra aussi réécouter ses appels.</p>
+                          <ActionForm action={fetchRecordings} submit="Récupérer les enregistrements" className="" hidden={{ integrationId: i.id }} />
+                          <p className="muted small" style={{ margin: "6px 0 0" }}>Le résultat s&apos;affiche ici en quelques secondes : nombre d&apos;appels écoutables, ou ce qu&apos;il reste à activer dans votre outil.</p>
                         </div>
                       </details>
                     );

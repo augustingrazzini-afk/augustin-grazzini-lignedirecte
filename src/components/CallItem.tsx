@@ -20,7 +20,7 @@ export function CallItem({ c, base, showSource, rep, lite, audio = true, hasTran
         {c.optOut && <span className="pill bad">Ne plus contacter</span>}
         {!lite && c.objections.slice(0, 3).map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}
         {!lite && hasTr && <span className="pill">Transcription</span>}
-        {!lite && audio && (c.recordingUrl || c.recordingKey) && <span className="pill">Audio</span>}
+        {!lite && audio && c.durationSec > 0 && (c.recordingUrl || c.recordingKey) && <span className="pill">Audio</span>}
         {showSource && <span className="pill src">{SOURCE_LABEL[c.provider] || c.provider}</span>}
       </span>
     </Link>

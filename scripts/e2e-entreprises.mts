@@ -93,7 +93,7 @@ await check(pb, "/app/billing", /Découverte/);
 await check(pb, "/app", /Vos commerciaux/);
 // 7. Pages publiques
 const pp = await page(boss.id); await pp.context().clearCookies();
-for (const [path, re] of [["/", /Tous vos commerciaux/], ["/assistant", /assistant IA/i], ["/claude", /Claude/], ["/cgv", /19,99/], ["/inscription", /Créer votre compte/], ["/login", /Connexion/]] as [string, RegExp][]) await check(pp, path, re);
+for (const [path, re] of [["/", /Tous vos commerciaux/], ["/assistant", /assistant IA/i], ["/claude", /Claude/], ["/cgv", /29 €/], ["/inscription", /Créer votre compte/], ["/login", /Connexion/]] as [string, RegExp][]) await check(pp, path, re);
 await pp.setViewportSize({ width: 390, height: 844 }); await check(pp, "/", /Tous vos commerciaux/, "10-mobile");
 const sw = await pp.evaluate(() => document.documentElement.scrollWidth); if (sw > 392) issues.push("mobile : défilement horizontal (" + sw + "px)");
 await b.close();
