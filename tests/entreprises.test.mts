@@ -75,9 +75,9 @@ test("formules : limites de commerciaux et fonctions IA", () => {
   assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [29.99, 99.99, 199.99]);
   // Prix fixe par formule : le nombre de commerciaux dépend de la formule, pas d'une quantité payée.
   assert.equal(maxClients({ plan: "starter", seats: 1 }), 2, "Découverte : 2 commerciaux");
-  assert.equal(maxClients({ plan: "agency", seats: 1 }), 4, "Essentiel : 4 commerciaux");
-  assert.equal(maxClients({ plan: "agency", seats: 9 }), 4);
-  assert.equal(maxClients({ plan: "premium", seats: 1 }), 10, "Premium : 10 commerciaux, au-delà sur devis");
+  assert.equal(maxClients({ plan: "agency", seats: 1 }), 10, "Essentiel : 10 commerciaux");
+  assert.equal(maxClients({ plan: "agency", seats: 50 }), 10);
+  assert.equal(maxClients({ plan: "premium", seats: 1 }), Infinity, "Premium : commerciaux illimités");
   assert.equal(maxClients({ plan: "solo", seats: 1 }), 3, "anciennes formules conservées");
   assert.deepEqual(["starter", "agency", "premium", "trial", "solo"].map((p) => [hasAi({ plan: p }), hasPremium({ plan: p })]),
     [[false, false], [true, false], [true, true], [true, true], [true, true]]);
@@ -139,7 +139,7 @@ test("webhook Stripe (liens de paiement) : la formule payée est activée", asyn
     await send({ id: "evt_2", object: "event", type: "customer.subscription.updated", data: { object: { object: "subscription", id: `sub_${tag}`, customer: `cus_${tag}`, status: "active", cancel_at_period_end: false, cancel_at: null, items: { data: [{ quantity: 3, price: { id: "price_p", lookup_key: "trustpipe_premium_mensuel_eur", metadata: {} } }] } } } });
     o = await db.organization.findUniqueOrThrow({ where: { id: o2.id } });
     assert.deepEqual([o.plan, o.subscriptionStatus], ["premium", "active"]);
-    assert.equal(billing.maxClients(o), 10, "Premium : 10 commerciaux, quelle que soit la quantité");
+    assert.equal(billing.maxClients(o), Infinity, "Premium : commerciaux illimités");
   } finally {
     await db.organization.delete({ where: { id: o2.id } });
   }

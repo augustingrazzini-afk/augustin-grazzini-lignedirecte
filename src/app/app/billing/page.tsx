@@ -58,7 +58,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
           <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
           <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
             {(org.plan in PLAN_FEATURES ? PLAN_FEATURES[org.plan as keyof typeof PLAN_FEATURES].yes : features()).map((f) => <li key={f}>{f}</li>)}
-            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(plan.price)} € HT / mois</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}.{org.plan === "premium" ? " Au-delà de 10 commerciaux : écrivez-nous, nous vous faisons un devis." : ""} {Number.isFinite(plan.maxClients) ? <>Pour en suivre plus, <a href="#changer">changez de formule</a> ci-dessous.</> : null}</li>}
+            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(plan.price)} € HT / mois</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}. {Number.isFinite(plan.maxClients) ? <>Pour en suivre plus, <a href="#changer">changez de formule</a> ci-dessous.</> : null}</li>}
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>

@@ -6,25 +6,25 @@ export const PLANS = {
   solo: { name: "Solo", maxClients: 3, price: 24.99, perSeat: false },
   solo_plus: { name: "Solo Illimité", maxClients: Infinity, price: 34.99, perSeat: false },
   starter: { name: "Découverte", maxClients: 2, price: 29.99, perSeat: false },
-  agency: { name: "Essentiel", maxClients: 4, price: 99.99, perSeat: false },
-  premium: { name: "Premium", maxClients: 10, price: 199.99, perSeat: false },
+  agency: { name: "Essentiel", maxClients: 10, price: 99.99, perSeat: false },
+  premium: { name: "Premium", maxClients: Infinity, price: 199.99, perSeat: false },
 } as const;
 /**
  * Formules proposées à la souscription, à prix fixe par mois : Découverte (29,99 € HT, sans IA, volontairement limitée),
- * Essentiel (99,99 € HT, recommandée) et Premium (199,99 € HT, jusqu'à 10 commerciaux ; au-delà, sur devis).
+ * Essentiel (99,99 € HT, recommandée) et Premium (199,99 € HT, commerciaux illimités).
  * Solo et Solo Illimité restent reconnues pour les abonnements déjà souscrits, mais ne sont plus proposées.
  */
 export const PAID_PLANS = ["starter", "agency", "premium"] as const;
 /** Contenu de chaque formule (site, souscription, abonnement). `no` : ce qui manque, affiché barré. */
 export const PLAN_FEATURES: Record<"starter" | "agency" | "premium", { tag: string; yes: string[]; no: string[] }> = {
   starter: { tag: "Sans IA", yes: ["Jusqu'à 2 commerciaux", "Appels de vos commerciaux en direct", "Classement des commerciaux"], no: ["Résumé et analyse IA des appels", "Objections et relances automatiques", "Assistant IA"] },
-  agency: { tag: "Recommandé", yes: ["Jusqu'à 4 commerciaux", "Appels en direct et classement", "Transcription de chaque appel", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Assistant IA sur toute l'équipe"], no: ["Écoute des enregistrements", "Connecteur Claude", "Briefs et débriefs de rendez-vous"] },
-  premium: { tag: "Tout inclus", yes: ["Jusqu'à 10 commerciaux", "Tout Essentiel", "Écoute de chaque appel", "Connecteur Claude", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des enregistrements"], no: [] },
+  agency: { tag: "Recommandé", yes: ["Jusqu'à 10 commerciaux", "Appels en direct et classement", "Transcription de chaque appel", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Assistant IA sur toute l'équipe"], no: ["Commerciaux illimités", "Écoute des enregistrements", "Connecteur Claude", "Briefs et débriefs de rendez-vous"] },
+  premium: { tag: "Tout inclus", yes: ["Commerciaux illimités", "Tout Essentiel", "Écoute de chaque appel", "Connecteur Claude", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des enregistrements"], no: [] },
 };
-/** Nombre maximal de commerciaux par formule : 2 en Découverte, 4 en Essentiel, 10 en Premium (au-delà : sur devis). */
-export const PLAN_CAP: Record<string, number> = { starter: 2, agency: 4, premium: 10 };
+/** Nombre maximal de commerciaux par formule : 2 en Découverte, 10 en Essentiel, illimité en Premium. */
+export const PLAN_CAP: Record<string, number> = { starter: 2, agency: 10, premium: Infinity };
 /** Ce que Premium ajoute à Essentiel (affiché sur le site, la souscription et l'abonnement). */
-export const PREMIUM_EXTRAS = ["Jusqu'à 10 commerciaux", "Écoute de chaque appel", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
+export const PREMIUM_EXTRAS = ["Commerciaux illimités", "Écoute de chaque appel", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
 /**
  * Fonctions Premium (briefs, débriefs, transcription par Trustpipe, connecteur Claude) :
  * réservées à Premium (et aux anciennes formules). Essai de 7 jours avec carte enregistrée : l'espace choisit sa formule avant d'entrer, le premier prélèvement a lieu au bout de 7 jours.
@@ -51,7 +51,7 @@ export function isActive(org: Pick<Organization, "subscriptionStatus" | "trialEn
   return org.subscriptionStatus === "trialing" && org.trialEndsAt > new Date();
 }
 
-/** Nombre de commerciaux suivis autorisés : fixé par la formule (2 en Découverte, 4 en Essentiel, 10 en Premium). */
+/** Nombre de commerciaux suivis autorisés : fixé par la formule (2 en Découverte, 10 en Essentiel, illimité en Premium). */
 export function maxClients(org: Pick<Organization, "plan" | "seats">): number {
   if (org.plan in PLAN_CAP) return PLAN_CAP[org.plan];
   return (PLANS[org.plan as PlanId] ?? PLANS.trial).maxClients;

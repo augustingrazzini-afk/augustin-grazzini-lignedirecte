@@ -33,7 +33,7 @@ const REP_ASKS = [
 ];
 
 const FAQ: [string, string][] = [
-  ["Dans quelle formule est-il inclus ?", `Dès la formule Essentiel, à ${euros(PLANS.agency.price)} € HT par mois pour 4 commerciaux, avec la transcription, le résumé et l'analyse IA de chaque appel. La formule Premium (${euros(PLANS.premium.price)} € HT, jusqu'à 10 commerciaux) ajoute l'écoute des enregistrements, le connecteur Claude, les briefs et débriefs de rendez-vous.`],
+  ["Dans quelle formule est-il inclus ?", `Dès la formule Essentiel, à ${euros(PLANS.agency.price)} € HT par mois jusqu'à 10 commerciaux, avec la transcription, le résumé et l'analyse IA de chaque appel. La formule Premium (${euros(PLANS.premium.price)} € HT, commerciaux illimités) ajoute l'écoute des enregistrements, le connecteur Claude, les briefs et débriefs de rendez-vous.`],
   ["Mes commerciaux y ont-ils accès ?", "Oui, chacun dans son espace : son assistant ne connaît que ses propres appels. Le vôtre connaît toute l'équipe."],
   ["Sur quoi se base-t-il pour répondre ?", "Sur les appels de vos commerciaux : résumés, transcriptions, résultats, rendez-vous et relances. Il n'invente pas de chiffres : s'il n'a pas l'information, il le dit."],
   ["Peut-il se tromper ?", "Comme toute IA, oui. Ses réponses sont une aide à la préparation : relisez avant d'envoyer quoi que ce soit au prospect."],
@@ -109,7 +109,7 @@ export default function Page() {
 
       <section className="st-end">
         <div className="st-endrow">
-          <p>L&apos;assistant IA est inclus dès la formule Essentiel : {euros(PLANS.agency.price)} € HT par mois, jusqu&apos;à 4 commerciaux.</p>
+          <p>L&apos;assistant IA est inclus dès la formule Essentiel : {euros(PLANS.agency.price)} € HT par mois, jusqu&apos;à 10 commerciaux.</p>
           <Link className="st-btn p" href="/inscription">CRÉER MON COMPTE <span aria-hidden="true">→</span></Link>
         </div>
       </section>

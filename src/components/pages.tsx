@@ -47,7 +47,7 @@ async function premiumGate(scope: Scope, what: string, fromEssentiel = false): P
     <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
       <span className="pill win">Essentiel</span>
       <h2 style={{ margin: "14px 0 8px" }}>{what} est inclus à partir de la formule Essentiel</h2>
-      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Résumé et analyse IA de chaque appel, objections, relances automatiques et assistant IA sur toute l&apos;équipe : {euros(PLANS.agency.price)} € HT par mois, jusqu&apos;à 4 commerciaux.</p>
+      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Résumé et analyse IA de chaque appel, objections, relances automatiques et assistant IA sur toute l&apos;équipe : {euros(PLANS.agency.price)} € HT par mois, jusqu&apos;à 10 commerciaux.</p>
       {scope.kind === "org" ? <Link className="btn primary" href="/app/billing">Passer en Essentiel</Link> : <p className="muted small">Demandez à l&apos;entreprise qui vous a invité de changer de formule.</p>}
     </div>
   );
@@ -55,7 +55,7 @@ async function premiumGate(scope: Scope, what: string, fromEssentiel = false): P
     <div className="card" style={{ textAlign: "center", padding: "40px 24px" }}>
       <span className="pill win">Premium</span>
       <h2 style={{ margin: "14px 0 8px" }}>{what} est inclus dans la formule Premium</h2>
-      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Jusqu&apos;à 10 commerciaux, écoute des appels, connecteur Claude, briefs pré-rendez-vous, débriefs de visio et transcription automatique : {euros(PLANS.premium.price)} € HT par mois.</p>
+      <p className="muted" style={{ maxWidth: 560, margin: "0 auto 18px" }}>Commerciaux illimités, écoute des appels, connecteur Claude, briefs pré-rendez-vous, débriefs de visio et transcription automatique : {euros(PLANS.premium.price)} € HT par mois.</p>
       {scope.kind === "org" ? <Link className="btn primary" href="/app/billing">Passer en Premium</Link> : <p className="muted small">Demandez à l&apos;entreprise qui vous a invité de passer en Premium.</p>}
     </div>
   );

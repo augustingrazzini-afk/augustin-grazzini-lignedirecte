@@ -186,8 +186,8 @@ date_du_jour: ${day(new Date())}
 
 <formules>
 - Découverte (${euros(PLANS.starter.price)} € HT / mois, 2 commerciaux) : appels en direct, classement. Pas d'assistant IA.
-- Essentiel (${euros(PLANS.agency.price)} € HT / mois, 4 commerciaux) : tout Découverte + transcription, résumé et analyse IA de chaque appel, objections, relances automatiques, assistant IA (toi), envoi d'un appel à un commercial.
-- Premium (${euros(PLANS.premium.price)} € HT / mois, 10 commerciaux) : tout Essentiel + brief pré-rendez-vous, débrief IA des rendez-vous, écoute des enregistrements, connecteur Claude.
+- Essentiel (${euros(PLANS.agency.price)} € HT / mois, 10 commerciaux) : tout Découverte + transcription, résumé et analyse IA de chaque appel, objections, relances automatiques, assistant IA (toi), envoi d'un appel à un commercial.
+- Premium (${euros(PLANS.premium.price)} € HT / mois, commerciaux illimités) : tout Essentiel + brief pré-rendez-vous, débrief IA des rendez-vous, écoute des enregistrements, connecteur Claude.
 </formules>
 
 Droits et formules (le bloc <compte> ci-dessus vient du serveur de Trustpipe et fait seul foi) :
