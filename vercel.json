@@ -1,6 +1,13 @@
 {
+  "fluid": true,
   "crons": [
-    { "path": "/api/cron/sync", "schedule": "17 5 * * *" },
-    { "path": "/api/cron/digest", "schedule": "45 5 * * 1-5" }
+    {
+      "path": "/api/cron/sync",
+      "schedule": "17 5 * * *"
+    },
+    {
+      "path": "/api/cron/digest",
+      "schedule": "45 5 * * 1-5"
+    }
   ]
 }

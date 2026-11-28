@@ -1,7 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   poweredByHeader: false,
-  experimental: { serverActions: { bodySizeLimit: "10mb" } },
+  experimental: {
+    serverActions: { bodySizeLimit: "10mb" },
+    // Navigation instantanée : une page déjà chargée (ou préchargée par le menu) est réaffichée tout de suite pendant 30 s,
+    // au lieu d'être redemandée au serveur à chaque clic. Le rafraîchissement « en direct » continue en arrière-plan.
+    staleTimes: { dynamic: 30, static: 300 },
+  },
   // En-têtes de sécurité : pas d'affichage dans un cadre tiers, pas de devinette de type, référent limité.
   // Ancienne adresse de la page de paiement : les liens déjà envoyés et les retours de paiement continuent de marcher.
   async redirects() {
