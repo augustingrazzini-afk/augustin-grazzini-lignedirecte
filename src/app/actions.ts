@@ -316,8 +316,12 @@ export async function shareCall(_: FormState, f: FormData): Promise<FormState> {
     const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
     const text = `${fromName} vous envoie un appel à écouter : ${who}${call.company && who !== call.company ? ` (${call.company})` : ""}${call.repName ? `, passé par ${call.repName}` : ""}.\n${note ? `\n« ${note} »\n` : ""}\nL'ouvrir : ${link}`;
     const html = `<p><b>${esc(fromName)}</b> vous envoie un appel à écouter : <b>${esc(who)}</b>${call.repName ? `, passé par ${esc(call.repName)}` : ""}.</p>${note ? `<blockquote>${esc(note)}</blockquote>` : ""}<p><a href="${link}">Ouvrir l'appel dans Trustpipe</a></p>`;
-    const { sendEmail } = await import("@/lib/email");
-    await Promise.all(rep.members.map((m) => sendEmail(m.user.email, `${fromName} vous envoie un appel à écouter`, html, text).catch(() => null)));
+    // L'email part après la réponse : le bouton répond tout de suite, sans attendre le service d'envoi.
+    const recipients = rep.members.map((m) => m.user.email);
+    after(async () => {
+      const { sendEmail } = await import("@/lib/email");
+      await Promise.all(recipients.map((to) => sendEmail(to, `${fromName} vous envoie un appel à écouter`, html, text).catch(() => null)));
+    });
     revalidatePath(`/app/calls/${callId}`);
     return { ok: rep.members.length ? `Appel envoyé à ${rep.name} : il le voit dans son espace et reçoit un email.` : `Appel envoyé à ${rep.name}. Il n'a pas encore d'accès : invitez-le depuis sa fiche pour qu'il puisse l'ouvrir.` };
   } catch (e) { return fail(e); }
