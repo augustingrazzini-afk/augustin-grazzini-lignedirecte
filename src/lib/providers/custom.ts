@@ -72,6 +72,7 @@ export function mapCustom(c: any): NormalizedCall | null {
     company: str(first(c, ["prospect.company", "contact.company", "contact.company_name", "lead.company", "company", "company_name", "account.name"])),
     jobTitle: str(first(c, ["prospect.job_title", "contact.job_title", "contact.title", "job_title", "title"])),
     phone: str(first(c, ["to_number", "to", "phone", "phone_number", "number", "callee", "contact.phone"])),
+    email: str(first(c, ["prospect.email", "contact.email", "lead.email", "email", "prospect_email", "contact_email"])) || undefined,
     repName: str(first(c, ["user.name", "agent.name", "owner.name", "user_name", "agent", "rep", "caller_name", "user"])),
     listName: str(first(c, ["list.list_name", "list.name", "list_name", "campaign.name", "campaign", "list"])),
     summary: str(first(c, ["summary", "notes", "note", "comment", "description"])),

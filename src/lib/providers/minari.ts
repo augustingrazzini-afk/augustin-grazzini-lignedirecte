@@ -26,6 +26,7 @@ function map(c: MinariCall): NormalizedCall {
     jobTitle: str(p.job_title),
     contactRef: str(p.contact_id),
     phone: str(c.direction === "incoming" ? c.from_number : c.to_number),
+    email: str(p.email) || undefined,
     repName: str(c.user?.name),
     listName: str(c.list?.list_name),
     campaign: str(c.list?.list_id),

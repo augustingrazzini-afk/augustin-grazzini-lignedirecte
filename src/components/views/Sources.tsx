@@ -84,7 +84,7 @@ export async function Sources({ scope }: { scope: Scope }) {
       <ManualAdd clientId={clientId} uploads={storageEnabled()} /></>}
       <div className="card"><h2>Où vont vos données</h2><p className="sub" style={{ marginBottom: 0 }}>
         {scope.kind === "client" ? "Les appels de l'outil que vous branchez arrivent dans votre espace, et l'entreprise pour qui vous prospectez les suit en direct. " : "Chaque appel est attribué à un commercial (l'outil qu'il a branché, ou les règles de l'onglet Commerciaux) : un commercial ne voit jamais les appels d'un autre. "}
-        Les clés API sont chiffrées. Les numéros de téléphone ne sont pas conservés (seulement les 4 derniers chiffres).</p></div>
+        Les clés API sont chiffrées. Le téléphone et l'email des prospects sont chiffrés.</p></div>
     </div>
   );
 }

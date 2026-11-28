@@ -560,7 +560,7 @@ export async function fetchRecordings(_: FormState, f: FormData): Promise<FormSt
     // 2. Historique. Minari : le lien d'écoute est l'adresse de partage de l'appel, on le pose d'un coup.
     if (integ.provider === "minari")
       await db.$executeRaw`UPDATE "Call" SET "recordingUrl" = 'https://app.minari.ai/shared/' || "externalId" WHERE "orgId" = ${integ.orgId} AND "provider" = 'minari' AND "durationSec" > 0 AND "recordingUrl" IS NULL`;
-    else after(async () => { try { await syncIntegration(integ.id, { full: true }); } catch { /* l'erreur est enregistrée sur l'intégration */ } revalidatePath("/", "layout"); });
+    after(async () => { try { await syncIntegration(integ.id, { full: true }); } catch { /* l'erreur est enregistrée sur l'intégration */ } revalidatePath("/", "layout"); });
     const n = await db.call.count({ where: { ...scopeCalls, durationSec: { gt: 0 }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] } });
     revalidatePath("/", "layout");
     return { ok: integ.provider === "minari" ? `Écoute activée : ${n} appel(s) écoutable(s) dès maintenant. Les prochains appels le seront automatiquement.`

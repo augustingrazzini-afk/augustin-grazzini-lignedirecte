@@ -30,7 +30,7 @@ export default function Page() {
       <ul>
         <li>ne traite ces données que sur instruction de l&apos;utilisateur, pour fournir le Service ;</li>
         <li>veille à la confidentialité des personnes autorisées à y accéder ;</li>
-        <li>met en œuvre des mesures de sécurité adaptées : chiffrement des identifiants des outils, cloisonnement des données par entreprise et par commercial, accès sécurisé, numéros de téléphone non conservés (4 derniers chiffres seulement) ;</li>
+        <li>met en œuvre des mesures de sécurité adaptées : chiffrement des identifiants des outils, cloisonnement des données par entreprise et par commercial, accès sécurisé, téléphone et email des prospects chiffrés ;</li>
         <li>recourt aux sous-traitants listés dans la <a href="/confidentialite">politique de confidentialité</a>, encadrés par des clauses contractuelles types pour les transferts hors UE, et informe l&apos;utilisateur de tout changement ;</li>
         <li>aide l&apos;utilisateur à répondre aux demandes d&apos;exercice de droits et notifie toute violation de données dans les meilleurs délais ;</li>
         <li>supprime les données à la fin du contrat, après un délai de 30 jours permettant l&apos;export, sauf obligation légale de conservation ;</li>

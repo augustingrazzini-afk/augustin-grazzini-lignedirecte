@@ -17,7 +17,7 @@ export default function Page() {
         <li><b>Compte</b> : adresse email, nom de votre espace, rôle, date de connexion.</li>
         <li><b>Abonnement</b> : formule, statut, identifiants Stripe. Les données de carte bancaire sont traitées uniquement par Stripe et ne nous sont jamais transmises.</li>
         <li><b>Outils connectés</b> : clés d&apos;accès à vos outils, conservées chiffrées (AES-256-GCM) et jamais affichées.</li>
-        <li><b>Données de prospection</b> : nom, prénom, entreprise et poste des prospects ; date, durée, résultat, résumé, transcription et enregistrement des appels ; événements et réponses des campagnes email et LinkedIn. Les numéros de téléphone ne sont pas conservés (4 derniers chiffres seulement).</li>
+        <li><b>Données de prospection</b> : nom, prénom, entreprise, poste, téléphone et email professionnels des prospects ; date, durée, résultat, résumé, transcription et enregistrement des appels ; événements et réponses des campagnes email et LinkedIn. Le téléphone et l&apos;email des prospects sont chiffrés dans la base et ne sont visibles que par l&apos;entreprise et le commercial concerné.</li>
         <li><b>Journaux techniques</b> : adresse IP et données de connexion, pour la sécurité et le bon fonctionnement.</li>
       </ul>
 

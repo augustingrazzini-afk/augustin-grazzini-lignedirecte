@@ -93,7 +93,7 @@ const SECURITY = [
   ["Connexions chiffrées", "Les accès aux outils d'appel sont chiffrés en AES-256 et ne sont jamais affichés, même à vous."],
   ["Cloisonnement par commercial", "Chaque commercial ne voit que ses propres appels. Vous seul voyez toute l'équipe. Vérifié par des tests automatiques à chaque mise à jour."],
   ["Lecture seule", "Trustpipe lit les outils d'appel mais n'écrit rien, n'appelle personne et n'envoie aucun email en votre nom."],
-  ["Moins de données personnelles", "Les numéros des prospects ne sont pas conservés : seuls les 4 derniers chiffres sont gardés."],
+  ["Coordonnées des prospects chiffrées", "Le téléphone et l'email de vos prospects sont chiffrés dans la base (AES-256) et visibles seulement par vous et le commercial concerné."],
   ["Vous gardez la main", "Vous retirez un commercial ou déconnectez un outil en un clic, quand vous voulez."],
 ] as const;
 

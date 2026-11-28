@@ -74,6 +74,7 @@ export function mapGong(row: any): NormalizedCall | null {
     jobTitle: str(prospect?.title),
     contactRef: str(prospect?.id),
     phone: str(prospect?.phoneNumber),
+    email: str(prospect?.emailAddress) || undefined,
     repName: str(rep?.name),
     listName: "Appels directs",
     campaign: str(md.title),

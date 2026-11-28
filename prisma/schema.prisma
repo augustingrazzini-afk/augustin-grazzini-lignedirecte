@@ -175,6 +175,7 @@ model Call {
   campaign      String       @default("")
   tags          String[]     @default([])
   phoneLast4    String       @default("")
+  contactSealed String? // téléphone et email du prospect, chiffrés (AES-256) : { phone, email }
   summary       String       @default("")
   aiSummary     String       @default("") // analyse rédigée par l'IA de Trustpipe (le résumé de l'outil d'appel reste dans summary)
   aiAnalyzedAt  DateTime?

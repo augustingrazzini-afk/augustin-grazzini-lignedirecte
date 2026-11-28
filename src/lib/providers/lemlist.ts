@@ -57,6 +57,7 @@ export function mapLemlist(a: any): NormalizedCall | null {
     jobTitle: str(lead.variables?.jobTitle),
     contactRef: str(a?.contactId || a?.leadId),
     phone: str(a?.leadPhone || lead.phone),
+    email: str(a?.leadEmail || lead.email) || undefined,
     repName: str(a?.sendUserName || a?.userName),
     listName: campaign || "Appels directs",
     campaign: str(a?.campaignId),

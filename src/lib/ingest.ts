@@ -1,4 +1,5 @@
 import type { ClientRule, Prisma } from "@prisma/client";
+import { sealContact } from "./contact";
 import { db } from "./db";
 import { sha256 } from "./crypto";
 import type { NormalizedActivity, NormalizedCall } from "./providers/types";
@@ -71,6 +72,8 @@ export async function upsertCalls(t: Target, calls: NormalizedCall[]): Promise<{
       campaign: (c.campaign || "").slice(0, 200),
       tags: (c.tags || []).slice(0, 20),
       phoneLast4: c.phone ? c.phone.replace(/\D/g, "").slice(-4) : "",
+      // Coordonnées du prospect : chiffrées, lisibles seulement dans l'appli par l'entreprise et le commercial concerné.
+      ...(c.phone || c.email ? { contactSealed: sealContact(c.phone, c.email) } : {}),
       ...(c.summary !== undefined && c.summary !== "" ? { summary: c.summary.slice(0, 8000) } : {}),
       ...(c.objections?.length ? { objections: c.objections.slice(0, 10) } : {}),
       ...(c.objDetails?.length ? { objDetails: c.objDetails as unknown as Prisma.InputJsonValue } : {}),

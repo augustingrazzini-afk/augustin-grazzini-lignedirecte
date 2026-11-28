@@ -53,6 +53,7 @@ export function mapSalesloft(c: any, lk: SalesloftLookups = {}): NormalizedCall 
     jobTitle: str(p?.title),
     contactRef: personId,
     phone: str(c?.to) || str(p?.phone) || str(p?.mobile_phone),
+    email: str(p?.email_address) || undefined,
     repName: lk.users?.get(str(c?.user?.id)) || "",
     listName: cadence ? lk.cadences?.get(cadence) || "Cadence Salesloft" : "Appels directs",
     campaign: cadence,

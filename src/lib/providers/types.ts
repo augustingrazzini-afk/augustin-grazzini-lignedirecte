@@ -16,7 +16,8 @@ export type NormalizedCall = {
   company?: string;
   jobTitle?: string;
   contactRef?: string; // identifiant du contact chez le fournisseur
-  phone?: string; // jamais stocké : sert uniquement à la clé contact et aux 4 derniers chiffres
+  phone?: string; // stocké chiffré avec l'email (voir contactSealed) ; sert aussi à la clé contact
+  email?: string; // email du prospect, quand l'outil le fournit (stocké chiffré)
   repName?: string;
   listName?: string;
   campaign?: string;

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { openContact, prettyPhone } from "@/lib/contact";
 import { planOf } from "@/lib/plan";
 import { notFound } from "next/navigation";
 import { callScope, type Scope, callAccess } from "@/lib/access";
@@ -27,6 +28,8 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   // Formule Découverte : ni résumé, ni objections, ni transcription, ni écoute (inclus à partir d'Essentiel).
   const plan = await planOf(scope.orgId), lite = !plan.ai;
   if (lite) { c.summary = ""; c.aiSummary = ""; c.objections = []; c.aiMeeting = false; }
+  // Coordonnées du prospect : pour l'entreprise et le commercial, jamais sur un lien de suivi partagé ni pour un appel reçu « à écouter ».
+  const contact = readOnly ? null : openContact(c.contactSealed);
   const tr = lite ? [] : (c.transcript as unknown as TranscriptLine[]) || [];
   const det = lite ? [] : (c.objDetails as unknown as ObjDetail[]) || [];
   // Lecture dans Trustpipe : fichier stocké chez nous, relais signé (outils dont l'audio demande une clé), sinon le lien de l'outil.
@@ -64,6 +67,8 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
             <dt>Durée</dt><dd>{fmtDuration(c.durationSec)}{c.direction ? ` · ${c.direction === "inbound" ? "entrant" : "sortant"}` : ""}</dd>
             <dt>Résultat</dt><dd>{c.meetingBooked ? <span className="pill win">RDV pris</span> : <span className="pill mute">{c.kind === "meeting" ? "Rendez-vous AE" : c.connected ? "Décroché" : c.status}</span>}</dd>
             <dt>Commercial</dt><dd>{c.repName || "–"}</dd>
+            {contact?.phone && <><dt>Téléphone</dt><dd><a href={`tel:${contact.phone.replace(/[^\d+]/g, "")}`}>{prettyPhone(contact.phone)}</a></dd></>}
+            {contact?.email && <><dt>Email</dt><dd><a href={`mailto:${contact.email}`} style={{ wordBreak: "break-all" }}>{contact.email}</a></dd></>}
             <dt>Source</dt><dd>{SOURCE_LABEL[c.provider] || c.provider}{c.listName ? ` · ${c.listName}` : ""}</dd>
           </dl>
           {!readOnly && <div className="row" style={{ marginTop: 16 }}>
