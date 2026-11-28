@@ -1011,3 +1011,7 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 /* Choix du rythme de paiement (mensuel, trimestriel, annuel) */
 .period-toggle button { cursor: pointer; }
 .period-toggle small { font-weight: 400; opacity: .75; }
+/* Commercial suivi par plusieurs entreprises : passage d'un espace à l'autre */
+.side-foot .spaces { display: grid; gap: 4px; padding: 8px 0; margin: 2px 0; border-top: 1px solid rgba(255,255,255,.1); border-bottom: 1px solid rgba(255,255,255,.1); }
+.side-foot .spaces small { font-size: 10px; letter-spacing: .14em; text-transform: uppercase; opacity: .7; }
+.side-foot .spaces a { color: inherit; text-decoration: underline; }

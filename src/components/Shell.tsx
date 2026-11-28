@@ -11,6 +11,8 @@ export type ShellProps = {
   base: string; // "/app" ou "/portal/<id>"
   orgName: string;
   clientName?: string;
+  /** Autres espaces de la même personne (commercial suivi par plusieurs entreprises, ou qui a aussi sa propre entreprise). */
+  spaces?: { href: string; label: string; current?: boolean }[];
   isOrg: boolean;
   email: string;
   followUps?: number;
@@ -26,7 +28,7 @@ export type ShellProps = {
   children: React.ReactNode;
 };
 
-export function Shell({ base, orgName, clientName, isOrg, email, followUps, banner, share = false, admin = false, locked = {}, widget, children }: ShellProps) {
+export function Shell({ base, orgName, clientName, spaces = [], isOrg, email, followUps, banner, share = false, admin = false, locked = {}, widget, children }: ShellProps) {
   const all: NavItem[] = [
     { href: base, label: "Pilotage", icon: "pilotage" },
     { href: `${base}/calls`, label: "Appels", icon: "appels" },
@@ -66,6 +68,11 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
           <div className="side-foot">
             {share && <span>Lien de suivi en lecture seule</span>}
             {clientName && <span>Suivi par <b>{orgName}</b></span>}
+            {spaces.length > 1 && (
+              <div className="spaces"><small>Vos espaces</small>
+                {spaces.map((sp) => sp.current ? <b key={sp.href}>● {sp.label}</b> : <Link key={sp.href} href={sp.href}>{sp.label}</Link>)}
+              </div>
+            )}
             {widget && !share && <FeedbackLink />}
             {!share && <form action={logout}><button type="submit">Se déconnecter</button></form>}
           </div>
@@ -75,7 +82,7 @@ export function Shell({ base, orgName, clientName, isOrg, email, followUps, bann
           {children}
         </main>
       </div>
-      <nav className="tabbar"><NavLinks items={items} variant="tab" footer={!share && <form action={logout} className="tab-out"><button type="submit">Se déconnecter</button></form>} /></nav>
+      <nav className="tabbar"><NavLinks items={items} variant="tab" footer={!share && <>{spaces.length > 1 && spaces.filter((sp) => !sp.current).map((sp) => <Link key={sp.href} href={sp.href} className="tab-out">Espace {sp.label}</Link>)}<form action={logout} className="tab-out"><button type="submit">Se déconnecter</button></form></>} /></nav>
       <LiveRefresh />
       {widget && <HelpWidget clientId={widget.clientId} isClient={!isOrg} aiReady={widget.aiReady} shareToken={widget.shareToken} />}
     </div>

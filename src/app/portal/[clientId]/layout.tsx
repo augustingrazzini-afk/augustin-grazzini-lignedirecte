@@ -15,5 +15,10 @@ export default async function PortalLayout({ children, params }: { children: Rea
   const scope = await requireClientScope((await params).clientId);
   const [user, client, follow] = await Promise.all([currentUser(), db.client.findUniqueOrThrow({ where: { id: scope.clientId }, include: { org: true } }), countDueTasks(scope)]);
   after(() => syncIfStale(scope.orgId));
-  return <Shell base={`/portal/${scope.clientId}`} orgName={client.org.name} clientName={client.name} isOrg={false} email={user!.email} followUps={follow} locked={lockedIcons({ ai: hasAi(client.org), premium: hasPremium(client.org) })} widget={hasAi(client.org) ? { clientId: scope.clientId, aiReady: true } : undefined}>{children}</Shell>;
+  // Commercial suivi par plusieurs entreprises : un espace par entreprise, et de quoi passer de l'un à l'autre.
+  const spaces = [
+    ...user!.memberships.map((m) => ({ href: "/app", label: `${m.org.name} (votre entreprise)` })),
+    ...user!.clientAccess.map((a) => ({ href: `/portal/${a.clientId}`, label: a.client.org.name, current: a.clientId === scope.clientId })),
+  ];
+  return <Shell spaces={spaces} base={`/portal/${scope.clientId}`} orgName={client.org.name} clientName={client.name} isOrg={false} email={user!.email} followUps={follow} locked={lockedIcons({ ai: hasAi(client.org), premium: hasPremium(client.org) })} widget={hasAi(client.org) ? { clientId: scope.clientId, aiReady: true } : undefined}>{children}</Shell>;
 }
