@@ -9,7 +9,7 @@ import { CopyButton } from "@/components/client/CallActions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AlertSettings } from "@/components/AlertSettings";
-import { KIND_LABEL } from "@/components/views/Leaderboard";
+import { KIND_LABEL, membersOf } from "@/components/views/Leaderboard";
 
 const FIELD: Record<string, string> = { rep: "Nom du commercial dans l'outil", list: "Liste", campaign: "Campagne", tag: "Tag", number: "Numéro appelé", company: "Entreprise du prospect" };
 
@@ -23,6 +23,8 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     db.call.groupBy({ by: ["provider", "listName"], where: { orgId: scope.orgId, clientId: null, NOT: { listName: "" } }, _count: true, orderBy: { _count: { listName: "desc" } }, take: 12 }),
     db.call.groupBy({ by: ["repName"], where: { orgId: scope.orgId, clientId: null, NOT: { repName: "" } }, _count: true, orderBy: { _count: { repName: "desc" } }, take: 12 }),
   ]);
+  // Qui appelle pour ce commercial (les personnes d'une agence, par exemple), d'après leur nom dans l'outil d'appel.
+  const team = membersOf(await db.call.findMany({ where: { orgId: scope.orgId, clientId: rep.id, NOT: { repName: "" } }, select: { kind: true, connected: true, durationSec: true, meetingBooked: true, repName: true }, orderBy: { startedAt: "desc" }, take: 20000 }));
   const status = rep.integrations.length ? `Outil branché : ${rep.integrations.map((i) => SOURCE_LABEL[i.provider] || i.label).join(", ")}` : rep.members.length ? "Invité, outil pas encore branché" : "Pas encore invité";
   return (
     <>
@@ -30,6 +32,22 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
         <Link className="btn primary" href={`/app?client=${rep.id}`}>Ses résultats</Link>
         <Link className="btn" href={`/app/calls?client=${rep.id}`}>Ses appels</Link>
       </PageTop>
+      {(team.length > 1 || (rep.kind === "agence" && team.length > 0)) && (
+        <div className="card" style={{ marginBottom: 16 }}>
+          <h2>{rep.kind === "agence" ? `Qui appelle chez ${rep.agency || rep.name}` : `Qui appelle pour ${rep.name}`}</h2>
+          <p className="sub">{team.length} personne{team.length > 1 ? "s" : ""}, d&apos;après leur nom dans l&apos;outil d&apos;appel · classées par rendez-vous pris, depuis le début</p>
+          <div className="lb">
+            <div className="lb-row lb-team lb-h"><span>#</span><span>Personne</span><span>Appels</span><span>Décroché</span><span>Conversations</span><span>RDV</span></div>
+            {team.map((m, i) => (
+              <Link key={m.name} className="lb-row lb-team" href={`/app/calls?client=${rep.id}&q=${encodeURIComponent(m.name)}`}>
+                <span className="lb-rank">{i + 1}</span><span className="lb-who"><b>{m.name}</b></span>
+                <span>{fmt(m.total)}</span><span>{m.total ? Math.round((m.connected / m.total) * 100) : 0} %</span><span>{fmt(m.conv)}</span>
+                <span className="lb-rdv"><b>{fmt(m.rdv)}</b><i style={{ width: `${(m.rdv / Math.max(1, team[0].rdv)) * 100}%` }} /></span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="grid g-2">
         <div className="stack">
           <div className="card"><h2>Inviter {rep.name}</h2><p className="sub">Il reçoit un lien de connexion par email et branche son outil d&apos;appel (Minari, Aircall, Ringover, lemlist…) en 2 minutes. Ses appels arrivent ensuite ici en direct. Dans son espace, il ne voit que ses propres appels.</p>

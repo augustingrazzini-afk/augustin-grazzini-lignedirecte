@@ -895,3 +895,11 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .listen audio { flex: 1 1 260px; max-width: 100%; }
 .listen.off { border-color: var(--stroke); border-style: dashed; background: transparent; }
 .claude-ic.logo { background: #F4EFE6; border: 1px solid rgba(217,119,87,.45); display: grid; place-items: center; }
+
+/* Détail des personnes d'une agence (classement et fiche du commercial) */
+.lb-row.lb-sub { padding-top: 7px; padding-bottom: 7px; font-size: 13.5px; color: var(--muted); background: rgba(0,0,0,.025); }
+.lb-row.lb-sub > span:first-child { color: var(--dim); text-align: right; }
+.lb-row.lb-sub .lb-who b { font-weight: 500; }
+.lb-row.lb-sub .lb-rdv b { font-size: 15px; }
+.lb-row.lb-team { grid-template-columns: 34px minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)) minmax(0, 1.3fr); }
+@media (max-width: 900px) { .lb-row.lb-team { grid-template-columns: 26px minmax(0, 1fr) repeat(2, auto); } .lb-row.lb-team > :nth-child(4), .lb-row.lb-team > :nth-child(5) { display: none; } }
