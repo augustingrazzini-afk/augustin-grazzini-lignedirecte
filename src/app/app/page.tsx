@@ -7,7 +7,7 @@ import { Dashboard } from "@/components/views/Dashboard";
 import { pickDays } from "@/lib/period";
 import { GettingStarted } from "@/components/views/GettingStarted";
 import { Leaderboard } from "@/components/views/Leaderboard";
-import { windowCalls } from "@/lib/stats";
+import { aggCalls } from "@/lib/stats";
 
 export const metadata = { title: "Pilotage" };
 
@@ -19,7 +19,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
     db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }),
     db.integration.findFirst({ where: { orgId: scope.orgId }, orderBy: { lastSyncAt: { sort: "desc", nulls: "last" } }, select: { lastSyncAt: true } }),
   ]);
-  const teamCalls = scope.clientFilter ? [] : await windowCalls(scope, days);
+  const teamAgg = scope.clientFilter ? [] : await aggCalls(scope, days);
   const href = (p: { days?: number; client?: string | null }) => {
     const q = new URLSearchParams({ days: String(p.days ?? days) });
     const c = p.client === undefined ? scope.clientFilter : p.client;
@@ -38,7 +38,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
         <Period days={days} href={(d) => href({ days: d })} />
       </PageTop>
       {!scope.clientFilter && <GettingStarted orgId={scope.orgId} userId={scope.userId} />}
-      {!scope.clientFilter && <Leaderboard calls={teamCalls} reps={clients} href={(id) => href({ client: id })} />}
+      {!scope.clientFilter && <Leaderboard agg={teamAgg} reps={clients} href={(id) => href({ client: id })} />}
       <div className="mt" />
       <Dashboard scope={scope} base="/app" days={days} emptyHint={<><Link href="/app/clients">Ajoutez vos commerciaux</Link> et <Link href="/app/sources">branchez leur outil d&apos;appel</Link> pour commencer.</>} />
     </>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { planOf } from "@/lib/plan";
 import type { Scope } from "@/lib/access";
-import { BEST_MIN_CALLS, SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotInsights, slotLevel, windowCalls, withTranscript } from "@/lib/stats";
+import { BEST_MIN_CALLS, SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, periodStats, recentConversations, slotInsightsAgg, slotLevel, withTranscript } from "@/lib/stats";
 import { OBJ_LABEL, fmt, fmtDuration, isConversation, pct } from "@/lib/format";
 import { CallItem } from "../CallItem";
 import { ChannelOverview } from "./Channels";
@@ -11,11 +11,11 @@ const HRS = Array.from({ length: 12 }, (_, i) => i + 8);
 
 /** Reporting d'appels. `channels` réaffiche l'ancien résumé emails / LinkedIn (désactivé). */
 export async function Dashboard({ scope, base, days, emptyHint, channels = false }: { scope: Scope; base: string; days: number; emptyHint: React.ReactNode; channels?: boolean }) {
-  const calls = await windowCalls(scope, days);
+  const { agg, stats: s } = await periodStats(scope, days);
   const overview = channels ? <ChannelOverview scope={scope} days={days} base={base} /> : null;
-  if (!calls.length) return <>{overview}<div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div></>;
+  if (!s.lastCallAt) return <>{overview}<div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div></>;
   const plan = await planOf(scope.orgId), lite = !plan.ai;
-  const s = computeStats(calls, days);
+
   const perMeet = s.meetings ? Math.round(s.total / s.meetings) : null;
 
   // Courbe d'activité
@@ -32,10 +32,10 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
   const steps: [string, number][] = [["Appels", s.total], ["Décrochés", s.connected], ["Conversations", s.conversations], ["Rendez-vous", s.meetings]];
   const omx = Math.max(1, ...s.objections.map((o) => o.count));
   const best = bestSlot(s.slots);
-  const ins = slotInsights(calls);
-  const feed = calls.filter((c) => isConversation(c) || c.kind === "meeting").slice(0, 7);
+  const ins = slotInsightsAgg(agg);
+  const feed = await recentConversations(scope, days);
   const trIds = await withTranscript(feed.map((c) => c.id));
-  const multiSource = new Set(calls.map((c) => c.provider)).size > 1;
+  const multiSource = new Set(feed.map((c) => c.provider)).size > 1;
 
   return (
     <>

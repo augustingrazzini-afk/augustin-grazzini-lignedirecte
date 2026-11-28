@@ -5,7 +5,7 @@ import { apiScope, scopeClientId } from "@/lib/access";
 import { assertActive, assertAi, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, asJson, generateCoach } from "@/lib/ai";
-import { computeStats, windowCalls } from "@/lib/stats";
+import { periodStats, recentConversations } from "@/lib/stats";
 
 export const maxDuration = 120;
 
@@ -19,9 +19,10 @@ export async function POST(req: Request) {
   if (blocked) return blocked;
   // Garde-fou de coût : plafond par espace et par jour.
   if ((await bumpUsage(`coach:${scope.orgId}`)) > 30) return jsonError("Limite de 30 diagnostics par jour atteinte pour votre espace. Elle se remet à zéro demain.", 429);
-  const calls = await windowCalls(scope, b.data.days);
-  if (!calls.length) return jsonError("Pas encore d'appels sur cette période.", 404);
-  const s = computeStats(calls, b.data.days);
+  const { stats: s } = await periodStats(scope, b.data.days);
+  if (!s.lastCallAt) return jsonError("Pas encore d'appels sur cette période.", 404);
+  // Les 40 conversations les plus récentes suffisent au diagnostic : on ne charge pas tous les appels.
+  const calls = await recentConversations(scope, b.data.days, 40);
   const clientId = scopeClientId(scope);
   const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId } });
   const client = clientId ? await db.client.findUnique({ where: { id: clientId } }) : null;

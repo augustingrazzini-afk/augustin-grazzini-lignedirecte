@@ -1,38 +1,46 @@
 import Link from "next/link";
 import type { Call, Client } from "@prisma/client";
 import { fmt, fmtDuration, isConversation, pct } from "@/lib/format";
-import { slotInsights } from "@/lib/stats";
+import { aggFromCalls, slotInsightsAgg, type Agg } from "@/lib/stats";
 
 export const KIND_LABEL: Record<string, string> = { interne: "Interne", freelance: "Freelance", agence: "Agence" };
 
-/** Classement des commerciaux de la boîte sur la période : appels, décrochés, conversations, rendez-vous. */
+type Rep = Pick<Client, "id" | "name" | "kind" | "agency">;
+
 /** Classement des commerciaux : ceux de la boîte (par RDV puis conversations puis appels), puis « Non attribués » s'il y en a. */
-export function rankReps(calls: Pick<Call, "kind" | "clientId" | "connected" | "durationSec" | "meetingBooked" | "startedAt">[], reps: Pick<Client, "id" | "name" | "kind" | "agency">[]) {
+export function rankRepsAgg(agg: Agg[], reps: Rep[]) {
   return [...reps.map((r) => ({ id: r.id, name: r.name, sub: [KIND_LABEL[r.kind] || "", r.agency].filter(Boolean).join(" · ") })), { id: "", name: "Non attribués", sub: "Appels sans commercial" }]
     .map((r) => {
-      const mine = calls.filter((c) => c.kind !== "meeting" && (c.clientId || "") === r.id);
-      const connected = mine.filter((c) => c.connected).length;
-      return { ...r, total: mine.length, connected, conv: mine.filter(isConversation).length, rdv: mine.filter((c) => c.meetingBooked).length, talk: mine.reduce((a, c) => a + (c.connected ? c.durationSec : 0), 0), rate: mine.length ? (connected / mine.length) * 100 : 0, best: slotInsights(mine).hours[0] ?? null };
+      const mine = agg.filter((a) => (a.clientId || "") === r.id);
+      const sum = (f: (a: Agg) => number) => mine.reduce((n, a) => n + f(a), 0);
+      const total = sum((a) => a.total), connected = sum((a) => a.connected);
+      return { ...r, total, connected, conv: sum((a) => a.conv), rdv: sum((a) => a.rdv), talk: sum((a) => a.talk), rate: total ? (connected / total) * 100 : 0, best: slotInsightsAgg(mine).hours[0] ?? null };
     })
     .filter((r) => r.id || r.total > 0)
-    .sort((a, b) => Number(!a.id) - Number(!b.id) || b.rdv - a.rdv || b.conv - a.conv || b.total - a.total);
+    .sort((a, b) => Number(!a.id) - Number(!b.id) || b.rdv - a.rdv || b.conv - a.conv || b.total - a.total || a.name.localeCompare(b.name));
+}
+export function rankReps(calls: Pick<Call, "kind" | "clientId" | "connected" | "durationSec" | "meetingBooked" | "startedAt">[], reps: Rep[]) {
+  return rankRepsAgg(aggFromCalls(calls), reps);
 }
 
 /** Les personnes qui appellent pour un même commercial suivi (les SDR d'une agence, par exemple), d'après leur nom dans l'outil d'appel. */
-export function membersOf(calls: Pick<Call, "kind" | "connected" | "durationSec" | "meetingBooked" | "repName">[]) {
+export function membersAgg(agg: Agg[]) {
   const by = new Map<string, { name: string; total: number; connected: number; conv: number; rdv: number }>();
-  for (const c of calls) {
-    const name = (c.repName || "").trim();
-    if (!name || c.kind === "meeting") continue;
+  for (const a of agg) {
+    const name = (a.repName || "").trim();
+    if (!name) continue;
     const m = by.get(name.toLowerCase()) || { name, total: 0, connected: 0, conv: 0, rdv: 0 };
-    m.total++; if (c.connected) m.connected++; if (isConversation(c as Call)) m.conv++; if (c.meetingBooked) m.rdv++;
+    m.total += a.total; m.connected += a.connected; m.conv += a.conv; m.rdv += a.rdv;
     by.set(name.toLowerCase(), m);
   }
-  return [...by.values()].sort((a, b) => b.rdv - a.rdv || b.conv - a.conv || b.total - a.total);
+  return [...by.values()].sort((a, b) => b.rdv - a.rdv || b.conv - a.conv || b.total - a.total || a.name.localeCompare(b.name));
+}
+export function membersOf(calls: (Pick<Call, "kind" | "connected" | "durationSec" | "meetingBooked" | "repName"> & { startedAt?: Date })[]) {
+  return membersAgg(aggFromCalls(calls.map((c) => ({ startedAt: new Date(0), ...c }))));
 }
 
-export function Leaderboard({ calls, reps, href }: { calls: Call[]; reps: Client[]; href: (clientId: string) => string }) {
-  const rows = rankReps(calls, reps);
+export function Leaderboard({ agg, reps, href }: { agg: Agg[]; reps: Client[]; href: (clientId: string) => string }) {
+  const rows = rankRepsAgg(agg, reps);
   const top = Math.max(1, ...rows.map((r) => r.rdv));
   let rank = 0;
   return (
@@ -50,7 +58,7 @@ export function Leaderboard({ calls, reps, href }: { calls: Call[]; reps: Client
             </Link>
           )).flatMap((row, i) => {
             // Plusieurs personnes appellent pour ce commercial (agence, équipe) : le détail de chacune, sous sa ligne.
-            const r = rows[i], team = r.id ? membersOf(calls.filter((c) => c.clientId === r.id)) : [];
+            const r = rows[i], team = r.id ? membersAgg(agg.filter((a) => a.clientId === r.id)) : [];
             return team.length < 2 ? [row] : [row, ...team.map((m) => (
               <Link key={`${r.id}:${m.name}`} className="lb-row lb-sub" href={`/app/calls?client=${r.id}&q=${encodeURIComponent(m.name)}`}>
                 <span aria-hidden="true">↳</span>

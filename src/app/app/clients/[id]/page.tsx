@@ -9,7 +9,7 @@ import { CopyButton } from "@/components/client/CallActions";
 import { PageTop } from "@/components/Shell";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AlertSettings } from "@/components/AlertSettings";
-import { KIND_LABEL, membersOf } from "@/components/views/Leaderboard";
+import { KIND_LABEL, membersAgg } from "@/components/views/Leaderboard";
 
 const FIELD: Record<string, string> = { rep: "Nom du commercial dans l'outil", list: "Liste", campaign: "Campagne", tag: "Tag", number: "Numéro appelé", company: "Entreprise du prospect" };
 
@@ -24,7 +24,13 @@ export default async function Page({ params }: { params: Promise<{ id: string }>
     db.call.groupBy({ by: ["repName"], where: { orgId: scope.orgId, clientId: null, NOT: { repName: "" } }, _count: true, orderBy: { _count: { repName: "desc" } }, take: 12 }),
   ]);
   // Qui appelle pour ce commercial (les personnes d'une agence, par exemple), d'après leur nom dans l'outil d'appel.
-  const team = membersOf(await db.call.findMany({ where: { orgId: scope.orgId, clientId: rep.id, NOT: { repName: "" } }, select: { kind: true, connected: true, durationSec: true, meetingBooked: true, repName: true }, orderBy: { startedAt: "desc" }, take: 20000 }));
+  const team = (await db.call.groupBy({ by: ["repName"], where: { orgId: scope.orgId, clientId: rep.id, kind: { not: "meeting" }, NOT: { repName: "" } }, _count: { _all: true } })).length
+    ? membersAgg((await db.$queryRaw<{ repName: string; total: number; connected: number; conv: number; rdv: number }[]>`
+        SELECT "repName", count(*)::int AS total, (count(*) FILTER (WHERE connected))::int AS connected,
+          (count(*) FILTER (WHERE connected AND "durationSec" >= 30))::int AS conv, (count(*) FILTER (WHERE "meetingBooked"))::int AS rdv
+        FROM "Call" WHERE "orgId" = ${scope.orgId} AND "clientId" = ${rep.id} AND kind <> 'meeting' AND "repName" <> '' GROUP BY 1`)
+        .map((r) => ({ ...r, clientId: rep.id, day: "", dow: 0, hour: 0, talk: 0, convSec: 0 })))
+    : [];
   const status = rep.integrations.length ? `Outil branché : ${rep.integrations.map((i) => SOURCE_LABEL[i.provider] || i.label).join(", ")}` : rep.members.length ? "Invité, outil pas encore branché" : "Pas encore invité";
   return (
     <>
