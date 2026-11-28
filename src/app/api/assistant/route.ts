@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiScope, scopeClientId, type Scope } from "@/lib/access";
+import { apiScope, scopeClientId, type Scope, denied } from "@/lib/access";
 import { assertActive, assertAi, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, aiEnabled } from "@/lib/ai";
@@ -8,6 +8,7 @@ import { askAssistant } from "@/lib/assistant";
 import { askLocal } from "@/lib/assistant-local";
 import { bumpUsage } from "@/lib/usage";
 import { saveConversation } from "@/lib/conversations";
+import { isDemoOrg } from "@/lib/demo-ids";
 
 export const maxDuration = 120;
 
@@ -36,7 +37,7 @@ export async function POST(req: Request) {
     scope = c ? { kind: "client", orgId: c.orgId, clientId: c.id, userId: `share:${c.id}` } : null;
     if (scope && (await bumpUsage(`share:${c!.id}`)) > SHARE_DAILY_LIMIT) return jsonError(`Limite de ${SHARE_DAILY_LIMIT} questions par jour atteinte pour ce lien. Revenez demain !`, 429);
   } else scope = await apiScope(req, { clientId: b.data.clientId });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const blocked = (await assertActive(scope)) || (await assertAi(scope));
   if (blocked) return blocked;
   // Garde-fou de coût : plafond de questions par jour et par espace (hors liens de suivi, déjà limités).
@@ -49,11 +50,12 @@ export async function POST(req: Request) {
   const s = scope;
   /** Réponse + enregistrement dans l'historique. */
   const reply = async (r: { text: string; steps: string[] }, mode: "ia" | "local") => {
+    if (isDemoOrg(s.orgId)) return NextResponse.json({ ...r, mode, conversationId: null }); // démo : rien n'est enregistré
     const conversationId = await saveConversation(s, b.data.conversationId, [...msgs, { role: "assistant", content: r.text, ...(mode === "local" ? { local: true } : {}) }]);
     return NextResponse.json({ ...r, mode, conversationId });
   };
   // Sans IA complète (clé absente ou refusée) : assistant « essentiel » qui répond à partir des données.
-  if (!aiEnabled()) return reply(await askLocal(scope, msgs), "local");
+  if (!aiEnabled() || isDemoOrg(scope.orgId)) return reply(await askLocal(scope, msgs), "local");
   try {
     const r = await askAssistant(scope, msgs, {
       who: client ? `${client.name} (suivi par ${org.name})` : org.name,

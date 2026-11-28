@@ -35,7 +35,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   // Lecture dans Trustpipe : fichier stocké chez nous, relais signé (outils dont l'audio demande une clé), sinon le lien de l'outil.
   const recLink = c.recordingUrl && /^https:\/\//.test(c.recordingUrl) ? c.recordingUrl : null;
   // L'écoute des enregistrements est réservée à la formule Premium (Essentiel : transcription seule).
-  const audio = !plan.premium || c.durationSec <= 0 ? null : c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
+  const audio = !plan.premium || c.durationSec <= 0 ? null : c.recordingUrl?.startsWith("/demo/audio/") ? c.recordingUrl: c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
   // Secours si la lecture échoue ici : la page d'écoute de l'outil (jamais une adresse interne de relais).
   const recFallback = recLink && !/^https:\/\/api[.-]/.test(recLink) && recLink !== audio ? recLink : null;
   const clients = scope.kind === "org" ? await db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }) : [];

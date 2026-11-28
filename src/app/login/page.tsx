@@ -9,7 +9,8 @@ export const metadata = { title: "Connexion" };
 export default async function Page({ searchParams }: { searchParams: Promise<{ error?: string; next?: string }> }) {
   const sp = await searchParams;
   const next = sp.next?.startsWith("/") && !sp.next.startsWith("//") ? sp.next : undefined;
-  if (await currentUser()) redirect(next || "/app");
+  const me = await currentUser();
+  if (me && me.id !== "demo_user") redirect(next || "/app");
   const q = next ? `?next=${encodeURIComponent(next)}` : "";
   return (
     <AuthCard title="Connexion" subtitle="Heureux de vous revoir."

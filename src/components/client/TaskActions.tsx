@@ -9,7 +9,7 @@ export function TaskActions({ id, status, clientId }: { id: string; status: stri
   async function act(action: "done" | "dismiss" | "reopen" | "snooze", days?: number) {
     setErr("");
     const r = await fetch("/api/tasks", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id, action, days, clientId }) });
-    if (!r.ok) return setErr("Échec, réessayez");
+    if (!r.ok) return setErr(r.status === 403 ? ((await r.json().catch(() => null))?.error?.startsWith("Démo") ? "Démo en lecture seule" : "Accès refusé") : "Échec, réessayez");
     start(() => router.refresh());
   }
   if (status !== "open") return <button className="btn sm" disabled={pending} onClick={() => act("reopen")}>Rouvrir</button>;

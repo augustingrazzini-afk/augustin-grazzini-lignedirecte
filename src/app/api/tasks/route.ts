@@ -1,7 +1,7 @@
 import { isOptedOut } from "@/lib/tasks";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiScope, scopeClientId } from "@/lib/access";
+import { apiScope, scopeClientId, denied } from "@/lib/access";
 import { jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { taskScope } from "@/lib/tasks";
@@ -17,7 +17,7 @@ export async function PATCH(req: Request) {
   }).safeParse(await req.json().catch(() => null));
   if (!b.success) return jsonError("Requête invalide");
   const scope = await apiScope(req, { clientId: b.data.clientId });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const task = await db.task.findFirst({ where: { id: b.data.id, ...taskScope(scope) } });
   if (!task) return jsonError("Relance introuvable", 404);
   const a = b.data.action;
@@ -42,7 +42,7 @@ export async function POST(req: Request) {
   }).safeParse(await req.json().catch(() => null));
   if (!b.success) return jsonError("Indiquez une date et un motif.");
   const scope = await apiScope(req, { clientId: b.data.clientId });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const clientId = scopeClientId(scope);
   const where = { orgId: scope.orgId, contactKey: b.data.contactKey, ...(scope.kind === "client" ? { clientId } : {}) };
   const ref = (await db.call.findFirst({ where, orderBy: { startedAt: "desc" } })) || (await db.activity.findFirst({ where, orderBy: { occurredAt: "desc" } }));

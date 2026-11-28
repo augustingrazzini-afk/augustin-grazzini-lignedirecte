@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { z } from "zod";
 import { debriefPending, processPendingAi } from "@/lib/ai";
-import { apiScope, scopeClientId } from "@/lib/access";
+import { apiScope, scopeClientId, denied } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { upsertCalls } from "@/lib/ingest";
@@ -50,7 +50,7 @@ export async function POST(req: Request) {
     if ((await bumpUsage(`import:${share.clientId}`)) > 40) return jsonError("Limite d'ajouts atteinte pour aujourd'hui. Réessayez demain.", 429);
   }
   const scope = share ?? (await apiScope(req, { clientId: parsed.data.clientId }));
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const blocked = await assertActive(scope);
   if (blocked) return blocked;
   // Commercial invité (pas membre de l'entreprise) : il peut déposer ses rendez-vous à débriefer, jamais des appels.

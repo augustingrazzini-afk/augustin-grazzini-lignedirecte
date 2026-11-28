@@ -8,7 +8,8 @@ import { AuthCard } from "@/components/AuthCard";
 export const metadata = { title: "Créer un compte" };
 export default async function Page({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
   const sp = await searchParams;
-  if (await currentUser()) redirect("/app");
+  const me = await currentUser();
+  if (me && me.id !== "demo_user") redirect("/app");
   const q = sp.next ? `?next=${encodeURIComponent(sp.next)}` : "";
   return (
     <AuthCard title="Créer votre compte" subtitle="7 jours d'essai, puis sans engagement."

@@ -6,6 +6,8 @@ import { currentUser } from "@/lib/session";
 import { PlanPicker } from "@/components/PlanPicker";
 import { PageTop } from "@/components/Shell";
 import { requestCancel } from "@/app/actions";
+import { isDemoOrg } from "@/lib/demo-ids";
+import Link from "next/link";
 
 export const metadata = { title: "Abonnement" };
 const STATUS: Record<string, string> = { trialing: "Essai en cours", active: "Actif", past_due: "Paiement en échec", canceled: "Résilié" };
@@ -13,6 +15,14 @@ const STATUS: Record<string, string> = { trialing: "Essai en cours", active: "Ac
 export default async function Page({ searchParams }: { searchParams: Promise<{ ok?: string; cancelled?: string; resumed?: string; err?: string }> }) {
   const scope = await requireOrgScope();
   const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId } });
+  if (isDemoOrg(org.id)) return (
+    <>
+      <PageTop title="Abonnement" subtitle="Démo · formule Premium" />
+      <div className="card"><p>Vous visitez la démo : toutes les fonctions Premium sont ouvertes, avec des données fictives.</p>
+        <p className="muted">Pour brancher vos propres appels, créez votre compte : 7 jours d&apos;essai, dès 29,99 € HT par mois.</p>
+        <p><a className="btn primary" href="/demo/quitter">Créer mon compte →</a> <Link className="btn" href="/#tarifs">Voir les tarifs</Link></p></div>
+    </>
+  );
   const sp = await searchParams;
   const ok = sp.ok;
   // État réel de l'abonnement chez Stripe (résiliation programmée, date de fin).

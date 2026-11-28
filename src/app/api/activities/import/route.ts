@@ -1,7 +1,7 @@
 import { NextResponse, after } from "next/server";
 import { processPendingAi } from "@/lib/ai";
 import { z } from "zod";
-import { apiScope, scopeClientId } from "@/lib/access";
+import { apiScope, scopeClientId, denied } from "@/lib/access";
 import { assertActive, jsonError, sameOrigin } from "@/lib/api";
 import { upsertActivities } from "@/lib/ingest";
 import { ACTIVITY_TYPES } from "@/lib/providers/types";
@@ -34,7 +34,7 @@ export async function POST(req: Request) {
   const parsed = Body.safeParse(await req.json().catch(() => null));
   if (!parsed.success) return jsonError("Données invalides : " + parsed.error.issues[0]?.message);
   const scope = await apiScope(req, { clientId: parsed.data.clientId });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const blocked = await assertActive(scope);
   if (blocked) return blocked;
   const r = await upsertActivities(

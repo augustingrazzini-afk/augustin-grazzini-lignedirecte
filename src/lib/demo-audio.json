@@ -1,0 +1,282 @@
+{
+ "rdv": {
+  "dur": 33,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "Ça peut l'être, on regarde justement nos dépenses de l'année.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Je vous propose de vous montrer l'écart en quinze minutes, chiffres à l'appui. Jeudi à dix heures, ça vous irait ?",
+    "at": 22
+   },
+   {
+    "rep": false,
+    "t": "D'accord, jeudi à dix heures, ça me va.",
+    "at": 29
+   }
+  ]
+ },
+ "neutre": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "Pourquoi pas, mais pas tout de suite.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Je vous envoie une courte présentation par email, et je vous rappelle la semaine prochaine ?",
+    "at": 21
+   },
+   {
+    "rep": false,
+    "t": "Envoyez-moi ça par email, je regarderai.",
+    "at": 27
+   }
+  ]
+ },
+ "timing": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "On verra ça au premier trimestre, là ce n'est pas le moment.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Je comprends. Je vous propose un court échange en janvier, pour préparer la décision ?",
+    "at": 22
+   },
+   {
+    "rep": false,
+    "t": "Rappelez-moi début janvier.",
+    "at": 28
+   }
+  ]
+ },
+ "budget": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "Le budget de l'année est déjà engagé.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Justement, on peut commencer petit, sans investissement. Je vous chiffre le gain ?",
+    "at": 21
+   },
+   {
+    "rep": false,
+    "t": "Envoyez-moi le chiffrage par email.",
+    "at": 26
+   }
+  ]
+ },
+ "incumbent": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "On a déjà un prestataire pour ça.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Très bien. Je vous propose une comparaison sur un cas concret, sans engagement.",
+    "at": 21
+   },
+   {
+    "rep": false,
+    "t": "Pourquoi pas, envoyez-moi un exemple.",
+    "at": 26
+   }
+  ]
+ },
+ "too_busy": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "Je suis pris là, rappelez-moi plus tard.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Bien sûr. Demain à seize heures, ça vous va ?",
+    "at": 21
+   },
+   {
+    "rep": false,
+    "t": "Oui, demain seize heures.",
+    "at": 25
+   }
+  ]
+ },
+ "authority": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "Ce n'est pas moi qui décide de ça.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Qui serait la bonne personne ? Vous pouvez me mettre en relation ?",
+    "at": 21
+   },
+   {
+    "rep": false,
+    "t": "Voyez avec mon associé, je vous donne son contact.",
+    "at": 25
+   }
+  ]
+ },
+ "relevance": {
+  "dur": 32,
+  "lines": [
+   {
+    "rep": true,
+    "t": "Bonjour, je vous appelle au sujet de vos dépenses d'énergie et d'achats. Vous avez deux minutes ?",
+    "at": 1
+   },
+   {
+    "rep": false,
+    "t": "Oui, rapidement, je vous écoute.",
+    "at": 7
+   },
+   {
+    "rep": true,
+    "t": "Nous aidons des entreprises comme la vôtre à réduire leurs coûts, sans changer leurs habitudes. C'est un sujet pour vous en ce moment ?",
+    "at": 10
+   },
+   {
+    "rep": false,
+    "t": "Je ne vois pas trop l'intérêt pour notre activité.",
+    "at": 18
+   },
+   {
+    "rep": true,
+    "t": "Une entreprise de votre secteur a réduit sa facture de quinze pour cent l'an dernier. Je vous montre comment ?",
+    "at": 21
+   },
+   {
+    "rep": false,
+    "t": "Envoyez-moi l'exemple, je regarderai.",
+    "at": 28
+   }
+  ]
+ }
+}

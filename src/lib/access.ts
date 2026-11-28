@@ -64,6 +64,8 @@ export async function requireClientScope(clientId: string): Promise<Scope & { ki
 export async function apiScope(req: Request, opts: { clientId?: string | null } = {}): Promise<Scope | null> {
   const u = await currentUser();
   if (!u) return null;
+  // Démo publique en lecture seule : seules la lecture et l'assistant (réponses locales, sans coût) sont permis.
+  if (u.id === "demo_user" && req.method !== "GET" && !new URL(req.url).pathname.startsWith("/api/assistant")) return null;
   const clientId = opts.clientId || new URL(req.url).searchParams.get("client");
   if (clientId) {
     const access = u.clientAccess.find((a) => a.clientId === clientId);
@@ -88,4 +90,11 @@ export async function shareScope(token: string) {
   if (!client) notFound();
   const scope: Scope & { kind: "client" } = { kind: "client", orgId: client.orgId, clientId: client.id, userId: `share:${client.id}` };
   return { scope, client };
+}
+
+/** Refus d'une route API, avec un message clair pour le visiteur de la démo (lecture seule). */
+export async function denied() {
+  const u = await currentUser();
+  const msg = u?.id === "demo_user" ? "Démo en lecture seule : créez votre compte pour essayer Trustpipe avec vos propres appels." : "Accès refusé";
+  return Response.json({ error: msg }, { status: 403 });
 }

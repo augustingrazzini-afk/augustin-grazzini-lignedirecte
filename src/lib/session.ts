@@ -7,11 +7,11 @@ const COOKIE = "cockpit_session";
 const MAX_AGE = 60 * 60 * 24 * 30;
 const secret = () => new TextEncoder().encode(process.env.AUTH_SECRET || "");
 
-export async function createSession(userId: string) {
+export async function createSession(userId: string, maxAge = MAX_AGE) {
   if ((process.env.AUTH_SECRET || "").length < 32) throw new Error("AUTH_SECRET manquant ou trop court");
   const u = await db.user.findUnique({ where: { id: userId }, select: { sessionVersion: true } });
-  const jwt = await new SignJWT({ sub: userId, v: u?.sessionVersion ?? 0 }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${MAX_AGE}s`).sign(secret());
-  (await cookies()).set(COOKIE, jwt, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: MAX_AGE });
+  const jwt = await new SignJWT({ sub: userId, v: u?.sessionVersion ?? 0 }).setProtectedHeader({ alg: "HS256" }).setIssuedAt().setExpirationTime(`${maxAge}s`).sign(secret());
+  (await cookies()).set(COOKIE, jwt, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge });
 }
 
 /** Invalide toutes les sessions ouvertes de l'utilisateur (déconnexion, nouveau mot de passe). */

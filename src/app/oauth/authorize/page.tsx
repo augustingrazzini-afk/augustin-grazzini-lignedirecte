@@ -15,6 +15,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<SP>
   const qs = new URLSearchParams(Object.entries(sp).filter((e): e is [string, string] => typeof e[1] === "string")).toString();
   const u = await currentUser();
   if (!u) redirect(`/login?next=${encodeURIComponent(`/oauth/authorize?${qs}`)}`);
+  if (u.id === "demo_user") redirect("/app"); // démo en lecture seule : pas de connecteur Claude
   const p = await checkAuthorize(sp);
   if ("error" in p) return <AuthCard title="Connexion impossible" subtitle={p.error}><p className="muted small">Fermez cette page et relancez la connexion depuis Claude.</p></AuthCard>;
   const m = u.memberships[0];

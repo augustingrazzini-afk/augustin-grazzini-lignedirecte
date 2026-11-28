@@ -110,7 +110,8 @@ const FAQ: [string, string][] = [
 ];
 
 export default async function Home() {
-  const u = await currentUser();
+  const me = await currentUser();
+  const u = me && me.id !== "demo_user" ? me : null; // le visiteur de la démo reste un visiteur
   const start = u ? "/app" : "/inscription";
   const startLabel = u ? "OUVRIR MON ESPACE" : "COMMENCER";
   return (
@@ -146,7 +147,7 @@ export default async function Home() {
               </div>
               <div className="st-btns">
                 <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "SUIVRE MES COMMERCIAUX"} <span aria-hidden="true">→</span></Link>
-                <a className="st-btn g" href="#equipe">VOIR CE QUE VOUS VERREZ <span aria-hidden="true">↓</span></a>
+                <a className="st-btn g" href="/demo" rel="nofollow">VOIR LA DÉMO, SANS COMPTE <span aria-hidden="true">→</span></a>
               </div>
             </div>
           </div>
@@ -328,7 +329,10 @@ export default async function Home() {
         <div className="st-huge" aria-hidden="true">TRUSTPIPE</div>
         <div className="st-endrow">
           <p>Vos commerciaux travaillent. Vous le voyez enfin, appel par appel.</p>
-          <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "SUIVRE MES COMMERCIAUX"} <span aria-hidden="true">→</span></Link>
+          <div className="st-btns">
+            <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "SUIVRE MES COMMERCIAUX"} <span aria-hidden="true">→</span></Link>
+            {!u && <a className="st-btn g" href="/demo" rel="nofollow">VOIR LA DÉMO <span aria-hidden="true">→</span></a>}
+          </div>
         </div>
       </section>
 

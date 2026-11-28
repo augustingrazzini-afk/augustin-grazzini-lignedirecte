@@ -18,6 +18,7 @@ export async function POST(req: Request) {
   if (!sameOrigin(req)) return jsonError("Origine refusée", 403);
   const u = await currentUser();
   if (!u) return jsonError("Connectez-vous pour donner votre avis.", 401);
+  if (u.id === "demo_user") return jsonError("Démo en lecture seule : créez votre compte pour nous écrire.", 403);
   const b = Body.safeParse(await req.json().catch(() => null));
   if (!b.success) return jsonError("Écrivez au moins quelques mots.");
   const recent = await db.feedback.count({ where: { userId: u.id, createdAt: { gt: new Date(Date.now() - 3600e3) } } });

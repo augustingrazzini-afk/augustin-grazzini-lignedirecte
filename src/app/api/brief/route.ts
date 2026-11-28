@@ -1,7 +1,7 @@
 import { bumpUsage } from "@/lib/usage";
 import { NextResponse, after } from "next/server";
 import { z } from "zod";
-import { apiScope, callScope, scopeClientId } from "@/lib/access";
+import { apiScope, callScope, scopeClientId, denied } from "@/lib/access";
 import { assertActive, assertPremium, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, asJson, generateBrief } from "@/lib/ai";
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const b = z.object({ query: z.string().trim().min(3).max(120), clientId: z.string().nullable().optional() }).safeParse(await req.json().catch(() => null));
   if (!b.success) return jsonError("Tapez au moins 3 caractères.");
   const scope = await apiScope(req, { clientId: b.data.clientId });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const blocked = (await assertActive(scope)) || (await assertPremium(scope));
   if (blocked) return blocked;
   // Garde-fou de coût : plafond par espace et par jour.
@@ -52,7 +52,7 @@ const STALE_MS = 4 * 60_000;
 export async function GET(req: Request) {
   const u = new URL(req.url);
   const scope = await apiScope(req, { clientId: u.searchParams.get("clientId") });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const br = await db.brief.findFirst({ where: { id: u.searchParams.get("id") || "", orgId: scope.orgId, ...(scope.kind === "client" ? { clientId: scope.clientId } : {}) } });
   if (!br) return jsonError("Brief introuvable", 404);
   if (br.status === "pending" && Date.now() - br.createdAt.getTime() > STALE_MS) return NextResponse.json({ status: "failed", error: "La rédaction a été interrompue. Relancez le brief." });

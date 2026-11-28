@@ -18,8 +18,13 @@ import { getProvider } from "@/lib/providers";
 import { ProviderError } from "@/lib/providers/types";
 import { analyzeOrg, syncAndAnalyze, syncIntegration } from "@/lib/sync";
 import { reapplyRules } from "@/lib/ingest";
+import { currentUser } from "@/lib/session";
+import { DEMO_MESSAGE, isDemoUser } from "@/lib/demo-ids";
 
 export type FormState = { ok?: string; error?: string } | null;
+/** Démo publique : aucune écriture possible. */
+const inDemo = async () => isDemoUser((await currentUser())?.id);
+const DEMO_STATE = { error: DEMO_MESSAGE };
 const s = (f: FormData, k: string, max = 300) => String(f.get(k) ?? "").trim().slice(0, max);
 
 /* ---------- Connexion ---------- */
@@ -114,6 +119,7 @@ export async function resetPassword(_: FormState, f: FormData): Promise<FormStat
 
 /** Réglages : définir ou changer son mot de passe (l'actuel est demandé s'il existe). */
 export async function changePassword(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   const u = await requireUser();
   const pw = String(f.get("password") ?? "");
   const me = await db.user.findUniqueOrThrow({ where: { id: u.id }, select: { email: true, passwordHash: true } });
@@ -138,6 +144,7 @@ export async function logout() {
 
 /* ---------- Création de l'espace ---------- */
 export async function createOrganization(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   const u = await requireUser();
   if (u.memberships.length) redirect("/app");
   const name = s(f, "name", 80);
@@ -158,6 +165,7 @@ const fail = (e: unknown): FormState => ({ error: e instanceof Error ? e.message
 
 /* ---------- Offre ---------- */
 export async function saveOffer(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope } = await writableOrg();
     const clientId = s(f, "clientId", 40);
@@ -170,6 +178,7 @@ export async function saveOffer(_: FormState, f: FormData): Promise<FormState> {
 
 /* ---------- Commerciaux (modèle technique : Client) ---------- */
 export async function updateRep(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope } = await writableOrg();
     const name = s(f, "name", 80);
@@ -182,6 +191,7 @@ export async function updateRep(_: FormState, f: FormData): Promise<FormState> {
 }
 
 export async function createClient(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope, org } = await writableOrg();
     const name = s(f, "name", 80);
@@ -215,6 +225,7 @@ export async function createClient(_: FormState, f: FormData): Promise<FormState
 }
 
 export async function deleteClient(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   if (scope.role !== "owner") throw new Error("Réservé au propriétaire");
   await db.client.deleteMany({ where: { id: s(f, "clientId", 40), orgId: scope.orgId } });
@@ -222,6 +233,7 @@ export async function deleteClient(f: FormData) {
 }
 
 export async function inviteClientUser(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope, org } = await writableOrg();
     const clientId = s(f, "clientId", 40);
@@ -239,6 +251,7 @@ export async function inviteClientUser(_: FormState, f: FormData): Promise<FormS
 
 /** Crée (ou renouvelle) le lien de suivi en direct d'un client. Renouveler coupe l'ancien lien. */
 export async function enableShareLink(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   const clientId = s(f, "clientId", 40);
   await db.client.updateMany({ where: { id: clientId, orgId: scope.orgId }, data: { shareToken: randomToken(24) } });
@@ -247,6 +260,7 @@ export async function enableShareLink(f: FormData) {
 
 /** Désactive le lien de suivi : il ne fonctionne plus du tout. */
 export async function disableShareLink(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   const clientId = s(f, "clientId", 40);
   await db.client.updateMany({ where: { id: clientId, orgId: scope.orgId }, data: { shareToken: null } });
@@ -254,6 +268,7 @@ export async function disableShareLink(f: FormData) {
 }
 
 export async function removeClientUser(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   const clientId = s(f, "clientId", 40);
   const ok = await db.client.count({ where: { id: clientId, orgId: scope.orgId } });
@@ -262,6 +277,7 @@ export async function removeClientUser(f: FormData) {
 }
 
 export async function addRule(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope } = await writableOrg();
     const clientId = s(f, "clientId", 40);
@@ -279,12 +295,14 @@ export async function addRule(_: FormState, f: FormData): Promise<FormState> {
 }
 
 export async function deleteRule(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   await db.clientRule.deleteMany({ where: { id: s(f, "ruleId", 40), orgId: scope.orgId } });
   revalidatePath(`/app/clients/${s(f, "clientId", 40)}`);
 }
 
 export async function assignCall(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   const clientId = s(f, "clientId", 40) || null;
   if (clientId && !(await db.client.count({ where: { id: clientId, orgId: scope.orgId } }))) return;
@@ -297,6 +315,7 @@ export async function assignCall(f: FormData) {
  * L'attribution de l'appel ne change pas : il reste compté dans les chiffres de celui qui l'a passé.
  */
 export async function shareCall(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope, org } = await writableOrg();
     const callId = s(f, "callId", 40), clientId = s(f, "clientId", 40), note = s(f, "note", 500);
@@ -328,6 +347,7 @@ export async function shareCall(_: FormState, f: FormData): Promise<FormState> {
 }
 
 export async function unshareCall(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   const callId = s(f, "callId", 40);
   await db.callShare.deleteMany({ where: { callId, clientId: s(f, "clientId", 40), call: { orgId: scope.orgId } } });
@@ -336,6 +356,7 @@ export async function unshareCall(f: FormData) {
 
 /** Confirme (ou retire) à la main un rendez-vous pris sur un appel : réservé à l'entreprise, pas au commercial invité. */
 export async function confirmMeeting(f: FormData) {
+  if (await inDemo()) return;
   const { scope } = await writableOrg();
   const callId = s(f, "callId", 40);
   await db.call.updateMany({ where: { id: callId, orgId: scope.orgId, kind: "call" }, data: { meetingBooked: f.get("value") === "1", aiMeeting: false } });
@@ -344,6 +365,7 @@ export async function confirmMeeting(f: FormData) {
 
 /** Suppression définitive de l'espace par son propriétaire : toutes les données, les accès et les comptes qui n'ont que cet espace. */
 export async function deleteOrganization(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   let gone = false;
   try {
     const scope = await requireOrgScope();
@@ -371,6 +393,7 @@ export async function deleteOrganization(_: FormState, f: FormData): Promise<For
 
 /* ---------- Équipe ---------- */
 export async function inviteTeammate(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { scope, org } = await writableOrg();
     if (scope.role !== "owner") return { error: "Réservé au propriétaire de l'espace." };
@@ -391,6 +414,7 @@ export async function inviteTeammate(_: FormState, f: FormData): Promise<FormSta
 
 /* ---------- Intégrations ---------- */
 export async function addIntegration(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   let id = "";
   try {
     const providerId = s(f, "provider", 20);
@@ -441,6 +465,7 @@ async function ownedIntegration(f: FormData) {
 }
 
 export async function syncNow(f: FormData) {
+  if (await inDemo()) return;
   const integ = await ownedIntegration(f);
   try { await syncIntegration(integ.id); } catch { /* l'erreur est enregistrée sur l'intégration */ }
   // L'analyse IA des nouveaux appels continue après la réponse : l'utilisateur n'attend pas.
@@ -449,6 +474,7 @@ export async function syncNow(f: FormData) {
 }
 
 export async function deleteIntegration(f: FormData) {
+  if (await inDemo()) return;
   const integ = await ownedIntegration(f);
   await db.integration.delete({ where: { id: integ.id } });
   revalidatePath("/", "layout");
@@ -456,6 +482,7 @@ export async function deleteIntegration(f: FormData) {
 
 /* ---------- Alertes de relance ---------- */
 export async function saveAlerts(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const { isSlackWebhook } = await import("@/lib/digest");
     const u = await requireUser();
@@ -487,6 +514,7 @@ export async function saveAlerts(_: FormState, f: FormData): Promise<FormState> 
 
 /* ---------- Éditeur : activation manuelle d'un abonnement (paiement par lien Stripe) ---------- */
 export async function adminSetSubscription(f: FormData) {
+  if (await inDemo()) return;
   const scope = await requireOrgScope();
   const { isAdminOrg } = await import("@/lib/admin");
   if (!isAdminOrg(scope.orgId)) return;
@@ -506,6 +534,7 @@ export async function adminSetSubscription(f: FormData) {
 
 /* ---------- Résiliation en un clic (paiement par liens Stripe, sans clé secrète) ---------- */
 export async function requestCancel(f: FormData) {
+  if (await inDemo()) return;
   const scope = await requireOrgScope();
   if (scope.role !== "owner") return;
   const undo = f.get("undo") === "1";
@@ -532,6 +561,7 @@ export async function requestCancel(f: FormData) {
 
 /** Coupe l'accès d'une connexion Claude (jeton du connecteur MCP) pour cet espace. */
 export async function revokeMcpToken(f: FormData) {
+  if (await inDemo()) return;
   const scope = await requireOrgScope();
   await db.mcpToken.updateMany({ where: { id: s(f, "id", 40), orgId: scope.orgId, revokedAt: null }, data: { revokedAt: new Date() } });
   revalidatePath("/app/settings");
@@ -543,6 +573,7 @@ export async function revokeMcpToken(f: FormData) {
  * (réponse claire à l'écran), puis complète l'historique. Pour Minari, le lien d'écoute se déduit de l'appel : c'est immédiat.
  */
 export async function fetchRecordings(_: FormState, f: FormData): Promise<FormState> {
+  if (await inDemo()) return DEMO_STATE;
   try {
     const integ = await ownedIntegration(f);
     const { bumpUsage } = await import("@/lib/usage");

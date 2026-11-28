@@ -20,7 +20,7 @@ export default async function Page() {
   const errors = await db.errorLog.findMany({ orderBy: { createdAt: "desc" }, take: 30 });
   const [orgs, users24, users7, usersAll, feedback, visits] = await Promise.all([
     db.organization.findMany({
-      orderBy: { createdAt: "desc" }, take: 300,
+      where: { id: { not: "demo_trustpipe" } }, orderBy: { createdAt: "desc" }, take: 300,
       include: {
         members: { where: { role: "owner" }, take: 1, include: { user: { select: { email: true, createdAt: true } } } },
         integrations: { select: { provider: true, lastSyncAt: true } },

@@ -1,7 +1,7 @@
 import { bumpUsage } from "@/lib/usage";
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { apiScope, scopeClientId } from "@/lib/access";
+import { apiScope, scopeClientId, denied } from "@/lib/access";
 import { assertActive, assertAi, jsonError, sameOrigin } from "@/lib/api";
 import { db } from "@/lib/db";
 import { AiError, asJson, generateCoach } from "@/lib/ai";
@@ -14,7 +14,7 @@ export async function POST(req: Request) {
   const b = z.object({ days: z.union([z.literal(7), z.literal(30), z.literal(90)]), clientId: z.string().nullable().optional() }).safeParse(await req.json().catch(() => null));
   if (!b.success) return jsonError("Requête invalide");
   const scope = await apiScope(req, { clientId: b.data.clientId });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const blocked = (await assertActive(scope)) || (await assertAi(scope));
   if (blocked) return blocked;
   // Garde-fou de coût : plafond par espace et par jour.

@@ -1,3 +1,4 @@
+import { denied } from "@/lib/access";
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { jsonError, sameOrigin } from "@/lib/api";
@@ -7,7 +8,7 @@ import { chatScope, ownerWhere } from "@/lib/conversations";
 export async function GET(req: Request) {
   const u = new URL(req.url);
   const scope = await chatScope(req, { clientId: u.searchParams.get("clientId"), shareToken: u.searchParams.get("shareToken") });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const where = ownerWhere(scope);
   const id = u.searchParams.get("id");
   if (id) {
@@ -23,8 +24,9 @@ export async function DELETE(req: Request) {
   if (!sameOrigin(req)) return jsonError("Origine refusée", 403);
   const u = new URL(req.url);
   const scope = await chatScope(req, { clientId: u.searchParams.get("clientId"), shareToken: u.searchParams.get("shareToken") });
-  if (!scope) return jsonError("Accès refusé", 403);
+  if (!scope) return denied();
   const id = u.searchParams.get("id") || "";
+  if (scope.userId === "demo_user") return jsonError("Démo en lecture seule.", 403);
   await db.conversation.deleteMany({ where: { id, ...ownerWhere(scope) } });
   return NextResponse.json({ ok: true });
 }

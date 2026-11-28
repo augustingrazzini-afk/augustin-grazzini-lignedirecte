@@ -18,6 +18,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   if (!server) return back("Cet outil ne propose pas la connexion en un clic.");
   const u = await currentUser();
   if (!u) return NextResponse.redirect(new URL(`/login?next=/app/sources`, app), 303);
+  if (u.id === "demo_user") return NextResponse.redirect(new URL(`/app/sources`, app), 303); // démo en lecture seule
   const m = u.memberships[0];
   if (!m) return back("Seul un membre de l'espace peut connecter un outil.");
   const org = await db.organization.findUniqueOrThrow({ where: { id: m.orgId } });

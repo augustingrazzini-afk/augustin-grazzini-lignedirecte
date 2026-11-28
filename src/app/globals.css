@@ -978,3 +978,4 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 }
 .plans .btn { width: 100%; white-space: normal; justify-content: center; text-align: center; line-height: 1.25; }
 .nav .nav-up { white-space: normal; overflow-wrap: anywhere; }
+.banner.demo-banner { align-items: center; justify-content: space-between; flex-wrap: wrap; background: #FFF4DE; }
