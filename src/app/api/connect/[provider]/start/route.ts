@@ -4,7 +4,7 @@ import { currentUser } from "@/lib/session";
 import { db } from "@/lib/db";
 import { isActive } from "@/lib/billing";
 import { seal, randomToken } from "@/lib/crypto";
-import { CONNECT_COOKIE as COOKIE, MCP_SERVERS, discover, oauthClient, pkce } from "@/lib/mcp";
+import { CONNECT_COOKIE as COOKIE, MCP_SERVERS, discover, oauthClient, oneClickReady, pkce, presetClient } from "@/lib/mcp";
 import { ProviderError } from "@/lib/providers/types";
 
 
@@ -19,7 +19,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   let repMode = false;
   const back = (msg: string) => NextResponse.redirect(new URL(`${page(asked, repMode)}${page(asked, repMode).includes("?") ? "&" : "?"}erreur=${encodeURIComponent(msg)}`, app), 303);
   const server = MCP_SERVERS[provider];
-  if (!server) return back("Cet outil ne propose pas la connexion en un clic.");
+  if (!server || !oneClickReady(provider)) return back("Cet outil ne propose pas encore la connexion en un clic : utilisez une clé API.");
   const u = await currentUser();
   if (!u) return NextResponse.redirect(new URL(`/login?next=/app/sources`, app), 303);
   if (u.id === "demo_user") return NextResponse.redirect(new URL(`/app/sources`, app), 303); // démo en lecture seule
@@ -35,7 +35,7 @@ export async function GET(req: Request, { params }: { params: Promise<{ provider
   const redirectUri = `${app}/api/connect/${provider}/callback`;
   try {
     const o = await discover(server.url);
-    const c = await oauthClient(o, redirectUri);
+    const c = presetClient(provider) || (await oauthClient(o, redirectUri));
     const { verifier, challenge } = pkce();
     const state = randomToken(24);
     (await cookies()).set(COOKIE, seal({

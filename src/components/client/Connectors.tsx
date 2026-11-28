@@ -29,7 +29,8 @@ const META: Record<string, { mono: string; color: string; tagline: string; cats:
 const CATS: [Cat | "all", string][] = [["all", "Tous"], ["call", "Téléphone"], ["other", "Autres outils"]];
 const CH: Record<string, string> = { call: "Appels", email: "Email", linkedin: "LinkedIn" };
 
-export function Connectors({ providers, clientId, connected }: { providers: ProviderInfo[]; clientId: string | null; connected: string[] }) {
+export function Connectors({ providers, clientId, connected, oneClick = [] }: { providers: ProviderInfo[]; clientId: string | null; connected: string[]; oneClick?: string[] }) {
+  const ONE_CLICK = new Set(oneClick);
   const [cat, setCat] = useState<Cat | "all">("all");
   const [open, setOpen] = useState<ProviderInfo | null>(null);
   const list = providers.filter((p) => cat === "all" || (META[p.id]?.cats || ["other"]).includes(cat));
@@ -55,15 +56,14 @@ export function Connectors({ providers, clientId, connected }: { providers: Prov
           );
         })}
       </div>
-      {open && <ConnectDialog p={open} clientId={clientId} onClose={() => setOpen(null)} />}
+      {open && <ConnectDialog p={open} clientId={clientId} oneClick={ONE_CLICK.has(open.id)} onClose={() => setOpen(null)} />}
     </div>
   );
 }
 
 /** Outils connectables en un clic (OAuth, comme les connecteurs de Claude). */
-const ONE_CLICK = new Set(["minari", "lemlist", "dialpad", "close", "salesloft", "apollo", "gong"]);
 
-function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: string | null; onClose: () => void }) {
+function ConnectDialog({ p, clientId, oneClick, onClose }: { p: ProviderInfo; clientId: string | null; oneClick: boolean; onClose: () => void }) {
   const ref = useRef<HTMLDialogElement>(null);
   const [state, action, pending] = useActionState<FormState, FormData>(addIntegration, null);
   const m = META[p.id];
@@ -88,7 +88,7 @@ function ConnectDialog({ p, clientId, onClose }: { p: ProviderInfo; clientId: st
         <form action={action} className="cx-form">
           <input type="hidden" name="provider" value={p.id} />
           {clientId && <input type="hidden" name="clientId" value={clientId} />}
-          {ONE_CLICK.has(p.id) && (
+          {oneClick && (
             <div className="cx-oneclick">
               <a className="btn primary cx-oauth" href={`/api/connect/${p.id}/start${clientId ? `?client=${clientId}` : ""}`}>
                 <BrandLogo id={p.id} mono={m?.mono} color={m?.color} /> Se connecter avec {p.label}

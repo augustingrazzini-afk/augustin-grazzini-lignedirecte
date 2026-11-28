@@ -10,6 +10,7 @@ import { hasRecordings, listeningHelp } from "@/lib/listening";
 import type { ProviderInfo } from "../client/IntegrationForm";
 import { providerColor } from "@/lib/provider-colors";
 import { Connectors } from "../client/Connectors";
+import { oneClickReady } from "@/lib/mcp";
 import { CsvImport } from "../client/CsvImport";
 import { ManualAdd } from "../client/ManualAdd";
 import { CopyButton } from "../client/CallActions";
@@ -78,7 +79,7 @@ export async function Sources({ scope }: { scope: Scope }) {
           })}</div>
         </div>
       )}
-      <Connectors providers={providers} clientId={clientId} connected={[...new Set(integrations.map((i) => i.provider))]} />
+      <Connectors providers={providers} clientId={clientId} connected={[...new Set(integrations.map((i) => i.provider))]} oneClick={providers.map((p) => p.id).filter(oneClickReady)} />
       {/* Saisie manuelle et CSV : réservés à l'entreprise, pour que les chiffres d'un commercial viennent de son outil. */}
       {scope.kind === "org" && <><CsvImport clientId={clientId} />
       <ManualAdd clientId={clientId} uploads={storageEnabled()} /></>}

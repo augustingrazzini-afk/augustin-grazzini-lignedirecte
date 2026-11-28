@@ -9,7 +9,7 @@ import { ProviderError } from "./providers/types";
  */
 
 /** Serveurs MCP connus, par source. */
-export const MCP_SERVERS: Record<string, { url: string; label: string }> = {
+export const MCP_SERVERS: Record<string, { url: string; label: string; preset?: string }> = {
   minari: { url: process.env.MINARI_MCP_URL || "https://mcp.minari.ai/mcp", label: "Minari" },
   // Serveurs vérifiés le 28/11 depuis la production : connexion OAuth avec inscription automatique de Trustpipe.
   lemlist: { url: "https://api.lemlist.com/mcp", label: "lemlist" },
@@ -18,7 +18,20 @@ export const MCP_SERVERS: Record<string, { url: string; label: string }> = {
   dialpad: { url: "https://mcp.dialpad.com/mcp", label: "Dialpad" },
   gong: { url: "https://mcp.gong.io/mcp", label: "Gong" },
   salesloft: { url: "https://mcp.salesloft.com/mcp", label: "Salesloft" },
+  // Sans inscription automatique : application à créer chez l'éditeur, identifiants dans HUBSPOT_MCP_CLIENT_ID / _SECRET.
+  hubspot: { url: "https://mcp.hubspot.com/", label: "HubSpot", preset: "HUBSPOT" },
 };
+
+/** Identifiants d'application fournis par l'éditeur (outils sans inscription automatique). */
+export function presetClient(provider: string): { clientId: string; clientSecret?: string } | null {
+  const key = MCP_SERVERS[provider]?.preset;
+  if (!key) return null;
+  const clientId = process.env[`${key}_MCP_CLIENT_ID`];
+  return clientId ? { clientId, clientSecret: process.env[`${key}_MCP_CLIENT_SECRET`] || undefined } : null;
+}
+
+/** Le bouton « en un clic » est disponible pour cet outil (application déjà créée si l'éditeur l'exige). */
+export const oneClickReady = (provider: string) => !!MCP_SERVERS[provider] && (!MCP_SERVERS[provider].preset || !!presetClient(provider));
 
 export const CONNECT_COOKIE = "tp_connect";
 const PROTOCOL = "2025-06-18";

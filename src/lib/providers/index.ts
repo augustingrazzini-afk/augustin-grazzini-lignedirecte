@@ -20,7 +20,7 @@ import { withOneClick } from "./mcp-connect";
 
 // Connexion en un clic possible (serveur MCP de l'éditeur) : lemlist, Dialpad, Close, Salesloft, Apollo, Gong.
 const oneClick = (p: Provider) => withOneClick(p);
-export const PROVIDERS: Record<string, Provider> = { minari, skipcall, lemlist: oneClick(lemlist), aircall, ringover, justcall, allo, dialpad: oneClick(dialpad), close: oneClick(close), salesloft: oneClick(salesloft), apollo: oneClick(apollo), gong: oneClick(gong), instantly, smartlead, hubspot, custom, webhook };
+export const PROVIDERS: Record<string, Provider> = { minari, skipcall, lemlist: oneClick(lemlist), aircall, ringover, justcall, allo, dialpad: oneClick(dialpad), close: oneClick(close), salesloft: oneClick(salesloft), apollo: oneClick(apollo), gong: oneClick(gong), instantly, smartlead, hubspot: oneClick(hubspot), custom, webhook };
 export const providerList = Object.values(PROVIDERS);
 export function getProvider(id: string): Provider {
   const p = PROVIDERS[id];

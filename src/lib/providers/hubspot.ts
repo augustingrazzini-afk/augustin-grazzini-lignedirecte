@@ -5,7 +5,7 @@ const headers = (c: Record<string, string>) => ({ Authorization: `Bearer ${c.tok
 const CONNECTED = "f240bbac-87c9-4f6e-bf70-924b57d47db7"; // disposition HubSpot « Connected »
 const PROPS = ["hs_call_title", "hs_call_body", "hs_call_duration", "hs_call_disposition", "hs_call_direction", "hs_timestamp", "hs_call_recording_url", "hs_call_status", "hubspot_owner_id"];
 
-function map(r: any): NormalizedCall {
+export function mapHubspot(r: any): NormalizedCall {
   const p = r.properties || {};
   const dur = Math.round(num(p.hs_call_duration) / 1000);
   const connected = p.hs_call_disposition === CONNECTED || dur > 0;
@@ -46,7 +46,7 @@ export const hubspot: Provider = {
         ...(after ? { after } : {}),
       };
       const res = (await http(`${API}/crm/v3/objects/calls/search`, { method: "POST", headers: headers(c), body: JSON.stringify(body), label: "HubSpot" })) as any;
-      yield (res.results || []).map(map);
+      yield (res.results || []).map(mapHubspot);
       after = res.paging?.next?.after;
       if (!after) break;
     }
