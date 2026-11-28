@@ -15,6 +15,14 @@ export function callScope(s: Scope): Prisma.CallWhereInput {
   return s.clientFilter ? { orgId: s.orgId, clientId: s.clientFilter === "none" ? null : s.clientFilter } : { orgId: s.orgId };
 }
 
+/**
+ * Accès à UN appel : dans son périmètre habituel, ou, pour un commercial invité, un appel que l'entreprise lui a envoyé à écouter.
+ * Jamais un appel d'une autre entreprise.
+ */
+export function callAccess(s: Scope, id: string): Prisma.CallWhereInput {
+  return s.kind === "client" ? { id, OR: [callScope(s), { orgId: s.orgId, shares: { some: { clientId: s.clientId } } }] } : { id, ...callScope(s) };
+}
+
 export function scopeClientId(s: Scope): string | null {
   return s.kind === "client" ? s.clientId : s.clientFilter && s.clientFilter !== "none" ? s.clientFilter : null;
 }

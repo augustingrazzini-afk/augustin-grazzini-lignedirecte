@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { callScope, type Scope } from "@/lib/access";
+import { callScope, type Scope, callAccess } from "@/lib/access";
 import { db } from "@/lib/db";
 import { OBJ_LABEL, dateFR, displayName, fmtDuration, initials, timeFR } from "@/lib/format";
 import { SOURCE_LABEL } from "@/lib/providers";
@@ -10,15 +10,19 @@ import type { Debrief } from "@/lib/ai";
 import { transcribeEnabled } from "@/lib/transcribe";
 import { aiEnabled } from "@/lib/ai-config";
 import { needsRelay, signedAudioPath } from "@/lib/audio";
-import { assignCall, confirmMeeting } from "@/app/actions";
+import { shareCall, unshareCall, assignCall, confirmMeeting } from "@/app/actions";
+import { ActionForm } from "@/components/client/ActionForm";
 import { hasRecordings } from "@/lib/listening";
 import { ListenPlayer } from "@/components/client/ListenPlayer";
 import { CallActions, CopyButton } from "../client/CallActions";
 
 /** `readOnly` : lien de suivi partagé (aucune action, aucun lien vers des pages réservées). */
 export async function CallDetail({ scope, base, id, readOnly = false }: { scope: Scope; base: string; id: string; readOnly?: boolean }) {
-  const c = await db.call.findFirst({ where: { id, ...callScope(scope) } });
+  // Le commercial invité voit ses appels, et ceux que l'entreprise lui a envoyés à écouter (lecture seule).
+  const c = await db.call.findFirst({ where: callAccess(scope, id), include: { shares: { include: { client: { select: { name: true } } }, orderBy: { createdAt: "desc" } } } });
   if (!c) notFound();
+  const sharedWithMe = scope.kind === "client" && c.clientId !== scope.clientId ? c.shares.find((x) => x.clientId === scope.clientId) : undefined;
+  if (sharedWithMe) readOnly = true;
   const tr = (c.transcript as unknown as TranscriptLine[]) || [];
   const det = (c.objDetails as unknown as ObjDetail[]) || [];
   // Lecture dans Trustpipe : fichier stocké chez nous, relais signé (outils dont l'audio demande une clé), sinon le lien de l'outil.
@@ -38,6 +42,13 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   return (
     <div className="grid g-2">
       <div className="stack">
+        {sharedWithMe && (
+          <div className="card shared-note">
+            <b>📣 {sharedWithMe.fromName || "Votre entreprise"} vous envoie cet appel à écouter</b>
+            {sharedWithMe.note && <p>« {sharedWithMe.note} »</p>}
+            <span className="muted small">Passé par {c.repName || "un autre commercial"} · reçu le {dateFR(sharedWithMe.createdAt)}. Vous pouvez le lire et l&apos;écouter ; il n&apos;apparaît pas dans vos chiffres.</span>
+          </div>
+        )}
         <div className="card">
           <div className="row" style={{ gap: 14 }}>
             <span className={`av ${c.meetingBooked ? "win" : ""}`} style={{ width: 52, height: 52, fontSize: 18 }}>{initials(c)}</span>
@@ -79,11 +90,29 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           </div></div>
         )}
         {scope.kind === "org" && (
-          <div className="card"><div className="sec"><h4>Commercial</h4>
+          <>
+          {clients.some((cl) => cl.id !== c.clientId) && (
+            <div className="card"><div className="sec"><h4>Envoyer cet appel à un commercial</h4>
+              <p className="muted small" style={{ margin: "0 0 10px" }}>Un bon appel à montrer en exemple, ou un appel à retravailler : le commercial choisi le retrouve dans son espace (résumé, transcription, écoute) et reçoit un email. L&apos;appel reste compté pour celui qui l&apos;a passé.</p>
+              <ActionForm action={shareCall} submit="Envoyer l'appel" hidden={{ callId: c.id }}>
+                <label>À qui<select className="select" name="clientId" required defaultValue=""><option value="" disabled>Choisir un commercial</option>{clients.filter((cl) => cl.id !== c.clientId).map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}</select></label>
+                <label className="full">Un mot pour lui <span className="muted small">(facultatif)</span><input className="input" name="note" maxLength={500} placeholder="Ex. : écoute comment Léa traite l'objection du prix à 01:12" /></label>
+              </ActionForm>
+              {c.shares.length > 0 && <div className="list" style={{ marginTop: 12 }}>{c.shares.map((x) => (
+                <div key={x.id} className="item" style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}>
+                  <span className="who">Envoyé à {x.client.name}<span> · le {dateFR(x.createdAt)}</span></span>
+                  <form action={unshareCall}><input type="hidden" name="callId" value={c.id} /><input type="hidden" name="clientId" value={x.clientId} /><button className="btn sm">Retirer</button></form>
+                  {x.note && <span className="sum">« {x.note} »</span>}
+                </div>
+              ))}</div>}
+            </div></div>
+          )}
+          <div className="card"><div className="sec"><h4>À qui appartient cet appel</h4>
             <form action={assignCall} className="row"><input type="hidden" name="callId" value={c.id} />
               <select className="select" name="clientId" defaultValue={c.clientId || ""}><option value="">— Non attribué —</option>{clients.map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}</select>
-              <button className="btn sm">Attribuer</button></form>
-            <p className="muted small" style={{ margin: "8px 0 0" }}>Le commercial choisi voit aussi cet appel dans son espace.</p></div></div>
+              <button className="btn sm">Changer</button></form>
+            <p className="muted small" style={{ margin: "8px 0 0" }}>À corriger seulement si l&apos;appel a été rangé chez le mauvais commercial : il compte dans ses chiffres et son classement.</p></div></div>
+          </>
         )}
       </div>
       <div className="card">

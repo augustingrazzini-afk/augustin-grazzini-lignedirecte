@@ -97,6 +97,7 @@ model Client {
   tasks        Task[]
   rules        ClientRule[]
   calls        Call[]
+  sharedCalls  CallShare[]
   integrations Integration[]
 
   @@index([orgId])
@@ -192,6 +193,7 @@ model Call {
   updatedAt     DateTime     @updatedAt
   org           Organization @relation(fields: [orgId], references: [id], onDelete: Cascade)
   client        Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  shares        CallShare[]
   integration   Integration? @relation(fields: [integrationId], references: [id], onDelete: SetNull)
 
   @@unique([orgId, provider, externalId])
@@ -398,4 +400,19 @@ model ErrorLog {
   digest    String   @default("")
 
   @@index([createdAt])
+}
+
+/// Un appel envoyé à un autre commercial (« écoute celui-ci, il est bon ») : il le voit dans son espace sans que l'attribution change.
+model CallShare {
+  id        String   @id @default(cuid())
+  callId    String
+  clientId  String // le commercial qui reçoit l'appel
+  fromName  String   @default("")
+  note      String   @default("")
+  createdAt DateTime @default(now())
+  call      Call     @relation(fields: [callId], references: [id], onDelete: Cascade)
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@unique([callId, clientId])
+  @@index([clientId, createdAt])
 }

@@ -903,3 +903,7 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .lb-row.lb-sub .lb-rdv b { font-size: 15px; }
 .lb-row.lb-team { grid-template-columns: 34px minmax(0, 2.2fr) repeat(3, minmax(0, 1fr)) minmax(0, 1.3fr); }
 @media (max-width: 900px) { .lb-row.lb-team { grid-template-columns: 26px minmax(0, 1fr) repeat(2, auto); } .lb-row.lb-team > :nth-child(4), .lb-row.lb-team > :nth-child(5) { display: none; } }
+
+/* Appel envoyé à un commercial par l'entreprise */
+.shared-note { border-color: var(--blue); background: rgba(255,90,31,.07); display: flex; flex-direction: column; gap: 6px; }
+.shared-note > p { margin: 0; font-size: 15.5px; }

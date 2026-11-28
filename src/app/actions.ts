@@ -286,6 +286,44 @@ export async function assignCall(f: FormData) {
   revalidatePath(`/app/calls/${s(f, "callId", 40)}`);
 }
 
+/**
+ * Envoie un appel à un autre commercial (« écoute celui-ci ») : il apparaît dans son espace, avec un mot d'accompagnement.
+ * L'attribution de l'appel ne change pas : il reste compté dans les chiffres de celui qui l'a passé.
+ */
+export async function shareCall(_: FormState, f: FormData): Promise<FormState> {
+  try {
+    const { scope, org } = await writableOrg();
+    const callId = s(f, "callId", 40), clientId = s(f, "clientId", 40), note = s(f, "note", 500);
+    const [call, rep, me] = await Promise.all([
+      db.call.findFirst({ where: { id: callId, orgId: scope.orgId }, select: { id: true, clientId: true, firstName: true, lastName: true, company: true, repName: true } }),
+      db.client.findFirst({ where: { id: clientId, orgId: scope.orgId }, include: { members: { include: { user: { select: { email: true } } } } } }),
+      db.user.findUnique({ where: { id: scope.userId }, select: { name: true, email: true } }),
+    ]);
+    if (!call) return { error: "Appel introuvable." };
+    if (!rep) return { error: "Choisissez le commercial à qui envoyer l'appel." };
+    if (call.clientId === rep.id) return { error: `${rep.name} voit déjà cet appel : c'est le sien.` };
+    const fromName = me?.name || org.name;
+    await db.callShare.upsert({ where: { callId_clientId: { callId, clientId } }, create: { callId, clientId, note, fromName }, update: { note, fromName, createdAt: new Date() } });
+    // Prévenir le commercial par email, s'il a un accès. Un échec d'envoi ne bloque pas le partage.
+    const who = [call.firstName, call.lastName].filter(Boolean).join(" ") || call.company || "un prospect";
+    const link = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/portal/${rep.id}/calls/${call.id}`;
+    const esc = (t: string) => t.replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[ch]!);
+    const text = `${fromName} vous envoie un appel à écouter : ${who}${call.company && who !== call.company ? ` (${call.company})` : ""}${call.repName ? `, passé par ${call.repName}` : ""}.\n${note ? `\n« ${note} »\n` : ""}\nL'ouvrir : ${link}`;
+    const html = `<p><b>${esc(fromName)}</b> vous envoie un appel à écouter : <b>${esc(who)}</b>${call.repName ? `, passé par ${esc(call.repName)}` : ""}.</p>${note ? `<blockquote>${esc(note)}</blockquote>` : ""}<p><a href="${link}">Ouvrir l'appel dans Trustpipe</a></p>`;
+    const { sendEmail } = await import("@/lib/email");
+    await Promise.all(rep.members.map((m) => sendEmail(m.user.email, `${fromName} vous envoie un appel à écouter`, html, text).catch(() => null)));
+    revalidatePath(`/app/calls/${callId}`);
+    return { ok: rep.members.length ? `Appel envoyé à ${rep.name} : il le voit dans son espace et reçoit un email.` : `Appel envoyé à ${rep.name}. Il n'a pas encore d'accès : invitez-le depuis sa fiche pour qu'il puisse l'ouvrir.` };
+  } catch (e) { return fail(e); }
+}
+
+export async function unshareCall(f: FormData) {
+  const { scope } = await writableOrg();
+  const callId = s(f, "callId", 40);
+  await db.callShare.deleteMany({ where: { callId, clientId: s(f, "clientId", 40), call: { orgId: scope.orgId } } });
+  revalidatePath(`/app/calls/${callId}`);
+}
+
 /** Confirme (ou retire) à la main un rendez-vous pris sur un appel : réservé à l'entreprise, pas au commercial invité. */
 export async function confirmMeeting(f: FormData) {
   const { scope } = await writableOrg();
