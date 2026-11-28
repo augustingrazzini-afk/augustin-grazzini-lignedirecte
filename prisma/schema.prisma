@@ -3,7 +3,8 @@
 // Un Client (le client du SDR) ne voit que les appels où Call.clientId = son id.
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"] // session + espaces lus en une seule requête
 }
 
 datasource db {

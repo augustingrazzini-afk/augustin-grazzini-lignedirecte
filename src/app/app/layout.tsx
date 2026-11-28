@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
-import { currentUser } from "@/lib/session";
+import { currentUser, orgOf } from "@/lib/session";
 import { db } from "@/lib/db";
 import { hasAi, hasPremium, isActive, PLANS, type PlanId } from "@/lib/billing";
 import { lockedIcons } from "@/lib/plan";
@@ -18,7 +18,7 @@ export const maxDuration = 300;
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const scope = await requireOrgScope();
-  const [user, org, follow] = await Promise.all([currentUser(), db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }), countDueTasks(scope)]);
+  const [user, org, follow] = await Promise.all([currentUser(), orgOf(scope.orgId).then((o) => o!), countDueTasks(scope)]);
   // Essai de 7 jours avec carte enregistrée : l'accès s'ouvre une fois la formule choisie sur Stripe.
   if (!org.stripeSubscriptionId && cardRequired()) redirect("/paiement");
   const days = Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5);

@@ -1,5 +1,5 @@
 import { cache } from "react";
-import { db } from "./db";
+import { orgOf } from "./session";
 import { hasAi, hasPremium } from "./billing";
 
 /**
@@ -8,7 +8,7 @@ import { hasAi, hasPremium } from "./billing";
  * `premium` : écoute des enregistrements, briefs, débriefs, connecteur Claude.
  */
 export const planOf = cache(async (orgId: string) => {
-  const org = await db.organization.findUnique({ where: { id: orgId }, select: { plan: true } });
+  const org = await orgOf(orgId);
   return { plan: org?.plan || "trial", ai: !org || hasAi(org), premium: !org || hasPremium(org) };
 });
 

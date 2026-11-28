@@ -2,7 +2,7 @@ import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { PAID_PLANS, PLANS, PLAN_CAP, PLAN_FEATURES, type PlanId, euros } from "@/lib/billing";
 import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
-import { currentUser } from "@/lib/session";
+import { currentUser, orgOf } from "@/lib/session";
 import { PlanPicker } from "@/components/PlanPicker";
 import { PageTop } from "@/components/Shell";
 import { requestCancel } from "@/app/actions";
@@ -14,7 +14,7 @@ const STATUS: Record<string, string> = { trialing: "Essai en cours", active: "Ac
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ ok?: string; cancelled?: string; resumed?: string; err?: string }> }) {
   const scope = await requireOrgScope();
-  const org = await db.organization.findUniqueOrThrow({ where: { id: scope.orgId } });
+  const org = (await orgOf(scope.orgId))!;
   if (isDemoOrg(org.id)) return (
     <>
       <PageTop title="Abonnement" subtitle="Démo · formule Premium" />

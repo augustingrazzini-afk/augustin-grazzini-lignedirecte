@@ -1,3 +1,4 @@
+import { orgOf } from "@/lib/session";
 import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
@@ -16,7 +17,7 @@ export const metadata = { title: "Commerciaux" };
 export default async function Page() {
   const scope = await requireOrgScope();
   const [org, reps, unassigned] = await Promise.all([
-    db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }),
+    orgOf(scope.orgId).then((o) => o!),
     db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, include: { members: { select: { joinedAt: true } }, _count: { select: { calls: true, members: true, integrations: true } } } }),
     db.call.count({ where: { orgId: scope.orgId, clientId: null } }),
   ]);
