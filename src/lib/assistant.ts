@@ -185,6 +185,7 @@ date_du_jour: ${day(new Date())}
 </compte>
 
 <formules>
+Chaque formule se paie au mois, ou moins cher au trimestre (environ 10 % de moins) et à l'année (2 mois offerts). Prix au mois :
 - Découverte (${euros(PLANS.starter.price)} € HT / mois, 2 commerciaux) : appels en direct, classement. Pas d'assistant IA.
 - Essentiel (${euros(PLANS.agency.price)} € HT / mois, 10 commerciaux) : tout Découverte + transcription, résumé et analyse IA de chaque appel, objections, relances automatiques, assistant IA (toi), envoi d'un appel à un commercial.
 - Premium (${euros(PLANS.premium.price)} € HT / mois, commerciaux illimités) : tout Essentiel + brief pré-rendez-vous, débrief IA des rendez-vous, écoute des enregistrements, connecteur Claude.

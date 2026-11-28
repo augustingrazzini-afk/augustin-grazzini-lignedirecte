@@ -33,7 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
         <Logo size={26} />
         <VisitBeacon page="/paiement" />
         <h1>Choisissez votre formule</h1>
-        <p className="muted"><b>7 jours d&apos;essai</b> : votre carte est enregistrée sur Stripe mais n&apos;est débitée qu&apos;au bout de 7 jours. Si vous résiliez avant, vous ne payez rien. Ensuite, paiement mensuel <b>sans engagement</b>.</p>
+        <p className="muted"><b>7 jours d&apos;essai</b> : votre carte est enregistrée sur Stripe mais n&apos;est débitée qu&apos;au bout de 7 jours. Si vous résiliez avant, vous ne payez rien. Ensuite, paiement au mois <b>sans engagement</b>, ou moins cher au trimestre et à l&apos;année.</p>
         {err && <div className="banner err">Le paiement n&apos;a pas abouti. Réessayez ou choisissez une autre carte.</div>}
         {m.role !== "owner" ? (
           <div className="banner">Le propriétaire de l&apos;espace « {org.name} » doit choisir la formule. Revenez ensuite sur cette page.</div>

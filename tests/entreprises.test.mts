@@ -72,7 +72,7 @@ test("classement : par rendez-vous, « Non attribués » toujours en dernier, ta
 test("formules : limites de commerciaux et fonctions IA", () => {
   const { maxClients, hasPremium, hasAi, PAID_PLANS, PLANS } = billing;
   assert.deepEqual([...PAID_PLANS], ["starter", "agency", "premium"]);
-  assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [29.99, 99.99, 199.99]);
+  assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [29.99, 79.99, 139.99]);
   // Prix fixe par formule : le nombre de commerciaux dépend de la formule, pas d'une quantité payée.
   assert.equal(maxClients({ plan: "starter", seats: 1 }), 2, "Découverte : 2 commerciaux");
   assert.equal(maxClients({ plan: "agency", seats: 1 }), 10, "Essentiel : 10 commerciaux");
@@ -208,4 +208,32 @@ test("assistant : les droits viennent du serveur et suivent la formule", async (
   assert.match(rep, /oriente-le vers l'entreprise/, "le commercial est orienté vers l'entreprise, pas vers l'abonnement");
   const old = accessRules({ plan: "premium", status: "trialing", trialEnd: new Date(Date.now() - 864e5), role: "propriétaire" }, "x");
   assert.match(old, /statut_abonnement: expiré/, "essai dépassé = expiré");
+});
+
+test("rythmes de paiement : trimestre environ 10 % moins cher, année = 2 mois offerts, tout en ,99", async () => {
+  const { PLAN_PRICES, perMonth, PERIODS } = await import("../src/lib/billing");
+  for (const id of ["starter", "agency", "premium"] as const) {
+    const m = PLAN_PRICES[id].month;
+    for (const p of ["month", "quarter", "year"] as const) assert.equal(Math.round(PLAN_PRICES[id][p] * 100) % 100, 99, `${id} ${p}`);
+    assert.ok(perMonth(id, "quarter") < m && perMonth(id, "quarter") > m * 0.88, `${id} trimestre`);
+    assert.ok(Math.abs(PLAN_PRICES[id].year - m * 10) < 0.2, `${id} année = 10 mois`);
+    assert.ok(perMonth(id, "year") < perMonth(id, "quarter"));
+  }
+  assert.deepEqual([PERIODS.quarter.months, PERIODS.year.months], [3, 12]);
+});
+
+test("lien de paiement : un lien distinct par formule et par rythme", async () => {
+  process.env.STRIPE_LINK_AGENCY = "https://buy.stripe.com/test";
+  const { paymentLink } = await import("../src/lib/stripe");
+  const all = ["starter", "agency", "premium"].flatMap((pl) => ["month", "quarter", "year"].map((pe) => paymentLink(pl as never, "a@b.fr", "org1", pe as never)));
+  assert.equal(new Set(all.map((u) => new URL(u!).pathname)).size, 9);
+  assert.ok(all.every((u) => u!.includes("client_reference_id=org1") && u!.startsWith("https://buy.stripe.com/")));
+  assert.equal(paymentLink("solo" as never, "a@b.fr", "org1"), null);
+});
+
+test("abonnement Stripe : le rythme est reconnu d'après le prix", async () => {
+  const { periodOf } = await import("../src/lib/stripe");
+  assert.equal(periodOf({ recurring: { interval: "month", interval_count: 1 } } as never), "month");
+  assert.equal(periodOf({ recurring: { interval: "month", interval_count: 3 } } as never), "quarter");
+  assert.equal(periodOf({ recurring: { interval: "year", interval_count: 1 } } as never), "year");
 });

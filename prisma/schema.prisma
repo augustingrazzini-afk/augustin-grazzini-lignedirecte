@@ -48,6 +48,7 @@ model Organization {
   plan                 String        @default("trial") // trial | solo | agency
   subscriptionStatus   String        @default("trialing") // trialing | active | past_due | canceled
   seats                Int           @default(1) // formule Équipe : nombre de commerciaux payés
+  billingPeriod        String        @default("month") // rythme de paiement : month | quarter | year
   trialEndsAt          DateTime
   stripeCustomerId     String?       @unique
   stripeSubscriptionId String?       @unique

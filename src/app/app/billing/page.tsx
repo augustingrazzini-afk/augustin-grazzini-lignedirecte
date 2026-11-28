@@ -1,7 +1,7 @@
 import { Btn } from "@/components/client/Btn";
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
-import { PAID_PLANS, PLANS, PLAN_CAP, PLAN_FEATURES, type PlanId, euros } from "@/lib/billing";
+import { PAID_PLANS, PERIODS, PLANS, PLAN_CAP, PLAN_FEATURES, PLAN_PRICES, isPeriod, type Period, type PlanId, euros } from "@/lib/billing";
 import { paymentLink, portalLink, stripe, stripeEnabled } from "@/lib/stripe";
 import { currentUser, orgOf } from "@/lib/session";
 import { PlanPicker } from "@/components/PlanPicker";
@@ -43,9 +43,12 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const offered = !!subId && !subId.startsWith("sub_"); // accès offert ou activé à la main
   const subscribed = !!subId && org.subscriptionStatus !== "canceled";
   const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
+  // Montant de chaque échéance, selon le rythme choisi (mensuel, trimestriel, annuel).
+  const period: Period = isPeriod(org.billingPeriod) ? org.billingPeriod : "month";
+  const due = org.plan in PLAN_PRICES ? PLAN_PRICES[org.plan as keyof typeof PLAN_PRICES][period] : plan.price;
   const statusLine = offered ? "Accès offert"
-    : org.subscriptionStatus === "trialing" ? `Essai jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
-    : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price)} € HT par mois, sans engagement`
+    : org.subscriptionStatus === "trialing" ? `Essai jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(due)} € HT le ${trialEnd}` : ""}`
+    : org.subscriptionStatus === "active" ? `Actif · ${euros(due)} € HT ${PERIODS[period].each}${period === "month" ? ", sans engagement" : ""}`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
   const features = (_id?: string) => [
@@ -69,7 +72,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
           <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
           <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
             {(org.plan in PLAN_FEATURES ? PLAN_FEATURES[org.plan as keyof typeof PLAN_FEATURES].yes : features()).map((f) => <li key={f}>{f}</li>)}
-            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(plan.price)} € HT / mois</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}. {Number.isFinite(plan.maxClients) ? <>Pour en suivre plus, <a href="#changer">changez de formule</a> ci-dessous.</> : null}</li>}
+            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(due)} € HT {PERIODS[period].each}</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}. {Number.isFinite(plan.maxClients) ? <>Pour en suivre plus, <a href="#changer">changez de formule</a> ci-dessous.</> : null}</li>}
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>
@@ -108,7 +111,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
                 <div key={id} className={`card price${cur ? " lp-best" : ""}`}>
                   <div className="plan-top"><h2>{p.name}</h2>{cur && <span className="pill win">Votre formule</span>}</div>
                   <div className="amt" style={{ whiteSpace: "nowrap", fontSize: 30 }}>{euros(p.price)} €</div>
-                  <div className="muted small" style={{ margin: "-4px 0 8px" }}>HT / mois · {Number.isFinite(cap) ? `jusqu'à ${cap} commerciaux` : "commerciaux illimités"}</div>
+                  <div className="muted small" style={{ margin: "-4px 0 8px" }}>HT / mois (moins cher au trimestre et à l&apos;année) · {Number.isFinite(cap) ? `jusqu'à ${cap} commerciaux` : "commerciaux illimités"}</div>
                   <ul>{PLAN_FEATURES[id].yes.slice(1, 5).map((t) => <li key={t}>{t}</li>)}</ul>
                   {cur ? <span className="muted small">C&apos;est votre formule actuelle.</span>
                     : tooSmall ? <span className="muted small">Vous suivez {repCount} commerciaux : retirez-en {repCount - cap} avant de passer à cette formule.</span>

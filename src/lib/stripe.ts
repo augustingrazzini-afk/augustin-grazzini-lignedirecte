@@ -2,7 +2,7 @@ import Stripe from "stripe";
 import { createHash } from "node:crypto";
 import { db } from "./db";
 import { open, seal } from "./crypto";
-import { PLANS } from "./billing";
+import { PLANS, type Period } from "./billing";
 
 /**
  * Paiement actif. En production, une clé de TEST ne sert à rien aux vrais clients (leur carte serait refusée) :
@@ -20,8 +20,15 @@ export const stripeEnabled = () => {
  * la clé live n'est pas configurée. Le client paie sur Stripe ; l'éditeur active ensuite le compte depuis « Inscriptions ».
  */
 const isStripeLink = (u?: string) => !!u && /^https:\/\/(buy|billing)\.stripe\.com\//.test(u);
-export function paymentLink(plan: Plan, email: string, orgId: string): string | null {
-  const base = plan === "starter" ? process.env.STRIPE_LINK_STARTER : plan === "premium" ? process.env.STRIPE_LINK_PREMIUM : plan === "agency" ? process.env.STRIPE_LINK_AGENCY : undefined; // anciennes formules Solo : plus vendues
+/** Liens de paiement Stripe (adresses publiques) par formule et par rythme : essai de 7 jours, carte obligatoire. */
+const LINKS: Record<string, Record<Period, string>> = {
+  starter: { month: "https://buy.stripe.com/fZubJ33Xcc48giY8c37bW0c", quarter: "https://buy.stripe.com/cNi6oJbpE4BG6Io2RJ7bW0f", year: "https://buy.stripe.com/9B6dRbctI3xC3wc63V7bW0g" },
+  agency: { month: "https://buy.stripe.com/14AaEZgJY8RW3wc2RJ7bW0d", quarter: "https://buy.stripe.com/6oUbJ3gJY6JO2s80JB7bW0h", year: "https://buy.stripe.com/fZucN7alA1pu8Qwcsj7bW0i" },
+  premium: { month: "https://buy.stripe.com/5kQfZj51ggko4AgfEv7bW0e", quarter: "https://buy.stripe.com/7sY8wRgJYc487Ms9g77bW0j", year: "https://buy.stripe.com/14A6oJfFU8RW7Msdwn7bW0k" },
+};
+export function paymentLink(plan: Plan, email: string, orgId: string, period: Period = "month"): string | null {
+  // Actifs seulement si le paiement par lien est configuré sur cet environnement (anciennes formules Solo : plus vendues).
+  const base = isStripeLink(process.env.STRIPE_LINK_AGENCY) ? LINKS[plan]?.[period] : undefined;
   if (!isStripeLink(base)) return null;
   const u = new URL(base!);
   u.searchParams.set("prefilled_email", email);
@@ -77,6 +84,15 @@ export async function priceFor(plan: Plan): Promise<string> {
   });
   cache.set(plan, price.id);
   return price.id;
+}
+
+/** Rythme de paiement d'un prix Stripe : mensuel, trimestriel (tous les 3 mois) ou annuel. */
+export function periodOf(price: Stripe.Price | undefined | null): Period | null {
+  const r = price?.recurring;
+  if (!r) return null;
+  if (r.interval === "year") return "year";
+  if (r.interval === "month") return r.interval_count === 3 ? "quarter" : r.interval_count === 12 ? "year" : "month";
+  return null;
 }
 
 export function planForPrice(price: Stripe.Price | undefined | null): Plan | null {
@@ -155,6 +171,7 @@ export async function applySubscription(sub: Stripe.Subscription) {
     data: { stripeSubscriptionId: sub.id, stripeCustomerId: customerId, subscriptionStatus: status, ...(plan ? { plan } : {}),
       // Fin de contrat : point de départ du délai de 30 jours avant suppression des données (remis à zéro si l'abonnement reprend).
       endedAt: status === "canceled" ? (org.endedAt ?? new Date()) : null,
+      ...(periodOf(sub.items.data[0]?.price) ? { billingPeriod: periodOf(sub.items.data[0]?.price)! } : {}),
       // Formule Équipe : nombre de commerciaux payés (quantité de l'abonnement).
       seats: Math.max(1, sub.items.data.reduce((n, it) => n + (it.quantity || 0), 0)),
       // Résiliation programmée chez Stripe (portail, tableau de bord) : affichée dans Trustpipe, annulée si le client se ravise.

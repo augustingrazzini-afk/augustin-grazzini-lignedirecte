@@ -1008,3 +1008,6 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .tp-tm { font-size: .4em; font-weight: 700; vertical-align: super; margin-left: .12em; line-height: 0; letter-spacing: 0; font-family: Inter, Arial, sans-serif; }
 /* Longues listes : le navigateur ne dessine que les lignes visibles à l'écran (défilement et affichage immédiats). */
 .list > .item { content-visibility: auto; contain-intrinsic-size: auto 64px; }
+/* Choix du rythme de paiement (mensuel, trimestriel, annuel) */
+.period-toggle button { cursor: pointer; }
+.period-toggle small { font-weight: 400; opacity: .75; }

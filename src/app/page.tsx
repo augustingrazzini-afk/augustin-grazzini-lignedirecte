@@ -1,3 +1,4 @@
+import { SitePrices } from "@/components/client/PlanCards";
 import Link from "next/link";
 import "@fontsource/ibm-plex-mono/400.css";
 import "./studio.css";
@@ -102,7 +103,7 @@ const FAQ: [string, string][] = [
   ["Qu'est-ce que le commercial a à faire ?", "Presque rien. Il reçoit une invitation par email et branche son outil d'appel en 2 minutes (une clé à coller, ou un clic pour Minari). S'il appelle depuis votre outil, il n'a même rien à faire : vous indiquez son nom et ses appels lui sont attribués."],
   ["Le commercial voit-il les appels des autres ?", "Non. Chaque commercial a son espace et ne voit que ses propres appels, ses résumés et son assistant IA. Vous seul (et les managers que vous invitez) voyez toute l'équipe."],
   ["Peut-on réécouter les appels ?", "Oui, avec la formule Premium (Essentiel donne la transcription complète, sans l'audio). Sous la transcription de chaque conversation, un lecteur permet d'écouter l'enregistrement, directement dans Trustpipe et quel que soit l'outil d'appel branché. Une condition : le partage des enregistrements doit être autorisé dans votre outil d'appel (dans Minari : Settings, puis « External call sharing »). C'est un réglage à faire une seule fois ; Trustpipe vous guide depuis la page Sources, et tant qu'il n'est pas fait, chaque appel vous le rappelle."],
-  ["Combien ça coûte ?", `Vous commencez par 7 jours d'essai : la carte est demandée à l'inscription mais n'est débitée qu'au bout de 7 jours, et rien n'est prélevé si vous résiliez avant. Ensuite, un prix fixe par mois pour toute votre équipe, sans engagement : Essentiel à ${euros(PLANS.agency.price)} € HT (jusqu'à 10 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à ${euros(PLANS.premium.price)} € HT (commerciaux illimités, avec en plus l'écoute des enregistrements, le connecteur Claude, les briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à ${euros(PLANS.starter.price)} € HT, limitée à 2 commerciaux.`],
+  ["Combien ça coûte ?", `Vous commencez par 7 jours d'essai : la carte est demandée à l'inscription mais n'est débitée qu'au bout de 7 jours, et rien n'est prélevé si vous résiliez avant. Ensuite, un prix fixe pour toute votre équipe, au mois sans engagement, ou moins cher au trimestre (environ 10 % de moins) et à l'année (2 mois offerts). Au mois : Essentiel à ${euros(PLANS.agency.price)} € HT (jusqu'à 10 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à ${euros(PLANS.premium.price)} € HT (commerciaux illimités, avec en plus l'écoute des enregistrements, le connecteur Claude, les briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à ${euros(PLANS.starter.price)} € HT, limitée à 2 commerciaux.`],
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Le bouton « Connecter Claude » ouvre Claude avec l'adresse de Trustpipe déjà remplie (à la main : connecteur personnalisé, adresse https://trustpipe.fr/api/mcp). Vous confirmez, puis vous autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
@@ -300,19 +301,7 @@ export default async function Home() {
         <div className="st-side"><div className="st-n">06</div><small>Tarifs<br />sans engagement</small></div>
         <div className="st-body">
           <h2 className="st-h2">7 jours d&apos;essai. <span className="st-thin">Puis un prix fixe.</span></h2>
-          <div className="st-pr">
-            {PAID_PLANS.map((id) => (
-              <div key={id} className={id === "agency" ? "best" : id === "starter" ? "low" : ""}>
-                <h3>{PLANS[id].name}<small>{PLAN_FEATURES[id].tag.toUpperCase()}</small></h3>
-                <div className="st-amt">{euros(PLANS[id].price)}€<span>HT / MOIS, TOUTE L&apos;ÉQUIPE</span></div>
-                <ul>
-                  {PLAN_FEATURES[id].yes.map((t) => <li key={t}>{t}</li>)}
-                  {PLAN_FEATURES[id].no.map((t) => <li key={t} className="no">{t}</li>)}
-                </ul>
-                <Link className="b" href={start}>ESSAYER 7 JOURS →</Link>
-              </div>
-            ))}
-          </div>
+          <SitePrices start={start} cards={PAID_PLANS.map((id) => ({ id, name: PLANS[id].name, ...PLAN_FEATURES[id] }))} />
           <p className="st-lead" style={{ fontSize: 16 }}>Exemple : 2 commerciaux internes + 1 freelance + 1 agence tiennent dans la formule Essentiel, soit {euros(PLANS.agency.price)} € HT par mois en tout. Jusqu&apos;à 10 commerciaux en Essentiel ; au-delà, Premium, sans limite.</p>
         </div>
       </section>

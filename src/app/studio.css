@@ -443,3 +443,9 @@
 .st-br.st-sub small { font-size: 12px; }
 .st-br.st-sub .st-rdvn { font-size: 18px; }
 .st-logo .tp-tm { font-size: .5em; font-weight: 700; margin-left: -8px; line-height: 1; font-family: Inter, Arial, sans-serif; align-self: center; position: relative; top: -.6em; }
+.st-period { display: inline-flex; flex-wrap: wrap; margin-top: 28px; border: 1px solid var(--line2); }
+.st-period button { padding: 12px 18px; font-family: var(--mono, monospace); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; background: transparent; color: inherit; border: 0; cursor: pointer; }
+.st-period button + button { border-left: 1px solid var(--line2); }
+.st-period button[aria-pressed="true"] { background: var(--o); color: var(--ink); font-weight: 700; }
+.st-period small { font-size: 10px; opacity: .8; }
+.st-period + .st-pr { margin-top: 16px; }

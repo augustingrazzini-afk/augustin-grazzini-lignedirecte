@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { PLANS, TRIAL_DAYS } from "@/lib/billing";
+import { TRIAL_DAYS, isPeriod } from "@/lib/billing";
 import { applySubscription, stripe, stripeEnabled, webhookSecrets } from "@/lib/stripe";
 
 /**
@@ -35,12 +35,10 @@ export async function POST(req: Request) {
       // Lien de paiement : la formule vient des métadonnées du lien. Les notifications customer.subscription.* qui suivent
       // donnent la date exacte de fin d'essai.
       const plan = ["starter", "agency", "premium", "solo", "solo_plus"].includes(s.metadata?.plan || "") ? s.metadata!.plan : null;
-      // Nombre de commerciaux payés, déduit du montant HT (la notification d'abonnement peut arriver avant celle-ci).
-      const unit = plan && plan in PLANS ? Math.round(PLANS[plan as keyof typeof PLANS].price * 100) : 0;
-      const seats = unit && s.amount_subtotal ? Math.max(1, Math.round(s.amount_subtotal / unit)) : null;
+      const period = isPeriod(s.metadata?.period) ? s.metadata!.period : null;
       await db.organization.update({
         where: { id: s.client_reference_id },
-        data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), ...(seats ? { seats } : {}),
+        data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), ...(period ? { billingPeriod: period } : {}),
           // Essai de 7 jours : rien n'est débité à la souscription, le premier prélèvement arrive à la fin de l'essai.
           ...(s.payment_status === "no_payment_required" ? { subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 864e5) } : { subscriptionStatus: "active" }) },
       }).catch((e) => console.error("webhook lien de paiement", e));
