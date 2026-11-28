@@ -26,7 +26,7 @@ export async function Sources({ scope }: { scope: Scope }) {
   const withAudio = integrations.length ? await db.call.groupBy({ by: ["integrationId"], where: { integrationId: { in: integrations.map((i) => i.id) }, OR: [{ recordingUrl: { not: null } }, { recordingKey: { not: null } }] }, _count: { _all: true } }) : [];
   const audioCount = new Map(withAudio.map((x) => [x.integrationId, x._count._all]));
   const CH: Record<string, string> = { call: "appels", email: "email", linkedin: "LinkedIn" };
-  const providers: ProviderInfo[] = providerList.filter((p) => ["minari", "skipcall", "lemlist", "aircall", "ringover", "justcall", "allo", "dialpad", "close", "salesloft", "apollo", "gong", "hubspot", "custom", "webhook"].includes(p.id)).map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
+  const providers: ProviderInfo[] = providerList.filter((p) => ["minari", "skipcall", "lemlist", "aircall", "ringover", "justcall", "allo", "dialpad", "close", "salesloft", "apollo", "gong", "custom", "webhook"].includes(p.id)).map((p) => ({ id: p.id, label: p.label, beta: p.beta, help: `${p.help} Canaux : ${p.channels.map((c) => CH[c]).join(", ")}.`, channels: p.channels, fields: p.credentialFields }));
   const app = process.env.APP_URL || "http://localhost:3000";
   return (
     <div className="stack">

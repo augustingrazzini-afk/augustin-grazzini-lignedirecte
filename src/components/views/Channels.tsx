@@ -65,7 +65,7 @@ export async function ChannelView({ scope, base, days, channel, filter, readOnly
   const acts = await windowActivities(scope, days, channel);
   if (!acts.length) {
     return <div className="card"><div className="empty"><b>Pas encore d&apos;activité {channel === "email" ? "email" : "LinkedIn"} sur cette période</b>
-      {readOnly ? "Les envois et les réponses apparaîtront ici dès qu'ils auront lieu." : <>Connectez lemlist, Instantly, Smartlead, HubSpot ou n&apos;importe quel outil via Zapier/Make, ou importez un CSV, depuis <Link href={`${base}/sources`}>Sources</Link>.</>}</div></div>;
+      {readOnly ? "Les envois et les réponses apparaîtront ici dès qu'ils auront lieu." : <>Connectez lemlist, Instantly, Smartlead ou n&apos;importe quel outil via Zapier/Make, ou importez un CSV, depuis <Link href={`${base}/sources`}>Sources</Link>.</>}</div></div>;
   }
   const isEmail = channel === "email";
   const e = emailStats(acts), l = linkedinStats(acts);

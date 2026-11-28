@@ -85,7 +85,7 @@ const BOSS = [
   ["Vos rendez-vous préparés", "Avant chaque rendez-vous : ce que le prospect a dit, ce qui bloque, l'angle à prendre."],
 ] as const;
 
-const DIALERS = ["Minari", "lemlist", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "HubSpot", "Skipcall"];
+const DIALERS = ["Minari", "lemlist", "Aircall", "Ringover", "JustCall", "Allo", "Dialpad", "Close", "Salesloft", "Apollo", "Gong", "Skipcall"];
 
 /** Arguments de confiance : uniquement ce qui est réellement en place. */
 const SECURITY = [
@@ -106,7 +106,7 @@ const FAQ: [string, string][] = [
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Le bouton « Connecter Claude » ouvre Claude avec l'adresse de Trustpipe déjà remplie (à la main : connecteur personnalisé, adresse https://trustpipe.fr/api/mcp). Vous confirmez, puis vous autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
-  ["Quels outils d'appel sont compatibles ?", "Minari, lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez l'adresse de son API et sa clé. Zapier, Make, n8n et l'import CSV marchent aussi."],
+  ["Quels outils d'appel sont compatibles ?", "Minari, lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo et Gong se connectent directement. Pour tout autre outil, collez l'adresse de son API et sa clé. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
 export default async function Home() {

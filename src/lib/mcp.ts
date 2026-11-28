@@ -18,8 +18,6 @@ export const MCP_SERVERS: Record<string, { url: string; label: string; preset?: 
   dialpad: { url: "https://mcp.dialpad.com/mcp", label: "Dialpad" },
   gong: { url: "https://mcp.gong.io/mcp", label: "Gong" },
   salesloft: { url: "https://mcp.salesloft.com/mcp", label: "Salesloft" },
-  // Sans inscription automatique : application à créer chez l'éditeur, identifiants dans HUBSPOT_MCP_CLIENT_ID / _SECRET.
-  hubspot: { url: "https://mcp.hubspot.com/", label: "HubSpot", preset: "HUBSPOT" },
 };
 
 /** Identifiants d'application fournis par l'éditeur (outils sans inscription automatique). */

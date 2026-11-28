@@ -1,6 +1,5 @@
 import { callTool, listTools, type McpCreds, type McpTool } from "../mcp";
 import { mapLemlist } from "./lemlist";
-import { mapHubspot } from "./hubspot";
 import { ProviderError, str, stripHtml, toDate, type NormalizedCall, type Provider } from "./types";
 
 /**
@@ -100,17 +99,8 @@ export function mapGeneric(r: any): NormalizedCall | null {
 }
 
 /** Vérifie la connexion : la session MCP s'ouvre et l'outil propose bien une liste d'appels. */
-const HS_PROPS = ["hs_call_title", "hs_call_body", "hs_call_duration", "hs_call_disposition", "hs_call_direction", "hs_timestamp", "hs_call_recording_url", "hs_call_status", "hubspot_owner_id"];
-const hsArgs = (since: Date, offset?: number) => ({
-  objectType: "CALL", limit: 100, properties: HS_PROPS, ...(offset ? { offset } : {}),
-  filterGroups: [{ filters: [{ propertyName: "hs_timestamp", operator: "GTE", value: String(since.getTime()) }] }],
-  sorts: [{ propertyName: "hs_timestamp", direction: "ASCENDING" }],
-  chatInsights: { userIntent: "Synchronisation des appels vers Trustpipe", satisfaction: "NEUTRAL" },
-});
-
 async function test(id: string, label: string, c: McpCreds) {
   if (id === "lemlist") { await callTool(c, label, "get_call_activities", { limit: 1 }); return; }
-  if (id === "hubspot") { await callTool(c, label, "search_crm_objects", { ...hsArgs(new Date(Date.now() - 864e5)), limit: 1 }); return; }
   const tools = await listTools(c, label);
   if (!pickCallTool(tools)) throw new ProviderError(`${label} est bien connecté, mais son accès en un clic ne donne pas encore la liste des appels. Utilisez une clé API pour l'instant.`);
 }
@@ -122,17 +112,6 @@ async function* list(id: string, label: string, c: McpCreds, since: Date): Async
       const rows = rowsOf(res);
       yield rows.map((a) => mapLemlist({ ...a, transcriptSummary: a?.transcriptSummary })).filter((x): x is NormalizedCall => !!x);
       if (rows.length < 100 || page >= Number(res?.pagination?.totalPages || page)) break;
-    }
-    return;
-  }
-  if (id === "hubspot") {
-    let offset: number | undefined;
-    for (let page = 1; page <= MAX_PAGES; page++) {
-      const res = await callTool(c, label, "search_crm_objects", hsArgs(since, offset));
-      const rows = rowsOf(res);
-      yield rows.map(mapHubspot);
-      offset = Number(res?.offset || res?.paging?.next?.after) || undefined;
-      if (rows.length < 100 || !offset) break;
     }
     return;
   }

@@ -50,7 +50,7 @@ test("lien protégé : la clé n'est envoyée qu'au domaine de l'outil", async (
 });
 
 test("tous les outils d'appel branchés savent lire leur enregistrement", () => {
-  for (const id of ["minari", "aircall", "ringover", "allo", "salesloft", "apollo", "gong", "hubspot", "skipcall", "lemlist", "justcall", "dialpad", "close", "custom"])
+  for (const id of ["minari", "aircall", "ringover", "allo", "salesloft", "apollo", "gong", "skipcall", "lemlist", "justcall", "dialpad", "close", "custom"])
     assert.equal(typeof getProvider(id).fetchAudio, "function", id);
 });
 
