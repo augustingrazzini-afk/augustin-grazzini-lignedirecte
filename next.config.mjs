@@ -3,6 +3,10 @@ const nextConfig = {
   poweredByHeader: false,
   experimental: { serverActions: { bodySizeLimit: "10mb" } },
   // En-têtes de sécurité : pas d'affichage dans un cadre tiers, pas de devinette de type, référent limité.
+  // Ancienne adresse de la page de paiement : les liens déjà envoyés et les retours de paiement continuent de marcher.
+  async redirects() {
+    return [{ source: "/essai", destination: "/paiement", permanent: true }, { source: "/essai/:path*", destination: "/paiement/:path*", permanent: true }];
+  },
   async headers() {
     const base = [
       { key: "X-Frame-Options", value: "DENY" },

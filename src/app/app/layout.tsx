@@ -19,7 +19,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const scope = await requireOrgScope();
   const [user, org, follow] = await Promise.all([currentUser(), db.organization.findUniqueOrThrow({ where: { id: scope.orgId } }), countDueTasks(scope)]);
   // Pas d'essai gratuit : l'accès s'ouvre une fois la formule payée.
-  if (!org.stripeSubscriptionId && cardRequired()) redirect("/essai");
+  if (!org.stripeSubscriptionId && cardRequired()) redirect("/paiement");
   const days = Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5);
   let banner: React.ReactNode = null;
   if (!isActive(org)) banner = <div className="banner err"><div><b>Votre abonnement n&apos;est plus actif.</b> Vos données restent consultables. <Link href="/app/billing">Choisir une formule</Link> pour continuer à synchroniser et utiliser l&apos;IA.</div></div>;

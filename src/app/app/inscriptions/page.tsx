@@ -35,8 +35,8 @@ export default async function Page() {
   ]);
   // Affluence du site (compteur maison, sans cookie) : 30 derniers jours.
   const today = new Date(now).toISOString().slice(0, 10), week = new Date(now - 6 * 864e5).toISOString().slice(0, 10);
-  const sum = (k: string, from = "") => visits.filter((v) => v.key === k && v.day >= from).reduce((n, v) => n + v.count, 0);
-  const funnel: [string, string][] = [["Accueil", "visit:/"], ["Page d'inscription", "visit:/inscription"], ["Page de paiement", "visit:/essai"]];
+  const sum = (k: string, from = "") => visits.filter((v) => (v.key === k || (k === "visit:/paiement" && v.key === "visit:/essai")) && v.day >= from).reduce((n, v) => n + v.count, 0);
+  const funnel: [string, string][] = [["Accueil", "visit:/"], ["Page d'inscription", "visit:/inscription"], ["Page de paiement", "visit:/paiement"]];
   const days = Array.from({ length: 14 }, (_, i) => new Date(now - (13 - i) * 864e5).toISOString().slice(0, 10));
   const perDay = days.map((day) => ({ day, n: visits.filter((v) => v.key === "visit:/" && v.day === day).reduce((n, v) => n + v.count, 0) }));
   const maxDay = Math.max(1, ...perDay.map((x) => x.n));

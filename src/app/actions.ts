@@ -139,7 +139,7 @@ export async function createOrganization(_: FormState, f: FormData): Promise<For
   await db.organization.create({
     data: { name, offer: s(f, "offer", 2000), trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 864e5), members: { create: { userId: u.id, role: "owner" } } },
   });
-  redirect("/essai");
+  redirect("/paiement");
 }
 
 async function writableOrg(clientFilter?: string | null) {

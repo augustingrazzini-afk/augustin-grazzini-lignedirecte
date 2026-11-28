@@ -11,16 +11,16 @@ export async function GET(req: Request) {
   const id = new URL(req.url).searchParams.get("session_id") || "";
   const u = await currentUser();
   const org = u?.memberships[0]?.org;
-  if (!u || !org || !stripeEnabled() || !id.startsWith("cs_")) return NextResponse.redirect(new URL("/essai", app), 303);
+  if (!u || !org || !stripeEnabled() || !id.startsWith("cs_")) return NextResponse.redirect(new URL("/paiement", app), 303);
   try {
     const s = await stripe().checkout.sessions.retrieve(id, { expand: ["subscription"] });
     if (s.client_reference_id !== org.id || s.status !== "complete" || !s.subscription || typeof s.subscription === "string") {
-      return NextResponse.redirect(new URL("/essai?erreur=1", app), 303);
+      return NextResponse.redirect(new URL("/paiement?erreur=1", app), 303);
     }
     await applySubscription(s.subscription);
   } catch (e) {
     console.error("retour checkout", e);
-    return NextResponse.redirect(new URL("/essai?erreur=1", app), 303);
+    return NextResponse.redirect(new URL("/paiement?erreur=1", app), 303);
   }
   return NextResponse.redirect(new URL("/app/sources?bienvenue=1", app), 303);
 }

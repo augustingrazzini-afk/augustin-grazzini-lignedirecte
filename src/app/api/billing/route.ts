@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     await ensureWebhook(app).catch((e) => console.error("webhook stripe", e));
   } catch (e) {
     console.error("stripe prix", e);
-    return NextResponse.redirect(new URL(org.stripeSubscriptionId ? "/app/billing?erreur=1" : "/essai?erreur=1", app), 303);
+    return NextResponse.redirect(new URL(org.stripeSubscriptionId ? "/app/billing?erreur=1" : "/paiement?erreur=1", app), 303);
   }
   // Premier abonnement d'un espace : l'essai gratuit démarre ici, carte enregistrée mais non débitée pendant l'essai.
   const trialDays = !org.stripeSubscriptionId ? Math.min(TRIAL_DAYS, Math.ceil((org.trialEndsAt.getTime() - Date.now()) / 864e5)) : 0;
@@ -55,8 +55,8 @@ export async function POST(req: Request) {
     allow_promotion_codes: true,
     billing_address_collection: "required",
     tax_id_collection: { enabled: true },
-    success_url: startTrial || !org.stripeSubscriptionId ? `${app}/essai/retour?session_id={CHECKOUT_SESSION_ID}` : `${app}/app/billing?ok=1`,
-    cancel_url: org.stripeSubscriptionId ? `${app}/app/billing` : `${app}/essai`,
+    success_url: startTrial || !org.stripeSubscriptionId ? `${app}/paiement/retour?session_id={CHECKOUT_SESSION_ID}` : `${app}/app/billing?ok=1`,
+    cancel_url: org.stripeSubscriptionId ? `${app}/app/billing` : `${app}/paiement`,
   });
   return NextResponse.redirect(session.url!, 303);
 }

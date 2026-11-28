@@ -31,7 +31,7 @@ const pb = await page(boss.id);
 await pb.goto(BASE + "/onboarding");
 await pb.fill("input[name=name]", "Nova Logiciels " + tag);
 await pb.click("button:has-text('Créer mon espace')");
-await pb.waitForURL(/essai/, { timeout: 20000 }).catch(() => issues.push("onboarding: pas redirigé vers /essai (" + pb.url() + ")"));
+await pb.waitForURL(/paiement/, { timeout: 20000 }).catch(() => issues.push("onboarding: pas redirigé vers /paiement (" + pb.url() + ")"));
 const forms = await pb.locator("form.price").count();
 if (forms !== 3) issues.push("essai: " + forms + " formules au lieu de 3");
 const actions = await pb.locator("form.price").evaluateAll((fs: any[]) => fs.map((f) => f.action + "|" + [...new FormData(f).entries()].map(([k, v]: any) => k + "=" + v).join("&")));
