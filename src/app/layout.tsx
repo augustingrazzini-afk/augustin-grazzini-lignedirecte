@@ -24,7 +24,7 @@ export const viewport: Viewport = { themeColor: "#0B122F", width: "device-width"
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body>{children}<Analytics /></body>
+      <body className="theme-light">{children}<Analytics /></body>
     </html>
   );
 }

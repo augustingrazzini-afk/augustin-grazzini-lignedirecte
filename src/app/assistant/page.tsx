@@ -56,7 +56,7 @@ export default function Page() {
         <div className="st-body">
           <div className="st-hero2">
             <div>
-              <span className="st-aitag"><span className="st-dot" />FORMULE PREMIUM</span>
+              <span className="st-aitag"><span className="st-dot" />INCLUS DÈS ESSENTIEL</span>
               <h1 className="st-h1" style={{ fontSize: "clamp(40px, 5.2vw, 80px)" }}>L&apos;assistant IA.<br /><span className="st-thin">Il a écouté</span><br /><span className="st-o">chaque appel.</span></h1>
               <p className="st-lead" style={{ fontSize: 19 }}>Dans Trustpipe, un assistant IA a écouté chaque appel de chacun de vos commerciaux : salariés, freelances, agences. Vous lui posez vos questions en français, il répond en quelques secondes à partir des vrais appels.</p>
               <div className="st-btns" style={{ maxWidth: 440, marginTop: 28 }}>

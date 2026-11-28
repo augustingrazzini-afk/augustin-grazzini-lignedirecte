@@ -946,3 +946,4 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .btn, .chip, .st-btn, .st-go, .tabbar a, .tab-plus, .nav a, .item { transition: transform .08s ease, background-color .15s ease, filter .15s ease; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .btn:active, .chip:active, .st-btn:active, .st-go:active, .tab-plus:active { transform: scale(.97); filter: brightness(.96); }
 .listen > div.lp { flex: 1 1 100%; flex-direction: row; align-items: center; gap: 12px; }
+.theme-light .lp-nav { background: rgba(238,229,214,.92) !important; border-bottom: 1px solid var(--stroke); }
