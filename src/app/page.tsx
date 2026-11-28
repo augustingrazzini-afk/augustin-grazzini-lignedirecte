@@ -69,12 +69,18 @@ const BOARD = [
   ["Karim Benali", "Freelance", 74, "14 %", 7, 2],
   ["Prospectio", "Agence · 3 SDR", 154, "9 %", 12, 1],
 ] as const;
+/** Les 3 SDR de l'agence d'exemple : leurs chiffres s'additionnent pour donner la ligne « Prospectio ». */
+const AGENCY_TEAM = [
+  ["Hugo", 62, "11 %", 7, 1],
+  ["Inès", 51, "8 %", 3, 0],
+  ["Marc", 41, "7 %", 2, 0],
+] as const;
 
 const BOSS = [
   ["Tous vos commerciaux au même endroit", "Salariés, freelances, agences de prospection : chacun branche son outil d'appel, tout arrive chez vous."],
   ["Chaque appel, en direct", "Qui a été appelé, ce qui s'est dit, le résultat. Dans la minute qui suit l'appel, sans rien demander."],
   ["Un classement honnête", "Appels, décrochés, conversations, rendez-vous : par commercial, par jour, semaine ou mois."],
-  ["Vos prestataires sous contrôle", "Freelance ou agence : vous voyez le travail réellement fait, appel par appel, pas un reporting arrangé."],
+  ["Vos prestataires sous contrôle", "Freelance ou agence : vous voyez le travail réellement fait, appel par appel, pas un reporting arrangé. Dans une agence, chaque SDR a sa ligne : qui appelle, et qui prend les rendez-vous."],
   ["Vous écoutez chaque appel", "Ouvrez n'importe quel appel de n'importe quel commercial : le résumé, la transcription et les objections. En Premium, vous réécoutez aussi l'enregistrement."],
   ["Vos rendez-vous préparés", "Avant chaque rendez-vous : ce que le prospect a dit, ce qui bloque, l'angle à prendre."],
 ] as const;
@@ -202,6 +208,10 @@ export default async function Home() {
             <div className="st-br st-bh"><span>#</span><span>Commercial</span><span>Appels</span><span>Décroché</span><span>Conversations</span><span>RDV</span></div>
             {BOARD.map(([n, k, a, d, c, r], i) => (
               <div key={n} className="st-br"><span className="st-o">{i + 1}</span><span><b>{n}</b><small>{k}</small></span><span>{a}</span><span>{d}</span><span>{c}</span><span className="st-rdvn">{r}</span></div>
+            ))}
+            {/* Une agence n'est pas une boîte noire : chaque personne qui appelle pour elle a sa ligne. */}
+            {AGENCY_TEAM.map(([n, a, d, c, r]) => (
+              <div key={n} className="st-br st-sub"><span aria-hidden="true">↳</span><span><b>{n}</b><small>SDR chez Prospectio</small></span><span>{a}</span><span>{d}</span><span>{c}</span><span className="st-rdvn">{r}</span></div>
             ))}
           </div>
           <div className="st-trx" aria-label="Exemple : la transcription et le résumé d'un appel">

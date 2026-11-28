@@ -435,3 +435,10 @@
 .st-logo { font-size: 24px; letter-spacing: 0; }
 @media (max-width: 680px) { .st-logo { font-size: 19px; } }
 @media (max-width: 360px) { .st-logo { font-size: 16px; } }
+
+/* Détail des SDR d'une agence, sous sa ligne du classement */
+.st-br.st-sub { padding-top: 9px; padding-bottom: 9px; background: rgba(22, 19, 15, .03); color: var(--soft); }
+.st-br.st-sub > :first-child { color: var(--dim); font-weight: 400; text-align: right; }
+.st-br.st-sub b { font-size: 14.5px; font-weight: 500; }
+.st-br.st-sub small { font-size: 12px; }
+.st-br.st-sub .st-rdvn { font-size: 18px; }
