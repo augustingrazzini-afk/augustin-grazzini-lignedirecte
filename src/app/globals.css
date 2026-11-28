@@ -1004,3 +1004,5 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .ob-tile em { font-style: normal; font-weight: 400; font-size: 12px; color: var(--muted); }
 .ob-locked { opacity: .55; }
 @media (max-width: 760px) { .ob-two, .ob-grid { grid-template-columns: 1fr; } .ob-card { padding: 18px; } .ob-actions { justify-content: stretch; } .ob-actions > * { flex: 1; text-align: center; } }
+/* Marque revendiquée (™), discrète à côté du logo */
+.tp-tm { font-size: .4em; font-weight: 700; vertical-align: super; margin-left: .12em; line-height: 0; letter-spacing: 0; font-family: Inter, Arial, sans-serif; }

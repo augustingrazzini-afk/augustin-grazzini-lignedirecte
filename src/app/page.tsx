@@ -119,7 +119,7 @@ export default async function Home() {
       <VisitBeacon page="/" />
 
       <header className="st-rail">
-        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil">TRUSTPIPE</Link>
+        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil">TRUSTPIPE<sup className="tp-tm" aria-label="marque">™</sup></Link>
         <nav className="st-links" aria-label="Sections">
           <a href="#demo">Démo</a>
           <a href="#equipe">Votre équipe</a>

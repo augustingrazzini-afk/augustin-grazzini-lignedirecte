@@ -46,7 +46,7 @@ export default function Page() {
     <div className="studio">
       <VisitBeacon page="/assistant" />
       <header className="st-rail">
-        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil">TRUSTPIPE</Link>
+        <Link href="/" className="st-logo" aria-label="Trustpipe, accueil">TRUSTPIPE<sup className="tp-tm" aria-label="marque">™</sup></Link>
         <nav className="st-links" aria-label="Sections"><a href="#comment">Comment ça marche</a><a href="#capacites">Ce qu&apos;il sait faire</a><a href="#questions">Questions</a><Link className="st-push st-keep" href="/login">Connexion</Link></nav>
         <Link className="st-go" href="/inscription">COMMENCER <span aria-hidden="true">→</span></Link>
       </header>

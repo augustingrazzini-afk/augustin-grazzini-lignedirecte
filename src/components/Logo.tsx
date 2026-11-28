@@ -23,7 +23,7 @@ export function LogoMark({ size = 36 }: { size?: number; onDark?: boolean }) {
 export function Logo({ size = 22, onDark = false }: { size?: number; onDark?: boolean; by?: boolean }) {
   return (
     <span className="tp-logo" style={{ fontSize: size }}>
-      <span className="tp-word" style={{ color: onDark ? "#EDE9E1" : "var(--ink, #140700)", fontFamily: "\"Unbounded Variable\", \"Arial Black\", sans-serif", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".01em", fontSize: "1.25em", lineHeight: 1 }}>Trustpipe</span>
+      <span className="tp-word" style={{ color: onDark ? "#EDE9E1" : "var(--ink, #140700)", fontFamily: "\"Unbounded Variable\", \"Arial Black\", sans-serif", fontWeight: 900, textTransform: "uppercase", letterSpacing: ".01em", fontSize: "1.25em", lineHeight: 1 }}>Trustpipe<sup className="tp-tm" aria-label="marque">™</sup></span>
     </span>
   );
 }
