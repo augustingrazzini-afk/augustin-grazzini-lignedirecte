@@ -27,7 +27,7 @@ export const PLAN_CAP: Record<string, number> = { starter: 2, agency: 4, premium
 export const PREMIUM_EXTRAS = ["Jusqu'à 10 commerciaux", "Écoute de chaque appel", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
 /**
  * Fonctions Premium (briefs, débriefs, transcription par Trustpipe, connecteur Claude) :
- * réservées à Premium (et aux anciennes formules). Il n'y a pas d'essai gratuit : un nouvel espace paie sa formule avant d'entrer.
+ * réservées à Premium (et aux anciennes formules). Essai de 7 jours avec carte enregistrée : l'espace choisit sa formule avant d'entrer, le premier prélèvement a lieu au bout de 7 jours.
  */
 export const hasPremium = (org: { plan: string }) => org.plan !== "agency" && org.plan !== "starter";
 /** Analyse IA des appels (résumés, objections, relances automatiques) et assistant IA : tout sauf Découverte. */
@@ -42,7 +42,8 @@ export type PlanId = keyof typeof PLANS;
 /** Prix affiché à la française : 24,99 ou 50. */
 export const euros = (n: number) => n.toLocaleString("fr-FR", { minimumFractionDigits: Number.isInteger(n) ? 0 : 2, maximumFractionDigits: 2 });
 
-export const TRIAL_DAYS = 14;
+/** Essai de 7 jours : la carte est enregistrée à la souscription, le premier prélèvement a lieu à la fin de l'essai. */
+export const TRIAL_DAYS = 7;
 
 /** L'espace est utilisable (essai en cours ou abonnement actif). Sinon : lecture seule. */
 export function isActive(org: Pick<Organization, "subscriptionStatus" | "trialEndsAt">): boolean {

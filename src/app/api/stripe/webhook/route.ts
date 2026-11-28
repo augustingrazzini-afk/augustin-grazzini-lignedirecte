@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { db } from "@/lib/db";
-import { PLANS } from "@/lib/billing";
+import { PLANS, TRIAL_DAYS } from "@/lib/billing";
 import { applySubscription, stripe, stripeEnabled, webhookSecrets } from "@/lib/stripe";
 
 /**
@@ -32,15 +32,17 @@ export async function POST(req: Request) {
       if (s.client_reference_id && customer) await db.organization.update({ where: { id: s.client_reference_id }, data: { stripeCustomerId: customer } }).catch(() => {});
       if (subId) await applySubscription(await stripe().subscriptions.retrieve(subId));
     } else if (s.client_reference_id) {
-      // Lien de paiement : abonnement actif dès le paiement, la formule vient des métadonnées du lien.
-      // (Les notifications customer.subscription.* qui suivent corrigent le statut si le lien inclut encore un essai.)
+      // Lien de paiement : la formule vient des métadonnées du lien. Les notifications customer.subscription.* qui suivent
+      // donnent la date exacte de fin d'essai.
       const plan = ["starter", "agency", "premium", "solo", "solo_plus"].includes(s.metadata?.plan || "") ? s.metadata!.plan : null;
       // Nombre de commerciaux payés, déduit du montant HT (la notification d'abonnement peut arriver avant celle-ci).
       const unit = plan && plan in PLANS ? Math.round(PLANS[plan as keyof typeof PLANS].price * 100) : 0;
       const seats = unit && s.amount_subtotal ? Math.max(1, Math.round(s.amount_subtotal / unit)) : null;
       await db.organization.update({
         where: { id: s.client_reference_id },
-        data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), ...(seats ? { seats } : {}), subscriptionStatus: "active" },
+        data: { ...(customer ? { stripeCustomerId: customer } : {}), ...(subId ? { stripeSubscriptionId: subId } : {}), ...(plan ? { plan } : {}), ...(seats ? { seats } : {}),
+          // Essai de 7 jours : rien n'est débité à la souscription, le premier prélèvement arrive à la fin de l'essai.
+          ...(s.payment_status === "no_payment_required" ? { subscriptionStatus: "trialing", trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 864e5) } : { subscriptionStatus: "active" }) },
       }).catch((e) => console.error("webhook lien de paiement", e));
     }
   } else if (event.type.startsWith("customer.subscription.")) {

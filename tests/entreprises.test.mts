@@ -165,3 +165,23 @@ test("menu : cadenas selon la formule", async () => {
   assert.deepEqual(of("premium"), []);
   assert.deepEqual(of("trial"), [], "l'essai garde tout ouvert");
 });
+
+test("essai de 7 jours : carte enregistrée, accès ouvert, rien de débité", async () => {
+  process.env.STRIPE_LINK_WEBHOOK_SECRET = "whsec_test_entreprises";
+  delete process.env.STRIPE_SECRET_KEY;
+  const Stripe = (await import("stripe")).default;
+  const hook = await import("../src/app/api/stripe/webhook/route");
+  const o3 = await db.organization.create({ data: { name: `Essai ${tag}`, trialEndsAt: new Date(Date.now() - 864e5) } });
+  try {
+    assert.equal(billing.TRIAL_DAYS, 7);
+    const payload = JSON.stringify({ id: "evt_e", object: "event", type: "checkout.session.completed", data: { object: { object: "checkout.session", client_reference_id: o3.id, customer: `cus_e${tag}`, subscription: `sub_e${tag}`, metadata: { plan: "agency" }, amount_subtotal: 0, payment_status: "no_payment_required" } } });
+    const header = new Stripe("sk_x").webhooks.generateTestHeaderString({ payload, secret: process.env.STRIPE_LINK_WEBHOOK_SECRET! });
+    assert.equal((await hook.POST(new Request("https://trustpipe.test/api/stripe/webhook", { method: "POST", headers: { "stripe-signature": header }, body: payload }))).status, 200);
+    const o = await db.organization.findUniqueOrThrow({ where: { id: o3.id } });
+    assert.deepEqual([o.plan, o.subscriptionStatus], ["agency", "trialing"]);
+    const left = (o.trialEndsAt.getTime() - Date.now()) / 864e5;
+    assert.ok(left > 6.9 && left <= 7, `fin d'essai dans 7 jours (${left.toFixed(2)})`);
+    assert.equal(billing.isActive(o), true, "l'espace est utilisable pendant l'essai");
+    assert.equal(billing.isActive({ ...o, trialEndsAt: new Date(Date.now() - 1000) }), false, "essai dépassé sans paiement : lecture seule");
+  } finally { await db.organization.delete({ where: { id: o3.id } }); }
+});

@@ -8,7 +8,7 @@ import { PageTop } from "@/components/Shell";
 import { requestCancel } from "@/app/actions";
 
 export const metadata = { title: "Abonnement" };
-const STATUS: Record<string, string> = { trialing: "Accès provisoire", active: "Actif", past_due: "Paiement en échec", canceled: "Résilié" };
+const STATUS: Record<string, string> = { trialing: "Essai en cours", active: "Actif", past_due: "Paiement en échec", canceled: "Résilié" };
 
 export default async function Page({ searchParams }: { searchParams: Promise<{ ok?: string; cancelled?: string; resumed?: string; err?: string }> }) {
   const scope = await requireOrgScope();
@@ -33,7 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const subscribed = !!subId && org.subscriptionStatus !== "canceled";
   const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   const statusLine = offered ? "Accès offert"
-    : org.subscriptionStatus === "trialing" ? `Accès provisoire jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
+    : org.subscriptionStatus === "trialing" ? `Essai jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
     : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price)} € HT par mois, sans engagement`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
@@ -47,7 +47,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   return (
     <>
       <PageTop title="Abonnement" subtitle={subscribed ? `${plan.name} · ${STATUS[org.subscriptionStatus] || ""}` : "Choisissez votre formule"} />
-      {(ok || (sp as any).paye) && <div className="banner ok">Merci ! Votre carte est enregistrée et votre abonnement est actif.</div>}
+      {(ok || (sp as any).paye) && <div className="banner ok">Merci ! Votre carte est enregistrée : vos 7 jours d'essai démarrent, rien n'est débité avant leur terme.</div>}
       {sp.cancelled && <div className="banner ok">C&apos;est noté : votre abonnement est résilié{endDate ? ` et prendra fin le ${endDate}` : ""}. Aucun autre prélèvement ne sera fait. Vous gardez l&apos;accès jusque-là.</div>}
       {sp.resumed && <div className="banner ok">Votre abonnement continue normalement.</div>}
       {sp.err && <div className="banner err">La demande n&apos;a pas abouti. Réessayez ou écrivez-nous.</div>}

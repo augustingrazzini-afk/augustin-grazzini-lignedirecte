@@ -96,7 +96,7 @@ const FAQ: [string, string][] = [
   ["Qu'est-ce que le commercial a à faire ?", "Presque rien. Il reçoit une invitation par email et branche son outil d'appel en 2 minutes (une clé à coller, ou un clic pour Minari). S'il appelle depuis votre outil, il n'a même rien à faire : vous indiquez son nom et ses appels lui sont attribués."],
   ["Le commercial voit-il les appels des autres ?", "Non. Chaque commercial a son espace et ne voit que ses propres appels, ses résumés et son assistant IA. Vous seul (et les managers que vous invitez) voyez toute l'équipe."],
   ["Peut-on réécouter les appels ?", "Oui, avec la formule Premium (Essentiel donne la transcription complète, sans l'audio). Sous la transcription de chaque conversation, un lecteur permet d'écouter l'enregistrement, directement dans Trustpipe et quel que soit l'outil d'appel branché. Une condition : le partage des enregistrements doit être autorisé dans votre outil d'appel (dans Minari : Settings, puis « External call sharing »). C'est un réglage à faire une seule fois ; Trustpipe vous guide depuis la page Sources, et tant qu'il n'est pas fait, chaque appel vous le rappelle."],
-  ["Combien ça coûte ?", `Un prix fixe par mois pour toute votre équipe, sans engagement : Essentiel à ${euros(PLANS.agency.price)} € HT (jusqu'à 4 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à ${euros(PLANS.premium.price)} € HT (jusqu'à 10 commerciaux, avec en plus l'écoute des enregistrements, le connecteur Claude, les briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à ${euros(PLANS.starter.price)} € HT, limitée à 2 commerciaux. Plus de 10 commerciaux : écrivez-nous pour un devis.`],
+  ["Combien ça coûte ?", `Vous commencez par 7 jours d'essai : la carte est demandée à l'inscription mais n'est débitée qu'au bout de 7 jours, et rien n'est prélevé si vous résiliez avant. Ensuite, un prix fixe par mois pour toute votre équipe, sans engagement : Essentiel à ${euros(PLANS.agency.price)} € HT (jusqu'à 4 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à ${euros(PLANS.premium.price)} € HT (jusqu'à 10 commerciaux, avec en plus l'écoute des enregistrements, le connecteur Claude, les briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à ${euros(PLANS.starter.price)} € HT, limitée à 2 commerciaux. Plus de 10 commerciaux : écrivez-nous pour un devis.`],
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
   ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Le bouton « Connecter Claude » ouvre Claude avec l'adresse de Trustpipe déjà remplie (à la main : connecteur personnalisé, adresse https://trustpipe.fr/api/mcp). Vous confirmez, puis vous autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
@@ -136,7 +136,7 @@ export default async function Home() {
                 <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Transcriptions, résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
                 <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « que s&apos;est-il dit aujourd&apos;hui ? », « où perd-on le prospect ? »</span><span aria-hidden="true">→</span></Link>
                 <Link className="st-aipill" href="#claude" style={{ marginTop: 10 }}><span className="st-aiic logo"><ClaudeLogo size={24} /></span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
-                <p className="st-note">SANS ENGAGEMENT · PRIX FIXE PAR MOIS · DONNÉES EN FRANCE</p>
+                <p className="st-note">7 JOURS D&apos;ESSAI · SANS ENGAGEMENT · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
                 <Link className="st-btn p" href={start}>{u ? "OUVRIR MON ESPACE" : "SUIVRE MES COMMERCIAUX"} <span aria-hidden="true">→</span></Link>
@@ -288,7 +288,7 @@ export default async function Home() {
       <section id="tarifs" className="st-sec">
         <div className="st-side"><div className="st-n">06</div><small>Tarifs<br />sans engagement</small></div>
         <div className="st-body">
-          <h2 className="st-h2">Un prix fixe. <span className="st-thin">Résiliable en un clic.</span></h2>
+          <h2 className="st-h2">7 jours d&apos;essai. <span className="st-thin">Puis un prix fixe.</span></h2>
           <div className="st-pr">
             {PAID_PLANS.map((id) => (
               <div key={id} className={id === "agency" ? "best" : id === "starter" ? "low" : ""}>
@@ -298,7 +298,7 @@ export default async function Home() {
                   {PLAN_FEATURES[id].yes.map((t) => <li key={t}>{t}</li>)}
                   {PLAN_FEATURES[id].no.map((t) => <li key={t} className="no">{t}</li>)}
                 </ul>
-                <Link className="b" href={start}>CHOISIR {PLANS[id].name.toUpperCase()} →</Link>
+                <Link className="b" href={start}>ESSAYER 7 JOURS →</Link>
               </div>
             ))}
           </div>

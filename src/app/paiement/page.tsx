@@ -23,8 +23,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
   // Paiement par lien Stripe : la confirmation arrive par notification, quelques secondes après le retour ici.
   if (sp.paye) return (
     <div className="auth trial"><meta httpEquiv="refresh" content="3" />
-      <div className="trial-box"><Logo size={26} /><h1>Paiement reçu, merci !</h1>
-        <p className="muted">Votre abonnement est en cours d&apos;activation, cette page s&apos;actualise toute seule. Si rien ne se passe d&apos;ici une minute, <Link href="/app">ouvrez votre espace</Link>.</p></div>
+      <div className="trial-box"><Logo size={26} /><h1>C&apos;est parti : 7 jours d&apos;essai</h1>
+        <p className="muted">Votre carte est enregistrée, rien n&apos;est débité aujourd&apos;hui. Votre espace s&apos;ouvre, cette page s&apos;actualise toute seule. Si rien ne se passe d&apos;ici une minute, <Link href="/app">ouvrez votre espace</Link>.</p></div>
     </div>
   );
   return (
@@ -33,7 +33,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
         <Logo size={26} />
         <VisitBeacon page="/paiement" />
         <h1>Choisissez votre formule</h1>
-        <p className="muted">Paiement mensuel par carte sur Stripe. <b>Sans engagement</b> : résiliable en un clic depuis la page Abonnement.</p>
+        <p className="muted"><b>7 jours d&apos;essai</b> : votre carte est enregistrée sur Stripe mais n&apos;est débitée qu&apos;au bout de 7 jours. Si vous résiliez avant, vous ne payez rien. Ensuite, paiement mensuel <b>sans engagement</b>.</p>
         {err && <div className="banner err">Le paiement n&apos;a pas abouti. Réessayez ou choisissez une autre carte.</div>}
         {m.role !== "owner" ? (
           <div className="banner">Le propriétaire de l&apos;espace « {org.name} » doit choisir la formule. Revenez ensuite sur cette page.</div>

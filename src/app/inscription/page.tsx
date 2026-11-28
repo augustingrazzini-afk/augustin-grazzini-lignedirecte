@@ -11,7 +11,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ n
   if (await currentUser()) redirect("/app");
   const q = sp.next ? `?next=${encodeURIComponent(sp.next)}` : "";
   return (
-    <AuthCard title="Créer votre compte" subtitle="Sans engagement, résiliable en un clic."
+    <AuthCard title="Créer votre compte" subtitle="7 jours d'essai, puis sans engagement."
       footer={<>Déjà un compte ? <Link href={`/login${q}`}><b>Se connecter</b></Link></>}>
       <VisitBeacon page="/inscription" />
       <SignupForm />

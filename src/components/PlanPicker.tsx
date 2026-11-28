@@ -22,7 +22,7 @@ export function PlanPicker({ email, orgId, canBuy = true }: { email: string; org
               {f.yes.map((t) => <li key={t}>{t}</li>)}
               {f.no.map((t) => <li key={t} className="plan-no">{t}</li>)}
             </ul>
-            {canBuy && <button className={`btn${best ? " primary" : ""}`} disabled={!link && !stripeEnabled()}>{best ? "Choisir Essentiel" : `Choisir ${p.name}`}</button>}
+            {canBuy && <button className={`btn${best ? " primary" : ""}`} disabled={!link && !stripeEnabled()}>{best ? "Essayer Essentiel 7 jours" : `Essayer ${p.name} 7 jours`}</button>}
           </form>
         );
       })}
