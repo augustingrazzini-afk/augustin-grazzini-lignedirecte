@@ -1,3 +1,4 @@
+import { openContact, prettyPhone } from "@/lib/contact";
 import { FastLink } from "@/components/client/FastLink";
 import Link from "next/link";
 import { planOf } from "@/lib/plan";
@@ -33,7 +34,7 @@ export async function Calls({ scope, base, days, q, f, obj, n, readOnly = false 
   const isBoss = scope.kind === "org";
   const [calls, count, sources, reps] = await Promise.all([
     // Sans les colonnes lourdes que la liste n'affiche pas (transcriptions, analyses, coordonnées) : seule l'étiquette « Transcription » est calculée, plus bas.
-    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: shown, omit: { transcript: true, debrief: true, objDetails: true, aiSummary: true, contactSealed: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null, objDetails: [], aiSummary: "", contactSealed: null }) as Call)),
+    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: shown, omit: { transcript: true, debrief: true, objDetails: true, aiSummary: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null, objDetails: [], aiSummary: "" }) as Call)),
     db.call.count({ where }),
     db.call.groupBy({ by: ["provider"], where: callScope(scope) }),
     isBoss ? db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : Promise.resolve([]),
@@ -83,7 +84,7 @@ export async function Calls({ scope, base, days, q, f, obj, n, readOnly = false 
         {Object.keys(OBJ_LABEL).map((k) => <FastLink key={k} className="chip" href={href({ obj: obj === k ? "" : k })} current={obj === k}>{OBJ_LABEL[k]}</FastLink>)}
       </div>
       <p className="muted small" style={{ margin: "2px 0 8px" }}>{count} appel(s){count > shown ? ` · ${shown} plus récents affichés` : ""}</p>
-      {calls.length ? <div className="list">{calls.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} audio={plan.premium} hasTranscript={trIds.has(c.id)} showSource={sources.length > 1} rep={isBoss ? (c.clientId && repName.get(c.clientId)) || c.repName || undefined : undefined} />)}</div> : <div className="empty">Aucun appel ne correspond.</div>}
+      {calls.length ? <div className="list">{calls.map((c) => <CallItem key={c.id} c={c} base={base} contact={readOnly ? null : (() => { const k = openContact(c.contactSealed); return k ? { phone: k.phone ? prettyPhone(k.phone) : "", email: k.email } : null; })()} lite={lite} audio={plan.premium} hasTranscript={trIds.has(c.id)} showSource={sources.length > 1} rep={isBoss ? (c.clientId && repName.get(c.clientId)) || c.repName || undefined : undefined} />)}</div> : <div className="empty">Aucun appel ne correspond.</div>}
       {count > shown && shown < MAX && <p style={{ textAlign: "center", margin: "14px 0 0" }}><Link className="btn" href={href({ n: String(shown + PAGE) })} scroll={false} prefetch>Voir {Math.min(PAGE, count - shown)} appels de plus</Link></p>}
     </div>
     </>

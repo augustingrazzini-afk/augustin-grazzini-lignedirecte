@@ -7,6 +7,7 @@ import { processPendingAi } from "./ai";
 import { runPool } from "./pool";
 import { processTranscriptions } from "./transcribe";
 import { bumpUsage } from "./usage";
+import { sealContact } from "./contact";
 
 const DETAIL_BUDGET = 40;
 const MIN_TRANSCRIBE_SEC = 8; // même seuil que la transcription Trustpipe (transcribe.ts)
@@ -34,6 +35,7 @@ export async function syncIntegration(integrationId: string, opts: { full?: bool
       created += r.created; updated += r.updated;
     }
     if (p.details) await fillDetails(integ.id, integ.orgId, integ.provider, integ.clientId, creds);
+    await backfillContacts(integ, creds);
     await saveCreds(integ.id, creds);
     await db.integration.update({ where: { id: integ.id }, data: { lastSyncAt: startedAt, status: "active", lastError: null } });
   } catch (e) {
@@ -44,6 +46,34 @@ export async function syncIntegration(integrationId: string, opts: { full?: bool
     throw e;
   }
   return { created, updated, skipped: false };
+}
+
+/**
+ * Rattrapage, une seule fois par outil branché : téléphone et email du prospect sur les appels enregistrés avant que
+ * Trustpipe ne les conserve. Ne modifie rien d'autre (ni relances, ni rendez-vous, ni résumés). S'il est interrompu
+ * (durée maximale atteinte), il reprend au passage suivant là où il en était.
+ */
+export async function backfillContacts(integ: { id: string; orgId: string; provider: string; settings: unknown }, creds: Record<string, string>) {
+  const settings = (integ.settings && typeof integ.settings === "object" ? integ.settings : {}) as Record<string, unknown>;
+  const p = getProvider(integ.provider);
+  if (settings.contactsFilled || !p.list) return 0;
+  let filled = 0;
+  for await (const page of p.list(creds, new Date(Date.now() - 90 * 864e5))) {
+    const withContact = page.filter((c) => c.externalId && (c.phone || c.email));
+    if (!withContact.length) continue;
+    const missing = new Set((await db.call.findMany({
+      where: { orgId: integ.orgId, provider: integ.provider, contactSealed: null, externalId: { in: withContact.map((c) => c.externalId) } }, select: { externalId: true },
+    })).map((r) => r.externalId));
+    await runPool(withContact.filter((c) => missing.has(c.externalId)), 8, async (c) => {
+      await db.call.updateMany({
+        where: { orgId: integ.orgId, provider: integ.provider, externalId: c.externalId, contactSealed: null },
+        data: { contactSealed: sealContact(c.phone, c.email), ...(c.phone ? { phoneLast4: c.phone.replace(/\D/g, "").slice(-4) } : {}) },
+      });
+      filled++;
+    });
+  }
+  await db.integration.update({ where: { id: integ.id }, data: { settings: { ...settings, contactsFilled: new Date().toISOString() } } });
+  return filled;
 }
 
 /** Connexion OAuth : les jetons renouvelés pendant la synchro sont réenregistrés (chiffrés). */
