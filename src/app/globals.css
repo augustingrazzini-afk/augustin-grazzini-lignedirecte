@@ -947,3 +947,10 @@ mark.todo { background: rgba(245,184,61,.18); color: var(--amber); }
 .btn:active, .chip:active, .st-btn:active, .st-go:active, .tab-plus:active { transform: scale(.97); filter: brightness(.96); }
 .listen > div.lp { flex: 1 1 100%; flex-direction: row; align-items: center; gap: 12px; }
 .theme-light .lp-nav { background: rgba(238,229,214,.92) !important; border-bottom: 1px solid var(--stroke); }
+
+/* Bandeau d'information cookies (site public) */
+.ck { position: fixed; left: 16px; bottom: 16px; z-index: 80; max-width: 440px; display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: #F8F1E5; color: #16130F; border: 1px solid #D3C6B1; border-radius: 6px; box-shadow: 0 16px 40px -16px rgba(20,7,0,.35); font-size: 13.5px; line-height: 1.5; }
+.ck p { margin: 0; }
+.ck a { color: inherit; text-decoration: underline; }
+.ck-btn { flex: none; border: 0; background: #FF5A1F; color: #140700; font-weight: 700; padding: 10px 14px; border-radius: 4px; cursor: pointer; font-size: 13px; }
+@media (max-width: 520px) { .ck { left: 8px; right: 8px; bottom: 8px; max-width: none; flex-direction: column; align-items: stretch; } }

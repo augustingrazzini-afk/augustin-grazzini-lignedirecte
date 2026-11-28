@@ -8,6 +8,7 @@ import "@fontsource-variable/unbounded";
 import "@fontsource/ibm-plex-mono/500.css";
 import "./globals.css";
 import { Analytics } from "@vercel/analytics/next";
+import { CookieNotice } from "@/components/client/CookieNotice";
 
 const APP = process.env.APP_NAME || "Trustpipe";
 export const metadata: Metadata = {
@@ -19,12 +20,12 @@ export const metadata: Metadata = {
   icons: { icon: [{ url: "/favicon.ico", sizes: "any" }, { url: "/trustpipe-mark.svg", type: "image/svg+xml" }, { url: "/icon-192.png", type: "image/png", sizes: "192x192" }], apple: "/apple-touch-icon.png" },
   appleWebApp: { capable: true, title: "Trustpipe", statusBarStyle: "black-translucent" },
 };
-export const viewport: Viewport = { themeColor: "#0B122F", width: "device-width", initialScale: 1, viewportFit: "cover" };
+export const viewport: Viewport = { themeColor: "#EEE5D6", width: "device-width", initialScale: 1, viewportFit: "cover" };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
-      <body className="theme-light">{children}<Analytics /></body>
+      <body className="theme-light">{children}<CookieNotice /><Analytics /></body>
     </html>
   );
 }

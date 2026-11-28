@@ -72,7 +72,7 @@ test("classement : par rendez-vous, « Non attribués » toujours en dernier, ta
 test("formules : limites de commerciaux et fonctions IA", () => {
   const { maxClients, hasPremium, hasAi, PAID_PLANS, PLANS } = billing;
   assert.deepEqual([...PAID_PLANS], ["starter", "agency", "premium"]);
-  assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [29, 99, 199]);
+  assert.deepEqual(PAID_PLANS.map((p) => PLANS[p].price), [29.99, 99.99, 199.99]);
   // Prix fixe par formule : le nombre de commerciaux dépend de la formule, pas d'une quantité payée.
   assert.equal(maxClients({ plan: "starter", seats: 1 }), 2, "Découverte : 2 commerciaux");
   assert.equal(maxClients({ plan: "agency", seats: 1 }), 4, "Essentiel : 4 commerciaux");

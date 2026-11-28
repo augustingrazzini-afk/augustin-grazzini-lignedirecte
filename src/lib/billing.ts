@@ -5,13 +5,13 @@ export const PLANS = {
   trial: { name: "Sans formule", maxClients: 3, price: 0, perSeat: false },
   solo: { name: "Solo", maxClients: 3, price: 24.99, perSeat: false },
   solo_plus: { name: "Solo Illimité", maxClients: Infinity, price: 34.99, perSeat: false },
-  starter: { name: "Découverte", maxClients: 2, price: 29, perSeat: false },
-  agency: { name: "Essentiel", maxClients: 4, price: 99, perSeat: false },
-  premium: { name: "Premium", maxClients: 10, price: 199, perSeat: false },
+  starter: { name: "Découverte", maxClients: 2, price: 29.99, perSeat: false },
+  agency: { name: "Essentiel", maxClients: 4, price: 99.99, perSeat: false },
+  premium: { name: "Premium", maxClients: 10, price: 199.99, perSeat: false },
 } as const;
 /**
- * Formules proposées à la souscription, à prix fixe par mois : Découverte (29 € HT, sans IA, volontairement limitée),
- * Essentiel (99 € HT, recommandée) et Premium (199 € HT, jusqu'à 10 commerciaux ; au-delà, sur devis).
+ * Formules proposées à la souscription, à prix fixe par mois : Découverte (29,99 € HT, sans IA, volontairement limitée),
+ * Essentiel (99,99 € HT, recommandée) et Premium (199,99 € HT, jusqu'à 10 commerciaux ; au-delà, sur devis).
  * Solo et Solo Illimité restent reconnues pour les abonnements déjà souscrits, mais ne sont plus proposées.
  */
 export const PAID_PLANS = ["starter", "agency", "premium"] as const;
