@@ -191,6 +191,7 @@ model Call {
   aiStatus      String       @default("none") // none | pending | done | failed
   transcriptStatus String    @default("none") // none | pending | done | failed : transcription faite par Trustpipe
   transcriptJob String? // identifiant de la transcription en cours chez le service de transcription
+  syncHash      String? // empreinte de la dernière version reçue de l'outil : un appel inchangé n'est pas réécrit
   debrief       Json? // débrief IA d'un rendez-vous (kind = meeting)
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
