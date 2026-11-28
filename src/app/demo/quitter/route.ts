@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { destroySession } from "@/lib/session";
+import { restoreSession } from "@/lib/session";
 
-/** Quitter la démo pour créer son propre compte. */
+/** Quitter la démo : retour à son propre espace si on était connecté, sinon création de compte. */
 export async function GET(req: Request) {
-  await destroySession();
-  return NextResponse.redirect(new URL("/inscription", req.url), 303);
+  const back = await restoreSession();
+  return NextResponse.redirect(new URL(back ? "/app" : "/inscription", req.url), 303);
 }

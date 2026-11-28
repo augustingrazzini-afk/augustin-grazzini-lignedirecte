@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { currentUser } from "@/lib/session";
+import { currentUser, hasParkedSession } from "@/lib/session";
 import { loginPassword, requestLogin } from "@/app/actions";
 import { ActionForm } from "@/components/client/ActionForm";
 import { AuthCard } from "@/components/AuthCard";
@@ -11,6 +11,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
   const next = sp.next?.startsWith("/") && !sp.next.startsWith("//") ? sp.next : undefined;
   const me = await currentUser();
   if (me && me.id !== "demo_user") redirect(next || "/app");
+  // Démo expirée ou quittée par ici alors qu'on était connecté : on reprend sa vraie session.
+  if (await hasParkedSession()) redirect("/demo/quitter");
   const q = next ? `?next=${encodeURIComponent(next)}` : "";
   return (
     <AuthCard title="Connexion" subtitle="Heureux de vous revoir."

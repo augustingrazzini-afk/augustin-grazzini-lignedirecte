@@ -20,7 +20,27 @@ export async function revokeSessions(userId: string) {
 }
 
 export async function destroySession() {
-  (await cookies()).delete(COOKIE);
+  const jar = await cookies();
+  jar.delete(COOKIE);
+  jar.delete(PREV);
+}
+
+/** Démo ouverte par une personne déjà connectée : sa vraie session est mise de côté, puis reprise en quittant la démo. */
+const PREV = "cockpit_session_prev";
+export async function parkSession() {
+  const jar = await cookies();
+  const token = jar.get(COOKIE)?.value;
+  if (token) jar.set(PREV, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: MAX_AGE });
+}
+export const hasParkedSession = async () => !!(await cookies()).get(PREV)?.value;
+/** Reprend la session mise de côté. Renvoie false s'il n'y en avait pas. */
+export async function restoreSession() {
+  const jar = await cookies();
+  const token = jar.get(PREV)?.value;
+  jar.delete(PREV);
+  if (!token) { jar.delete(COOKIE); return false; }
+  jar.set(COOKIE, token, { httpOnly: true, secure: process.env.NODE_ENV === "production", sameSite: "lax", path: "/", maxAge: MAX_AGE });
+  return true;
 }
 
 /** Utilisateur connecté (ou null), avec ses espaces : organisations et portails clients. */
