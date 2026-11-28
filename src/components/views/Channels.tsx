@@ -1,3 +1,4 @@
+import { FastLink } from "@/components/client/FastLink";
 import Link from "next/link";
 import type { Activity } from "@prisma/client";
 import type { Scope } from "@/lib/access";
@@ -92,7 +93,7 @@ export async function ChannelView({ scope, base, days, channel, filter, readOnly
         </div>
       </div>
       <div className="card mt">
-        <div className="filters">{[["replies", "Réponses"], ["positive", "Positives"], ["meetings", "RDV"], ["all", "Toute l'activité"]].map(([k, lab]) => <Link key={k} className="chip" href={`${base}/${isEmail ? "emails" : "linkedin"}?days=${days}&f=${k}`} aria-current={k === f ? "true" : undefined}>{lab}</Link>)}</div>
+        <div className="filters">{[["replies", "Réponses"], ["positive", "Positives"], ["meetings", "RDV"], ["all", "Toute l'activité"]].map(([k, lab]) => <FastLink key={k} className="chip" href={`${base}/${isEmail ? "emails" : "linkedin"}?days=${days}&f=${k}`} current={k === f}>{lab}</FastLink>)}</div>
         {list.length ? <div className="list">{list.map((a) => <ActivityItem key={a.id} a={a} base={base} readOnly={readOnly} />)}</div> : <div className="empty">Rien sur ce filtre.</div>}
       </div>
     </>
