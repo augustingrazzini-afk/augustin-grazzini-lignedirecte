@@ -1,3 +1,4 @@
+import { FastLink } from "@/components/client/FastLink";
 import Link from "next/link";
 import { requireOrgScope } from "@/lib/access";
 import { db } from "@/lib/db";
@@ -32,8 +33,8 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ d
       <PageTop title="Pilotage" subtitle={scope.clientFilter ? `Commercial : ${clients.find((c) => c.id === scope.clientFilter)?.name || "appels non attribués"}` : "Toute votre équipe commerciale, en direct"} live={last?.lastSyncAt ? `En direct · synchro ${ago(last.lastSyncAt)}` : null}>
         {clients.length > 0 && (
           <div className="seg" role="group" aria-label="Commercial">
-            <Link href={href({ client: null })} aria-current={!scope.clientFilter ? "true" : undefined}>Tous</Link>
-            {clients.slice(0, 6).map((c) => <Link key={c.id} href={href({ client: c.id })} aria-current={scope.clientFilter === c.id ? "true" : undefined}>{c.name}</Link>)}
+            <FastLink href={href({ client: null })} current={!scope.clientFilter}>Tous</FastLink>
+            {clients.slice(0, 6).map((c) => <FastLink key={c.id} href={href({ client: c.id })} current={scope.clientFilter === c.id}>{c.name}</FastLink>)}
           </div>
         )}
         <Period days={days} href={(d) => href({ days: d })} />

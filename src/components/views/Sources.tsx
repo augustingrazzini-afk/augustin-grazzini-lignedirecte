@@ -1,3 +1,4 @@
+import { Btn } from "@/components/client/Btn";
 import type { Scope } from "@/lib/access";
 import { ActionForm } from "../client/ActionForm";
 import { planOf } from "@/lib/plan";
@@ -71,8 +72,8 @@ export async function Sources({ scope }: { scope: Scope }) {
                       </details>
                     );
                   })()}
-                  {!universal && <form action={syncNow}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm">Synchroniser</button></form>}
-                  <form action={deleteIntegration}><input type="hidden" name="integrationId" value={i.id} /><button className="btn sm danger">Déconnecter</button></form>
+                  {!universal && <form action={syncNow}><input type="hidden" name="integrationId" value={i.id} /><Btn className="btn sm">Synchroniser</Btn></form>}
+                  <form action={deleteIntegration}><input type="hidden" name="integrationId" value={i.id} /><Btn className="btn sm danger" row>Déconnecter</Btn></form>
                 </span>
               </div>
             );

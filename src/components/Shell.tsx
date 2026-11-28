@@ -1,3 +1,4 @@
+import { FastLink } from "@/components/client/FastLink";
 import Link from "next/link";
 import { logout } from "@/app/actions";
 import { NavLinks, type NavItem } from "./NavLinks";
@@ -98,7 +99,7 @@ export function Period({ days, href, options }: { days: number; href: (d: number
   const list = PERIODS.filter((p) => !options || options.includes(p.days));
   return (
     <div className="seg" role="group" aria-label="Période">
-      {list.map((p) => <Link key={p.days} href={href(p.days)} aria-current={p.days === days ? "true" : undefined} scroll={false}>{p.label}</Link>)}
+      {list.map((p) => <FastLink key={p.days} href={href(p.days)} current={p.days === days} eager>{p.label}</FastLink>)}
     </div>
   );
 }
