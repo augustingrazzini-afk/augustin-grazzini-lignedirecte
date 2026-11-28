@@ -6,6 +6,7 @@ import { LogoMark } from "@/components/Logo";
 import { currentUser } from "@/lib/session";
 import { PAID_PLANS, PLANS, PLAN_FEATURES, euros } from "@/lib/billing";
 import { ClaudeLogo } from "@/components/ClaudeLogo";
+import { claudeInstallLink } from "@/lib/claude-link";
 import { LEGAL } from "@/lib/legal";
 import { AI_CAN } from "@/lib/assistant-content";
 
@@ -99,7 +100,7 @@ const FAQ: [string, string][] = [
   ["Combien ça coûte ?", "Le prix est par commercial suivi et par mois, sans engagement : Essentiel à 49,99 € HT (jusqu'à 4 commerciaux, avec la transcription, l'analyse IA de chaque appel et l'assistant IA), Premium à 69,99 € HT (commerciaux illimités, connecteur Claude, briefs et débriefs de rendez-vous). Une formule Découverte sans IA existe à 19,99 € HT, limitée à 2 commerciaux. Les dirigeants et managers ne sont pas facturés."],
   ["L'IA garde-t-elle nos appels ?", "Les résumés et analyses sont faits avec Claude, l'IA d'Anthropic. Les données envoyées par notre intégration ne servent pas à entraîner ses modèles. Les résultats sont stockés chez nous, en France."],
   ["Puis-je supprimer nos données ?", "Oui. Vous déconnectez un outil ou retirez un commercial en un clic. À la fin de l'abonnement, les données sont supprimées après 30 jours, le temps de les exporter si besoin."],
-  ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Dans Claude, ajoutez un connecteur personnalisé avec l'adresse https://trustpipe.fr/api/mcp, puis autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
+  ["Puis-je brancher Claude sur Trustpipe ?", "Oui. Le bouton « Connecter Claude » ouvre Claude avec l'adresse de Trustpipe déjà remplie (à la main : connecteur personnalisé, adresse https://trustpipe.fr/api/mcp). Vous confirmez, puis vous autorisez l'accès avec votre compte Trustpipe. Claude peut alors lire vos relances et l'historique d'appels d'un prospect, et planifier des relances. Vous coupez l'accès en un clic depuis vos réglages."],
   ["Quels outils d'appel sont compatibles ?", "Minari, lemlist, Skipcall, Aircall, Ringover, JustCall, Allo, Dialpad, Close, Salesloft, Apollo, Gong et HubSpot se connectent directement. Pour tout autre outil, collez l'adresse de son API et sa clé. Zapier, Make, n8n et l'import CSV marchent aussi."],
 ];
 
@@ -262,7 +263,7 @@ export default async function Home() {
             <div><div className="st-big">5</div><h4>Outils, rien de plus.</h4><p>Lister, créer et modifier vos relances, relire l&apos;historique d&apos;un prospect, voir vos commerciaux.</p></div>
             <div><div className="st-big st-o">0</div><h4>Mot de passe partagé.</h4><p>Connexion sécurisée, limitée à votre espace, coupée en un clic depuis vos réglages.</p></div>
           </div>
-          <Link className="st-btn p" href="/claude" style={{ marginTop: 32, maxWidth: 460 }}>BRANCHER CLAUDE SUR TRUSTPIPE <span aria-hidden="true">→</span></Link>
+          <div className="st-btns" style={{ marginTop: 32, maxWidth: 460 }}><a className="st-btn p" href={claudeInstallLink()} target="_blank" rel="noopener noreferrer">CONNECTER CLAUDE EN 1 CLIC <span aria-hidden="true">→</span></a><Link className="st-btn g" href="/claude">COMMENT ÇA MARCHE <span aria-hidden="true">→</span></Link></div>
         </div>
       </section>
 

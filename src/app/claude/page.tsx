@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { claudeInstallLink } from "@/lib/claude-link";
 import "@fontsource/ibm-plex-mono/400.css";
 import "../studio.css";
 import { LogoMark } from "@/components/Logo";
@@ -12,8 +13,8 @@ export const metadata = {
 const URL_MCP = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/api/mcp`;
 
 const STEPS: [string, string][] = [
-  ["Ouvrez les connecteurs", "Dans Claude (claude.ai, application de bureau ou mobile) : Réglages › Connecteurs › Ajouter un connecteur personnalisé."],
-  ["Collez l'adresse Trustpipe", URL_MCP],
+  ["Cliquez sur « Connecter Claude »", "Claude s'ouvre sur l'ajout d'un connecteur, avec le nom et l'adresse de Trustpipe déjà remplis."],
+  ["Confirmez l'ajout", "Vérifiez l'adresse affichée (" + URL_MCP + ") et cliquez sur « Ajouter »."],
   ["Connectez votre compte", "Claude ouvre Trustpipe : connectez-vous, puis cliquez sur « Autoriser ». C'est tout."],
 ];
 
@@ -50,7 +51,8 @@ export default function Page() {
           <h1 className="st-h1" style={{ fontSize: "clamp(40px, 6vw, 88px)" }}>Trustpipe.<br /><span className="st-thin">Dans Claude.</span></h1>
           <p className="st-lead" style={{ fontSize: 21 }}>Demandez à Claude vos relances du jour, le contexte d&apos;un prospect ou de reporter un rappel : il lit et gère vos relances Trustpipe, directement dans la conversation. Inclus dans la formule Premium.</p>
           <div className="st-btns" style={{ maxWidth: 420, marginTop: 32 }}>
-            <a className="st-btn p" href="#installer">INSTALLER EN 1 MINUTE <span aria-hidden="true">↓</span></a>
+            <a className="st-btn p" href={claudeInstallLink()} target="_blank" rel="noopener noreferrer">CONNECTER CLAUDE EN 1 CLIC <span aria-hidden="true">→</span></a>
+            <a className="st-btn g" href="#installer">VOIR LES ÉTAPES <span aria-hidden="true">↓</span></a>
           </div>
         </div>
       </section>

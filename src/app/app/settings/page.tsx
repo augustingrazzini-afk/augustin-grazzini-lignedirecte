@@ -1,4 +1,5 @@
 import { requireOrgScope } from "@/lib/access";
+import { claudeInstallLink } from "@/lib/claude-link";
 import { db } from "@/lib/db";
 import { changePassword, deleteOrganization, inviteTeammate, revokeMcpToken, saveOffer } from "@/app/actions";
 import { PageTop } from "@/components/Shell";
@@ -18,7 +19,8 @@ export default async function Page() {
       <PageTop title="Réglages" subtitle="Votre activité et votre équipe" />
       <div className="grid g-2e">
         <div className="card"><h2>Claude</h2><p className="sub">Branchez Claude sur Trustpipe : il lit vos relances et l&apos;historique de vos prospects, et planifie vos relances à votre place.</p>
-          <p className="small" style={{ margin: "0 0 6px" }}>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
+          <p style={{ margin: "0 0 12px" }}><a className="btn primary" href={claudeInstallLink()} target="_blank" rel="noopener noreferrer">Connecter Claude en 1 clic</a></p>
+          <p className="small" style={{ margin: "0 0 6px" }}>Claude s&apos;ouvre avec l&apos;adresse déjà remplie. À la main : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
           <code className="small" style={{ display: "block", padding: "10px 12px", background: "var(--panel)", border: "1px solid var(--stroke-2)", borderRadius: 4, userSelect: "all", wordBreak: "break-all" }}>{mcpUrl}</code>
           <p className="small muted" style={{ margin: "8px 0 14px" }}>Claude vous demandera ensuite de vous connecter à Trustpipe et d&apos;autoriser l&apos;accès. <a href="/claude" target="_blank" rel="noreferrer">Guide et exemples</a>.</p>
           {mcp.length ? <div className="list">{mcp.map((t) => (

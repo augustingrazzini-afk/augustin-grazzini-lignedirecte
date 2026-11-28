@@ -4,6 +4,7 @@ import { db } from "@/lib/db";
 import Link from "next/link";
 import { PLANS, euros, hasAi, hasPremium } from "@/lib/billing";
 import { ClaudeLogo } from "./ClaudeLogo";
+import { claudeInstallLink } from "@/lib/claude-link";
 import { aiEnabled, type Brief, type CoachResult } from "@/lib/ai";
 import { PageTop, Period } from "./Shell";
 import { Calls } from "./views/Calls";
@@ -92,13 +93,18 @@ async function ClaudeConnect({ orgId, userId }: { orgId: string; userId: string 
         <h2>Traitez vos relances depuis Claude</h2>
         <p className="muted" style={{ margin: "4px 0 12px" }}>Branchez Trustpipe sur Claude en 1 minute : vous lui demandez « quelles relances aujourd&apos;hui ? », il les liste avec le contexte de chaque prospect, les reporte ou les clôture pour vous.</p>
         {premium ? <>
-          <ol className="claude-steps"><li>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b></li><li>Collez cette adresse :</li></ol>
-          <div className="row" style={{ gap: 8, flexWrap: "wrap", margin: "6px 0 10px" }}>
-            <input className="input" readOnly value={url} style={{ flex: "1 1 280px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
-            <CopyButton text={url} label="Copier l'adresse" />
-            <a className="btn primary" href="/claude" target="_blank" rel="noreferrer">Voir le guide</a>
+          <div className="row" style={{ gap: 10, flexWrap: "wrap", alignItems: "center", margin: "0 0 10px" }}>
+            <a className="btn primary" href={claudeInstallLink()} target="_blank" rel="noopener noreferrer">Connecter Claude en 1 clic</a>
+            <a className="btn" href="/claude" target="_blank" rel="noreferrer">Voir le guide</a>
           </div>
-          <p className="muted small" style={{ margin: 0 }}>Claude vous demandera ensuite de vous connecter à Trustpipe et d&apos;autoriser l&apos;accès. Vous le coupez quand vous voulez dans Réglages.</p>
+          <p className="muted small" style={{ margin: 0 }}>Claude s&apos;ouvre avec l&apos;adresse de Trustpipe déjà remplie : cliquez sur « Ajouter », puis connectez-vous à Trustpipe et autorisez l&apos;accès. Vous le coupez quand vous voulez dans Réglages.</p>
+          <details style={{ marginTop: 8 }}><summary className="muted small" style={{ cursor: "pointer" }}>Le bouton ne s&apos;ouvre pas ? Faites-le à la main</summary>
+            <p className="muted small" style={{ margin: "8px 0 6px" }}>Dans Claude : <b>Réglages › Connecteurs › Ajouter un connecteur personnalisé</b>, puis collez cette adresse :</p>
+            <div className="row" style={{ gap: 8, flexWrap: "wrap" }}>
+              <input className="input" readOnly value={url} style={{ flex: "1 1 280px", minWidth: 0, fontFamily: "var(--f-mono)", fontSize: 13 }} />
+              <CopyButton text={url} label="Copier l'adresse" />
+            </div>
+          </details>
         </> : <div className="row" style={{ gap: 10, flexWrap: "wrap", alignItems: "center" }}><Link className="btn primary" href="/app/billing">Passer en Premium pour brancher Claude</Link><a className="btn" href="/claude" target="_blank" rel="noreferrer">Voir ce que ça permet</a></div>}
       </div>
     </div>
