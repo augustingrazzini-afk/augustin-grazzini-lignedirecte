@@ -4,9 +4,9 @@ import { OBJ_LABEL, dateFR, displayName, fmtDuration, initials } from "@/lib/for
 import { SOURCE_LABEL } from "@/lib/providers";
 
 /** `lite` : formule Découverte, sans résumé, objections, transcription ni écoute. */
-export function CallItem({ c, base, showSource, rep, lite }: { c: Call; base: string; showSource?: boolean; rep?: string; lite?: boolean }) {
+export function CallItem({ c, base, showSource, rep, lite, audio = true, hasTranscript }: { c: Call; base: string; showSource?: boolean; rep?: string; lite?: boolean; audio?: boolean; hasTranscript?: boolean }) {
   const first = lite ? (c.connected ? "Appel décroché" : "Pas de réponse") : c.summary.split("\n").find((l) => l.trim())?.replace(/^-\s*/, "") || (c.connected ? "Appel décroché" : "Pas de réponse");
-  const hasTr = Array.isArray(c.transcript) && (c.transcript as unknown[]).length > 0;
+  const hasTr = hasTranscript ?? (Array.isArray(c.transcript) && (c.transcript as unknown[]).length > 0);
   return (
     <Link className="item" href={`${base}/calls/${c.id}`}>
       <span className={`av ${c.meetingBooked ? "win" : ""}`}>{initials(c)}</span>
@@ -20,7 +20,7 @@ export function CallItem({ c, base, showSource, rep, lite }: { c: Call; base: st
         {c.optOut && <span className="pill bad">Ne plus contacter</span>}
         {!lite && c.objections.slice(0, 3).map((o) => <span key={o} className="pill mute">{OBJ_LABEL[o] || o}</span>)}
         {!lite && hasTr && <span className="pill">Transcription</span>}
-        {!lite && (c.recordingUrl || c.recordingKey) && <span className="pill">Audio</span>}
+        {!lite && audio && (c.recordingUrl || c.recordingKey) && <span className="pill">Audio</span>}
         {showSource && <span className="pill src">{SOURCE_LABEL[c.provider] || c.provider}</span>}
       </span>
     </Link>

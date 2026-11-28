@@ -4,8 +4,8 @@ import { hasAi, hasPremium } from "./billing";
 
 /**
  * Ce que la formule de l'entreprise ouvre, pour adapter l'affichage (une lecture par page).
- * `ai` : résumés, objections, transcription, écoute, relances, assistant (à partir d'Essentiel).
- * `premium` : briefs, débriefs, connecteur Claude.
+ * `ai` : résumés, objections, transcription, relances, assistant (à partir d'Essentiel).
+ * `premium` : écoute des enregistrements, briefs, débriefs, connecteur Claude.
  */
 export const planOf = cache(async (orgId: string) => {
   const org = await db.organization.findUnique({ where: { id: orgId }, select: { plan: true } });

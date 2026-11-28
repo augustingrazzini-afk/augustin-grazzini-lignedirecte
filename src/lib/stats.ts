@@ -18,11 +18,25 @@ export type Stats = {
 };
 
 /** Appels de la période. Mémorisé le temps d'un affichage : le classement et le tableau de bord partagent la même lecture. */
-export const windowCalls = cache(async (scope: Scope, days: number) =>
-  db.call.findMany({
+/**
+ * Les transcriptions et débriefs ne sont PAS chargés ici : sur des milliers d'appels ils pèsent des dizaines de Mo
+ * et faisaient tomber la page d'accueil de l'appli (mémoire du serveur dépassée). Les chiffres n'en ont pas besoin.
+ */
+export const windowCalls = cache(async (scope: Scope, days: number): Promise<Call[]> => {
+  const rows = await db.call.findMany({
     where: { ...callScope(scope), startedAt: { gte: periodStart(days) } },
     orderBy: { startedAt: "desc" },
-  }));
+    omit: { transcript: true, debrief: true },
+  });
+  return rows.map((r) => ({ ...r, transcript: [], debrief: null }) as Call);
+});
+
+/** Parmi ces appels, ceux qui ont une transcription (pour l'étiquette, sans charger le texte). */
+export async function withTranscript(ids: string[]): Promise<Set<string>> {
+  if (!ids.length) return new Set();
+  const rows = await db.call.findMany({ where: { id: { in: ids }, NOT: { transcript: { equals: [] } } }, select: { id: true } });
+  return new Set(rows.map((r) => r.id));
+}
 
 export function computeStats(all: Call[], days: number): Stats {
   const calls = all.filter((c) => c.kind !== "meeting");

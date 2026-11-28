@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { planOf } from "@/lib/plan";
 import type { Scope } from "@/lib/access";
-import { BEST_MIN_CALLS, SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotInsights, slotLevel, windowCalls } from "@/lib/stats";
+import { BEST_MIN_CALLS, SLOT_LEVELS, SLOT_MIN_CALLS, bestSlot, computeStats, slotInsights, slotLevel, windowCalls, withTranscript } from "@/lib/stats";
 import { OBJ_LABEL, fmt, fmtDuration, isConversation, pct } from "@/lib/format";
 import { CallItem } from "../CallItem";
 import { ChannelOverview } from "./Channels";
@@ -14,7 +14,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
   const calls = await windowCalls(scope, days);
   const overview = channels ? <ChannelOverview scope={scope} days={days} base={base} /> : null;
   if (!calls.length) return <>{overview}<div className="card"><div className="empty"><b>Pas encore d&apos;appels sur cette période</b>{emptyHint}</div></div></>;
-  const lite = !(await planOf(scope.orgId)).ai;
+  const plan = await planOf(scope.orgId), lite = !plan.ai;
   const s = computeStats(calls, days);
   const perMeet = s.meetings ? Math.round(s.total / s.meetings) : null;
 
@@ -34,6 +34,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
   const best = bestSlot(s.slots);
   const ins = slotInsights(calls);
   const feed = calls.filter((c) => isConversation(c) || c.kind === "meeting").slice(0, 7);
+  const trIds = await withTranscript(feed.map((c) => c.id));
   const multiSource = new Set(calls.map((c) => c.provider)).size > 1;
 
   return (
@@ -75,7 +76,7 @@ export async function Dashboard({ scope, base, days, emptyHint, channels = false
       <div className="grid g-2 mt">
         <div className="card">
           <div className="head"><div><h2>Dernières conversations</h2><p className="sub">Elles arrivent ici dès qu&apos;elles sont synchronisées</p></div><Link className="btn sm" href={`${base}/calls`}>Tout voir</Link></div>
-          {feed.length ? <div className="list">{feed.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} showSource={multiSource} />)}</div> : <div className="empty">Aucune conversation sur la période.</div>}
+          {feed.length ? <div className="list">{feed.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} audio={plan.premium} hasTranscript={trIds.has(c.id)} showSource={multiSource} />)}</div> : <div className="empty">Aucune conversation sur la période.</div>}
         </div>
         <div className="stack">
           <div className="card"><h2>Objections</h2><p className="sub">Les plus fréquentes et la part passée</p>

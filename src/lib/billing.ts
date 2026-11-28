@@ -1,16 +1,16 @@
 import type { Organization } from "@prisma/client";
 
-/** Formules. `perSeat` : le prix est par commercial (le nombre est choisi au paiement). */
+/** Formules. Prix fixe par mois ; chaque formule couvre un nombre de commerciaux (voir PLAN_CAP). */
 export const PLANS = {
   trial: { name: "Sans formule", maxClients: 3, price: 0, perSeat: false },
   solo: { name: "Solo", maxClients: 3, price: 24.99, perSeat: false },
   solo_plus: { name: "Solo Illimité", maxClients: Infinity, price: 34.99, perSeat: false },
-  starter: { name: "Découverte", maxClients: Infinity, price: 19.99, perSeat: true },
-  agency: { name: "Essentiel", maxClients: Infinity, price: 49.99, perSeat: true },
-  premium: { name: "Premium", maxClients: Infinity, price: 69.99, perSeat: true },
+  starter: { name: "Découverte", maxClients: 2, price: 19.99, perSeat: false },
+  agency: { name: "Essentiel", maxClients: 4, price: 49.99, perSeat: false },
+  premium: { name: "Premium", maxClients: Infinity, price: 69.99, perSeat: false },
 } as const;
 /**
- * Formules proposées à la souscription, par commercial suivi : Découverte (19,99 € HT, sans IA, volontairement limitée),
+ * Formules proposées à la souscription, à prix fixe par mois : Découverte (19,99 € HT, sans IA, volontairement limitée),
  * Essentiel (49,99 € HT, recommandée) et Premium (69,99 € HT).
  * Solo et Solo Illimité restent reconnues pour les abonnements déjà souscrits, mais ne sont plus proposées.
  */
@@ -18,13 +18,13 @@ export const PAID_PLANS = ["starter", "agency", "premium"] as const;
 /** Contenu de chaque formule (site, souscription, abonnement). `no` : ce qui manque, affiché barré. */
 export const PLAN_FEATURES: Record<"starter" | "agency" | "premium", { tag: string; yes: string[]; no: string[] }> = {
   starter: { tag: "Sans IA", yes: ["Jusqu'à 2 commerciaux", "Appels de vos commerciaux en direct", "Classement des commerciaux"], no: ["Résumé et analyse IA des appels", "Objections et relances automatiques", "Assistant IA"] },
-  agency: { tag: "Recommandé", yes: ["Jusqu'à 4 commerciaux", "Appels en direct et classement", "Transcription et écoute de chaque appel", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Assistant IA sur toute l'équipe"], no: ["Commerciaux illimités", "Connecteur Claude"] },
-  premium: { tag: "Illimité", yes: ["Commerciaux illimités", "Tout Essentiel", "Connecteur Claude", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des enregistrements"], no: [] },
+  agency: { tag: "Recommandé", yes: ["Jusqu'à 4 commerciaux", "Appels en direct et classement", "Transcription de chaque appel", "Résumé et analyse IA de chaque appel", "Objections et relances automatiques", "Assistant IA sur toute l'équipe"], no: ["Écoute des enregistrements", "Commerciaux illimités", "Connecteur Claude"] },
+  premium: { tag: "Illimité", yes: ["Commerciaux illimités", "Tout Essentiel", "Écoute de chaque appel", "Connecteur Claude", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des enregistrements"], no: [] },
 };
 /** Nombre maximal de commerciaux par formule : 2 en Découverte, 4 en Essentiel, illimité en Premium. */
 export const PLAN_CAP: Record<string, number> = { starter: 2, agency: 4, premium: Infinity };
 /** Ce que Premium ajoute à Essentiel (affiché sur le site, la souscription et l'abonnement). */
-export const PREMIUM_EXTRAS = ["Commerciaux illimités", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
+export const PREMIUM_EXTRAS = ["Commerciaux illimités", "Écoute de chaque appel", "Briefs pré-rendez-vous et débriefs de visio", "Transcription automatique des appels enregistrés", "Connecteur Claude"] as const;
 /**
  * Fonctions Premium (briefs, débriefs, transcription par Trustpipe, connecteur Claude) :
  * réservées à Premium (et aux anciennes formules). Il n'y a pas d'essai gratuit : un nouvel espace paie sa formule avant d'entrer.
@@ -50,8 +50,8 @@ export function isActive(org: Pick<Organization, "subscriptionStatus" | "trialEn
   return org.subscriptionStatus === "trialing" && org.trialEndsAt > new Date();
 }
 
-/** Nombre de commerciaux suivis autorisés : le nombre payé, plafonné par la formule (2 en Découverte, 4 en Essentiel). */
+/** Nombre de commerciaux suivis autorisés : fixé par la formule (2 en Découverte, 4 en Essentiel, illimité en Premium). */
 export function maxClients(org: Pick<Organization, "plan" | "seats">): number {
-  if (org.plan in PLAN_CAP) return Math.min(Math.max(1, org.seats), PLAN_CAP[org.plan]);
+  if (org.plan in PLAN_CAP) return PLAN_CAP[org.plan];
   return (PLANS[org.plan as PlanId] ?? PLANS.trial).maxClients;
 }

@@ -40,7 +40,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ e
         ) : (
 <div style={{ marginTop: 22 }}>
             <PlanPicker email={u.email} orgId={org.id} />
-            <p className="muted small" style={{ marginTop: 14 }}>Prix par commercial suivi : vous choisissez le nombre à l&apos;étape du paiement, et vous en ajoutez ou en retirez quand vous voulez. Dirigeants et managers ne sont pas facturés.</p>
+            <p className="muted small" style={{ marginTop: 14 }}>Prix fixe par mois pour toute votre équipe : 2 commerciaux en Découverte, 4 en Essentiel, illimités en Premium. Vous changez de formule quand vous voulez.</p>
           </div>
         )}
         <p className="muted small" style={{ marginTop: 18 }}>🔒 Paiement sécurisé par Stripe : nous ne voyons jamais votre numéro de carte. <Link href="/cgv">Conditions générales</Link></p>

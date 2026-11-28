@@ -2,8 +2,8 @@ import { PAID_PLANS, PLANS, PLAN_FEATURES, euros } from "@/lib/billing";
 import { paymentLink, stripeEnabled } from "@/lib/stripe";
 
 /**
- * Les 3 formules par commercial suivi. Essentiel est mise en avant ; Découverte est volontairement limitée (sans IA).
- * Paiement par lien Stripe (nombre de commerciaux choisi chez Stripe) ou par Checkout quand la clé live est configurée.
+ * Les 3 formules, à prix fixe par mois. Essentiel est mise en avant ; Découverte est volontairement limitée (sans IA).
+ * Paiement par lien Stripe ou par Checkout quand la clé live est configurée.
  */
 export function PlanPicker({ email, orgId, canBuy = true }: { email: string; orgId: string; canBuy?: boolean }) {
   const viaLink = !stripeEnabled();
@@ -17,7 +17,7 @@ export function PlanPicker({ email, orgId, canBuy = true }: { email: string; org
               : <><input type="hidden" name="action" value="checkout" /><input type="hidden" name="plan" value={id} /></>}
             <div className="plan-top"><h2>{p.name}</h2><span className={`pill${best ? " win" : " mute"}`}>{f.tag}</span></div>
             <div className="amt" style={{ whiteSpace: "nowrap" }}>{euros(p.price)} €</div>
-            <div className="muted small" style={{ margin: "-4px 0 10px" }}>HT / mois, par commercial suivi</div>
+            <div className="muted small" style={{ margin: "-4px 0 10px" }}>HT / mois, pour toute votre équipe</div>
             <ul>
               {f.yes.map((t) => <li key={t}>{t}</li>)}
               {f.no.map((t) => <li key={t} className="plan-no">{t}</li>)}

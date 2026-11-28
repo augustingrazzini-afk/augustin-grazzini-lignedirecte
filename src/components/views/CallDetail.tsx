@@ -31,7 +31,8 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
   const det = lite ? [] : (c.objDetails as unknown as ObjDetail[]) || [];
   // Lecture dans Trustpipe : fichier stocké chez nous, relais signé (outils dont l'audio demande une clé), sinon le lien de l'outil.
   const recLink = c.recordingUrl && /^https:\/\//.test(c.recordingUrl) ? c.recordingUrl : null;
-  const audio = lite ? null : c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
+  // L'écoute des enregistrements est réservée à la formule Premium (Essentiel : transcription seule).
+  const audio = !plan.premium ? null : c.recordingKey ? await presignRead(c.recordingKey) : c.recordingUrl && needsRelay(c.provider) ? signedAudioPath(c.id) : recLink;
   // Secours si la lecture échoue ici : la page d'écoute de l'outil (jamais une adresse interne de relais).
   const recFallback = recLink && !/^https:\/\/api[.-]/.test(recLink) && recLink !== audio ? recLink : null;
   const clients = scope.kind === "org" ? await db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" } }) : [];
@@ -97,7 +98,7 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
           <>
           {!lite && clients.some((cl) => cl.id !== c.clientId) && (
             <div className="card"><div className="sec"><h4>Envoyer cet appel à un commercial</h4>
-              <p className="muted small" style={{ margin: "0 0 10px" }}>Un bon appel à montrer en exemple, ou un appel à retravailler : le commercial choisi le retrouve dans son espace (résumé, transcription, écoute) et reçoit un email. L&apos;appel reste compté pour celui qui l&apos;a passé.</p>
+              <p className="muted small" style={{ margin: "0 0 10px" }}>Un bon appel à montrer en exemple, ou un appel à retravailler : le commercial choisi le retrouve dans son espace (résumé, transcription) et reçoit un email. L&apos;appel reste compté pour celui qui l&apos;a passé.</p>
               <ActionForm action={shareCall} submit="Envoyer l'appel" hidden={{ callId: c.id }}>
                 <label>À qui<select className="select" name="clientId" required defaultValue=""><option value="" disabled>Choisir un commercial</option>{clients.filter((cl) => cl.id !== c.clientId).map((cl) => <option key={cl.id} value={cl.id}>{cl.name}</option>)}</select></label>
                 <label className="full">Un mot pour lui <span className="muted small">(facultatif)</span><input className="input" name="note" maxLength={500} placeholder="Ex. : écoute comment Léa traite l'objection du prix à 01:12" /></label>
@@ -138,7 +139,12 @@ export async function CallDetail({ scope, base, id, readOnly = false }: { scope:
             <div><b>Écouter la conversation</b><span className="muted small">L&apos;enregistrement de l&apos;appel, en entier.</span></div>
             <ListenPlayer src={audio} fallback={recFallback} tool={SOURCE_LABEL[c.provider] || "votre outil d'appel"} />
           </div>
-        ) : c.connected && hasRecordings(c.provider) && (
+        ) : !plan.premium ? (c.connected && hasRecordings(c.provider) && (
+          <div className="listen off">
+            <div><b>🎧 Écouter la conversation</b><span className="muted small">L&apos;écoute des enregistrements est incluse dans la formule Premium. Votre formule affiche la transcription complète.</span></div>
+            {!readOnly && scope.kind === "org" && <Link className="btn" href="/app/billing">Passer en Premium</Link>}
+          </div>
+        )) : c.connected && hasRecordings(c.provider) && (
           <div className="listen off">
             <div><b>🎧 Écoute non activée pour cet appel</b><span className="muted small">{!readOnly && scope.kind === "org"
               ? <>Pour écouter vos conversations ici, autorisez le partage des enregistrements dans {SOURCE_LABEL[c.provider] || "votre outil d'appel"}. C&apos;est un réglage à faire une seule fois, de votre côté.</>

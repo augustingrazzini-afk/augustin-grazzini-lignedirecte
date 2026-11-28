@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { planOf } from "@/lib/plan";
-import type { Prisma } from "@prisma/client";
+import type { Call, Prisma } from "@prisma/client";
+import { withTranscript } from "@/lib/stats";
 import { callScope, type Scope } from "@/lib/access";
 import { db } from "@/lib/db";
 import { OBJ_LABEL } from "@/lib/format";
@@ -26,19 +27,21 @@ export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: 
   };
   const isBoss = scope.kind === "org";
   const [calls, count, sources, reps] = await Promise.all([
-    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: 200 }),
+    // Sans les transcriptions (lourdes) : seule l'étiquette « Transcription » est calculée, plus bas.
+    db.call.findMany({ where, orderBy: { startedAt: "desc" }, take: 200, omit: { transcript: true, debrief: true } }).then((rows) => rows.map((r) => ({ ...r, transcript: [], debrief: null }) as Call)),
     db.call.count({ where }),
     db.call.groupBy({ by: ["provider"], where: callScope(scope) }),
     isBoss ? db.client.findMany({ where: { orgId: scope.orgId }, orderBy: { name: "asc" }, select: { id: true, name: true } }) : Promise.resolve([]),
   ]);
   const repName = new Map(reps.map((r) => [r.id, r.name]));
+  const trIds = await withTranscript(calls.map((c) => c.id));
   const current = isBoss ? scope.clientFilter || "" : "";
   const href = (p: Record<string, string>) => {
     const sp = new URLSearchParams({ days: String(days), ...(q ? { q } : {}), f: filter, ...(obj ? { obj } : {}), ...(current ? { client: current } : {}), ...p });
     for (const [k, v] of [...sp.entries()]) if (!v) sp.delete(k);
     return `${base}/calls?${sp}`;
   };
-  const lite = !(await planOf(scope.orgId)).ai;
+  const plan = await planOf(scope.orgId), lite = !plan.ai;
   // Appels que l'entreprise a envoyés à ce commercial pour qu'il les écoute.
   const shared = scope.kind === "client" && !readOnly ? await db.callShare.findMany({ where: { clientId: scope.clientId, call: { orgId: scope.orgId } }, include: { call: { select: { id: true, firstName: true, lastName: true, company: true, repName: true, summary: true } } }, orderBy: { createdAt: "desc" }, take: 10 }) : [];
   return (
@@ -75,7 +78,7 @@ export async function Calls({ scope, base, days, q, f, obj, readOnly = false }: 
         {Object.keys(OBJ_LABEL).map((k) => <Link key={k} className="chip" href={href({ obj: obj === k ? "" : k })} aria-current={obj === k ? "true" : undefined}>{OBJ_LABEL[k]}</Link>)}
       </div>
       <p className="muted small" style={{ margin: "2px 0 8px" }}>{count} appel(s){count > 200 ? " · 200 plus récents affichés" : ""}</p>
-      {calls.length ? <div className="list">{calls.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} showSource={sources.length > 1} rep={isBoss ? (c.clientId && repName.get(c.clientId)) || c.repName || undefined : undefined} />)}</div> : <div className="empty">Aucun appel ne correspond.</div>}
+      {calls.length ? <div className="list">{calls.map((c) => <CallItem key={c.id} c={c} base={base} lite={lite} audio={plan.premium} hasTranscript={trIds.has(c.id)} showSource={sources.length > 1} rep={isBoss ? (c.clientId && repName.get(c.clientId)) || c.repName || undefined : undefined} />)}</div> : <div className="empty">Aucun appel ne correspond.</div>}
     </div>
     </>
   );

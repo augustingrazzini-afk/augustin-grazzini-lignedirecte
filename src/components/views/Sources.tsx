@@ -1,4 +1,5 @@
 import type { Scope } from "@/lib/access";
+import { planOf } from "@/lib/plan";
 import { db } from "@/lib/db";
 import { ago } from "@/lib/format";
 import { getProvider, providerList } from "@/lib/providers";
@@ -13,6 +14,7 @@ import { ManualAdd } from "../client/ManualAdd";
 import { CopyButton } from "../client/CallActions";
 
 export async function Sources({ scope }: { scope: Scope }) {
+  const canListen = (await planOf(scope.orgId)).premium;
   const clientId = scope.kind === "client" ? scope.clientId : null;
   const integrations = await db.integration.findMany({
     where: { orgId: scope.orgId, ...(clientId ? { clientId } : {}) },
@@ -53,7 +55,7 @@ export async function Sources({ scope }: { scope: Scope }) {
                         <p style={{ margin: "6px 0 0" }}>Le libellé d&apos;événement de votre outil est aussi compris (« emailsReplied », « Connection accepted »…). Gardez cette URL secrète.</p>
                       </div>
                     ) : <p className="muted small" style={{ margin: "6px 0 0" }}>À coller dans {p.label} (réglages API / webhooks). Gardez-la secrète.</p>}</details>
-                  {hasRecordings(i.provider) && i._count.calls > 0 && (() => {
+                  {canListen && hasRecordings(i.provider) && i._count.calls > 0 && (() => {
                     const n = audioCount.get(i.id) || 0, h = listeningHelp(i.provider, p.label);
                     return (
                       <details id="ecoute" style={{ flex: "1 1 100%" }} open={n === 0}>

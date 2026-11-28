@@ -38,8 +38,8 @@ export default async function Page() {
       <PageTop title="Commerciaux" subtitle="Vos commerciaux internes, freelances et agences : chaque appel leur est attribué automatiquement" />
       {Number.isFinite(max) && reps.length >= max && (
         <div className="banner" style={{ display: "flex", gap: 14, alignItems: "center", flexWrap: "wrap", justifyContent: "space-between" }}>
-          <span>{max >= (PLAN_CAP[org.plan] ?? Infinity) ? <><b>Votre formule {plan.name} est limitée à {max} commerciaux, tous utilisés.</b> Pour en suivre plus, passez à la formule supérieure depuis votre abonnement.</> : <><b>Votre abonnement couvre {max} commercial{max > 1 ? "aux" : ""}, tous utilisés.</b> Pour en suivre un de plus : augmentez la quantité de votre abonnement ({euros(plan.price)} € HT par commercial et par mois, au prorata), puis revenez l&apos;ajouter ici.</>}</span>
-          {portal ? <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Ajouter un commercial à mon abonnement</a> : <Link className="btn primary" href="/app/billing">Gérer mon abonnement</Link>}
+          <span><b>Votre formule {plan.name} couvre {max} commerciaux, tous utilisés.</b> Pour en suivre plus, passez à la formule supérieure.</span>
+          {portal ? <a className="btn primary" href={portal} target="_blank" rel="noopener noreferrer">Changer de formule</a> : <Link className="btn primary" href="/app/billing">Changer de formule</Link>}
         </div>
       )}
       <div className="grid g-2">

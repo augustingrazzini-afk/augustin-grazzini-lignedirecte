@@ -184,7 +184,7 @@ export async function createClient(_: FormState, f: FormData): Promise<FormState
     if (email && !isEmail(email)) return { error: "Adresse email invalide." };
     const count = await db.client.count({ where: { orgId: scope.orgId } });
     const max = maxClients(org);
-    if (count >= max) return { error: max >= (PLAN_CAP[org.plan] ?? Infinity) ? `Votre formule est limitée à ${max} commerciaux. Pour en suivre plus : page Abonnement, « Gérer mon abonnement », passez à la formule supérieure.` : `Votre abonnement couvre ${max} commercial(aux). Pour en suivre un de plus : page Abonnement, « Gérer mon abonnement », augmentez la quantité, puis revenez l'ajouter.` };
+    if (count >= max) return { error: `Votre formule est limitée à ${max} commerciaux. Pour en suivre plus : page Abonnement, « Gérer mon abonnement », passez à la formule supérieure.` };
     const kind = ["interne", "freelance", "agence"].includes(s(f, "kind", 20)) ? s(f, "kind", 20) : "interne";
     const c = await db.client.create({ data: { orgId: scope.orgId, name, kind, agency: kind === "interne" ? "" : s(f, "agency", 80) } });
     // Attribution automatique : son nom dans l'outil d'appel partagé, et/ou ses listes (sans doublon, 20 au plus).

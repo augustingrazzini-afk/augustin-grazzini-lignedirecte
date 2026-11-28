@@ -32,7 +32,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
   const trialEnd = org.trialEndsAt.toLocaleDateString("fr-FR", { day: "numeric", month: "long" });
   const statusLine = offered ? "Accès offert"
     : org.subscriptionStatus === "trialing" ? `Accès provisoire jusqu'au ${trialEnd}${subId.startsWith("sub_") ? ` · premier prélèvement de ${euros(plan.price)} € HT le ${trialEnd}` : ""}`
-    : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price * (plan.perSeat ? Math.max(1, org.seats) : 1))} € HT par mois, sans engagement`
+    : org.subscriptionStatus === "active" ? `Actif · ${euros(plan.price)} € HT par mois, sans engagement`
     : org.subscriptionStatus === "past_due" ? "Paiement en échec : mettez à jour votre carte"
     : "Résilié";
   const features = (_id?: string) => [
@@ -56,7 +56,7 @@ export default async function Page({ searchParams }: { searchParams: Promise<{ o
           <div className="head"><div><h2>Votre formule : {plan.name}</h2><p className="sub">{statusLine}</p></div>{!offered && <span className="pill win">{STATUS[org.subscriptionStatus] || org.subscriptionStatus}</span>}</div>
           <ul className="muted" style={{ margin: "4px 0 16px", paddingLeft: 20, lineHeight: 1.7 }}>
             {(org.plan in PLAN_FEATURES ? PLAN_FEATURES[org.plan as keyof typeof PLAN_FEATURES].yes : features()).map((f) => <li key={f}>{f}</li>)}
-            {["starter", "agency", "premium"].includes(org.plan) && <li><b>{org.seats} commercial{org.seats > 1 ? "aux" : ""}</b> suivi{org.seats > 1 ? "s" : ""} sur votre abonnement : {euros(plan.price * org.seats)} € HT / mois. Pour en suivre plus, changez la quantité dans « Gérer mon abonnement ».</li>}
+            {["starter", "agency", "premium"].includes(org.plan) && <li>Prix fixe : <b>{euros(plan.price)} € HT / mois</b>, {Number.isFinite(plan.maxClients) ? `jusqu'à ${plan.maxClients} commerciaux` : "commerciaux illimités"}. Pour en suivre plus, changez de formule dans « Gérer mon abonnement ».</li>}
           </ul>
           {owner && !offered && (links ? (
             org.cancelRequestedAt ? <>
