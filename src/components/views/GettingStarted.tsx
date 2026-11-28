@@ -28,7 +28,7 @@ export async function GettingStarted({ orgId, userId }: { orgId: string; userId:
     { done: integrations > 0 || calls > 0, title: "Branchez leurs outils d'appel", text: "Chaque commercial branche son outil (Minari, Aircall, Ringover, lemlist…) depuis son invitation. Votre équipe partage un outil ? Branchez-le vous-même.", href: firstRep && !integrations ? `/app/clients/${firstRep}` : "/app/sources", cta: "Brancher un outil" },
     { done: recorded > 0, title: "Activez l'écoute des appels", text: `${listen.title} : chaque appel aura son bouton Écouter. Puis cliquez sur « Récupérer les enregistrements ».`, href: "/app/sources#ecoute", cta: "Activer l'écoute" },
     { done: calls > 0, title: "Regardez les appels arriver", text: "Chaque appel de chaque commercial, résumé par l'IA, avec la transcription et les objections. Le classement se met à jour en direct.", href: "/app/calls", cta: "Voir les appels" },
-    { done: convs > 0, title: "Posez une question à l'assistant IA", text: "« Qui a pris le plus de rendez-vous cette semaine ? », « Pourquoi les prospects refusent ? » : il a écouté tous les appels.", href: "/app/coach", cta: "Essayer l'assistant" },
+    { done: convs > 0, title: "Posez une question à l'assistant IA", text: "« Que s'est-il dit dans les appels d'aujourd'hui ? », « Quels appels écouter en priorité ? » : il a écouté tous les appels.", href: "/app/coach", cta: "Essayer l'assistant" },
   ];
 
   const doneCount = steps.filter((s) => s.done).length;

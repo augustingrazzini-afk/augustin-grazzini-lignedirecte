@@ -65,8 +65,8 @@ export function Assistant({ clientId, isClient, aiReady, compact = false, shareT
   const fmt = (d: string) => new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 
   const all = isClient
-    ? ["Prépare mon rendez-vous avec …", "Quels prospects sont les plus chauds ce mois-ci ?", "Quelles objections reviennent le plus ?", "Résume la semaine de prospection"]
-    : ["Qui a pris le plus de rendez-vous cette semaine ?", "Quel commercial a besoin d'aide, et pourquoi ?", "Quelles objections reviennent le plus ce mois-ci et comment y répondre ?", "Prépare mon rendez-vous avec …", "Quel est le meilleur créneau d'appel de l'équipe ?"];
+    ? ["Résume mes appels d'aujourd'hui", "Quels prospects ont montré de l'intérêt cette semaine, et qu'ont-ils dit ?", "Dans quels appels ai-je perdu le prospect, et à quel moment ?", "Quelles objections reviennent le plus dans mes appels ?"]
+    : ["Que s'est-il dit dans les appels d'aujourd'hui ?", "Quels prospects ont montré de l'intérêt cette semaine, et qu'ont-ils dit ?", "Quels appels dois-je écouter en priorité, et pourquoi ?", "Dans quels appels a-t-on perdu le prospect, et à quel moment ?", "Quelles objections reviennent le plus, et comment mes commerciaux y répondent ?"];
   const suggestions = compact ? all.slice(0, 3) : all;
 
   async function send(text: string) {

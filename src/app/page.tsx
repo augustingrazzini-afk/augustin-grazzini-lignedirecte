@@ -5,6 +5,7 @@ import { VisitBeacon } from "@/components/client/VisitBeacon";
 import { LogoMark } from "@/components/Logo";
 import { currentUser } from "@/lib/session";
 import { PAID_PLANS, PLANS, PLAN_FEATURES, euros } from "@/lib/billing";
+import { ClaudeLogo } from "@/components/ClaudeLogo";
 import { LEGAL } from "@/lib/legal";
 import { AI_CAN } from "@/lib/assistant-content";
 
@@ -134,7 +135,7 @@ export default async function Home() {
               <div>
                 <p>Salariés, freelances, agences de prospection : Trustpipe centralise <b>chaque appel de chacun de vos commerciaux</b>, au moment où il raccroche. Transcriptions, résumés, rendez-vous, classement. Vous voyez enfin le travail réel.</p>
                 <Link className="st-aipill" href="/assistant"><span className="st-aiic" aria-hidden="true">IA</span><span><b>Assistant IA.</b> Il a écouté tous les appels : « qui a pris le plus de rendez-vous ? », « pourquoi on ne signe pas ? »</span><span aria-hidden="true">→</span></Link>
-                <Link className="st-aipill" href="#claude" style={{ marginTop: 10 }}><span className="st-aiic" aria-hidden="true">✳</span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
+                <Link className="st-aipill" href="#claude" style={{ marginTop: 10 }}><span className="st-aiic logo"><ClaudeLogo size={24} /></span><span><b>Se branche sur Claude.</b> « Quelles relances aujourd&apos;hui ? » : Claude répond avec vos données Trustpipe.</span><span aria-hidden="true">→</span></Link>
                 <p className="st-note">SANS ENGAGEMENT · PRIX PAR COMMERCIAL SUIVI · DONNÉES EN FRANCE</p>
               </div>
               <div className="st-btns">
@@ -235,7 +236,7 @@ export default async function Home() {
           <p className="st-lead">Dans Trustpipe, un assistant IA a écouté chaque appel de chaque commercial. Vous lui posez vos questions comme à un directeur commercial : qui performe, qui a besoin d&apos;aide, pourquoi les prospects refusent, comment préparer votre rendez-vous de jeudi.</p>
           <div className="st-ai">
             <div className="q"><div className="st-prompt"><span className="u1">direction ~</span><br />qui a pris le plus de rendez-vous cette semaine, et pourquoi ?<span className="st-cur" /></div>
-              <div className="st-chips"><span>classement de la semaine</span><span>qui a besoin d&apos;aide</span><span>objections</span><span>brief pré-rendez-vous</span><span>meilleur créneau</span></div></div>
+              <div className="st-chips"><span>les appels du jour</span><span>prospects intéressés</span><span>objections entendues</span><span>appels à écouter</span><span>où on perd le prospect</span></div></div>
             <div className="st-ans"><span className="st-mono" style={{ display: "block", fontSize: 11, letterSpacing: ".14em", color: "var(--o)", marginBottom: 10 }}>● RÉPONSE DE L&apos;ASSISTANT IA</span><b>Léa (interne) : 4 rendez-vous sur 61 appels.</b> Elle parle du délai dès la première phrase, et les prospects restent en ligne.<ol><li><b>Karim (freelance)</b> : 2 RDV, bon décroché, conversations courtes.</li><li><b>Prospectio (agence)</b> : 1 RDV sur 154 appels. 70 % des conversations s&apos;arrêtent avant 30 s : l&apos;accroche est à revoir.</li><li>Piste : faire écouter à l&apos;agence 2 appels de Léa.</li></ol></div>
           </div>
           <div className="st-secg">

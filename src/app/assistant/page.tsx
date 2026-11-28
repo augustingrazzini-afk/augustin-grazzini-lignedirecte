@@ -19,8 +19,9 @@ const HOW: [string, string][] = [
 ];
 
 const BOSS_ASKS = [
-  "Qui a pris le plus de rendez-vous cette semaine ?",
-  "Quel commercial a besoin d'aide, et pourquoi ?",
+  "Que s'est-il dit dans les appels d'aujourd'hui ?",
+  "Quels appels dois-je écouter en priorité, et pourquoi ?",
+  "Dans quels appels a-t-on perdu le prospect ?",
   "L'agence fait-elle le travail promis ?",
   "Prépare mon rendez-vous de jeudi avec Atelier Morel",
 ];

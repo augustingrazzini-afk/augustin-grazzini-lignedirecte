@@ -430,3 +430,4 @@
   .st-endrow { padding: 24px 16px 28px; }
 }
 @media (max-width: 360px) { .st-rail > * { padding: 0 10px; } .st-logo { font-size: 14px; } .st-go { font-size: 11.5px; gap: 6px; } }
+.st-aiic.logo { background: #F4EFE6; display: grid; place-items: center; }

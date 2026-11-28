@@ -3,6 +3,7 @@ import type { Scope } from "@/lib/access";
 import { db } from "@/lib/db";
 import Link from "next/link";
 import { PLANS, euros, hasAi, hasPremium } from "@/lib/billing";
+import { ClaudeLogo } from "./ClaudeLogo";
 import { aiEnabled, type Brief, type CoachResult } from "@/lib/ai";
 import { PageTop, Period } from "./Shell";
 import { Calls } from "./views/Calls";
@@ -81,12 +82,12 @@ async function ClaudeConnect({ orgId, userId }: { orgId: string; userId: string 
   const url = `${(process.env.APP_URL || "https://trustpipe.fr").replace(/\/$/, "")}/api/mcp`;
   const premium = !org || hasPremium(org);
   if (linked) return (
-    <div className="card claude-cta ok"><span className="claude-ic" aria-hidden="true">✳</span>
+    <div className="card claude-cta ok"><span className="claude-ic logo"><ClaudeLogo size={26} /></span>
       <div><b>Claude est connecté à vos relances.</b> <span className="muted">Demandez-lui : « Quelles relances sont en retard ? », « Reporte Paul Morel à jeudi », « Prépare ma journée ».</span></div>
       <a className="btn sm" href="https://claude.ai" target="_blank" rel="noreferrer">Ouvrir Claude</a></div>
   );
   return (
-    <div className="card claude-cta"><span className="claude-ic" aria-hidden="true">✳</span>
+    <div className="card claude-cta"><span className="claude-ic logo"><ClaudeLogo size={26} /></span>
       <div className="claude-body">
         <h2>Traitez vos relances depuis Claude</h2>
         <p className="muted" style={{ margin: "4px 0 12px" }}>Branchez Trustpipe sur Claude en 1 minute : vous lui demandez « quelles relances aujourd&apos;hui ? », il les liste avec le contexte de chaque prospect, les reporte ou les clôture pour vous.</p>
