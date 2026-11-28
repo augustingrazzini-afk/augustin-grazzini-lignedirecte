@@ -1,8 +1,8 @@
 # Traitement automatique des avis et anomalies Trustpipe
 
 Procédure suivie par la tâche programmée (toutes les heures, 8 h à 22 h, heure de Paris).
-Le fondateur (Gus) a autorisé la correction et la mise en ligne des anomalies sans validation préalable,
-dans les limites ci-dessous. Il ne code pas : tout compte rendu est écrit en français simple, sans jargon.
+**Mode prudent :** la tâche prépare et teste les corrections, mais **ne met rien en ligne**. Chaque correction
+attend sur une branche à part que Gus réponde « go ». Il ne code pas : tout compte rendu est écrit en français simple, sans jargon.
 
 ## 1. Ce qu'il y a à traiter
 
@@ -53,19 +53,23 @@ Rien de nouveau : on s'arrête là, sans email ni commit.
    Tous les tests doivent passer et la compilation réussir. Sinon : on ne met rien en ligne, on le dit dans le récap.
 5. Nouvelle colonne ou index : fichier `prisma/sql/0NN_nom.sql` + `schema.prisma`, appliqué en production avec
    `apply_migration` **avant** la mise en ligne. Uniquement des ajouts (`ADD COLUMN IF NOT EXISTS`, `CREATE INDEX IF NOT EXISTS`).
-6. Commit en français, puis `git push origin HEAD:main` (la mise en ligne est automatique).
-7. Vérifier que le déploiement Vercel passe à `READY` et qu'aucune nouvelle erreur n'apparaît.
+6. Commit en français sur une branche `correctif/AAAA-MM-JJ-sujet` (une par sujet), poussée avec
+   `git push -u origin correctif/…`. **Jamais de push sur `main`.** Ne pas appliquer de migration en production :
+   la décrire dans le récap.
+7. Quand Gus répond « go » (dans une conversation avec Claude) : fusionner la branche dans `main`, appliquer la
+   migration éventuelle avant, pousser, vérifier que le déploiement Vercel passe à `READY`.
 
 ## 4. Marquer comme traité
 
 ```sql
 UPDATE "Feedback" SET "handledAt" = now(), "handledNote" = 'Corrigé : … (commit abc1234)' WHERE id = '…';
 ```
-Notes types : « Corrigé : … », « À valider par Gus : … », « Demande de fonctionnalité : … », « Rien à corriger : … ».
+Notes types : « Correction prête, branche correctif/… : … », « À valider par Gus : … », « Demande de fonctionnalité : … », « Rien à corriger : … ».
 
 ## 5. Prévenir Gus
 
 Uniquement s'il y a eu au moins un avis ou une anomalie : un email via Resend,
 de `Trustpipe <bonjour@trustpipe.fr>` à `bonjour@trustpipe.fr` (redirigé vers sa boîte), objet
 « Trustpipe : avis traités (N) ». Pour chaque point : ce qui a été signalé, ce qui a été fait, ce qui attend
-sa décision, et une proposition de réponse au client (qu'il enverra lui-même).
+sa décision, le nom de la branche de chaque correction prête (« réponds go pour la mettre en ligne »),
+et une proposition de réponse au client (qu'il enverra lui-même).
