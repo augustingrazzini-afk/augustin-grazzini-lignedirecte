@@ -2,7 +2,7 @@
 export const TODO = "[à compléter]";
 
 /** Adresse de contact affichée sur le site et adresse de réponse des emails envoyés par Trustpipe. */
-export const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "augustingrazzini@lignedirecte.io";
+export const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "bonjour@trustpipe.fr";
 
 export const LEGAL = {
   brand: "Trustpipe",
